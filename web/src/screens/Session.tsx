@@ -614,6 +614,15 @@ function ReadAloudSentence({
           <span className="small muted grow">{rec.listening ? rec.interim || '…' : transcript}</span>
         )}
       </div>
+      {rec.error && <div className="error-banner">{rec.error}</div>}
+      <label htmlFor={`transcript-${index}`}>Transcript</label>
+      <input
+        id={`transcript-${index}`}
+        lang="ko"
+        value={transcript}
+        onChange={(e) => setTranscript(e.target.value)}
+        placeholder="Type what you said if microphone recognition is unavailable"
+      />
       {percent !== null && segments && (
         <div className="row">
           <span className={`tag ${percent >= 80 ? '' : 'small-label'}`}>match {percent}%</span>

@@ -12,7 +12,7 @@ interface RecEventLike {
 
 type RecLike = {
   onresult: ((e: RecEventLike) => void) | null;
-  onerror: ((e: unknown) => void) | null;
+  onerror: ((e: { error?: string }) => void) | null;
   onend: (() => void) | null;
   lang: string;
   continuous: boolean;
@@ -36,6 +36,7 @@ export function useSpeechRecognition(lang = 'ko-KR') {
   const [listening, setListening] = useState(false);
   const [interim, setInterim] = useState('');
   const [final, setFinal] = useState('');
+  const [error, setError] = useState('');
   const recRef = useRef<RecLike | null>(null);
   const finalRef = useRef('');
   const interimRef = useRef('');
@@ -58,6 +59,7 @@ export function useSpeechRecognition(lang = 'ko-KR') {
   const start = useCallback(() => {
     const Ctor = getRecognition();
     if (!Ctor) return;
+    setError('');
     const rec = new Ctor();
     rec.lang = langRef.current;
     rec.continuous = false;
@@ -85,12 +87,21 @@ export function useSpeechRecognition(lang = 'ko-KR') {
       setFinal('');
       setInterim('');
     };
-    rec.onerror = () => {
+    rec.onerror = (event) => {
       setListening(false);
+      const reason = event.error === 'not-allowed' || event.error === 'service-not-allowed'
+        ? 'Microphone access was blocked. Allow microphone access or type the transcript below.'
+        : `Speech recognition failed${event.error ? `: ${event.error}` : ''}. You can type the transcript below.`;
+      setError(reason);
     };
     recRef.current = rec;
-    rec.start();
-    setListening(true);
+    try {
+      rec.start();
+      setListening(true);
+    } catch {
+      setListening(false);
+      setError('Could not start speech recognition. You can type the transcript below.');
+    }
   }, []);
 
   useEffect(() => {
@@ -99,5 +110,5 @@ export function useSpeechRecognition(lang = 'ko-KR') {
     };
   }, []);
 
-  return { supported, listening, start, stop, final, interim, onFinal, onInterim };
+  return { supported, listening, start, stop, final, interim, error, onFinal, onInterim };
 }
