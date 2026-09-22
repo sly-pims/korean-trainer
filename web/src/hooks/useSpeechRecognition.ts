@@ -56,21 +56,10 @@ export function useSpeechRecognition(lang = 'ko-KR') {
     recRef.current?.stop();
   }, []);
 
-  const start = useCallback(async () => {
+  const start = useCallback(() => {
     const Ctor = getRecognition();
     if (!Ctor) return;
     setError('');
-    if (!navigator.mediaDevices?.getUserMedia) {
-      setError('Microphone access is unavailable. Check Brave site permissions and use HTTPS.');
-      return;
-    }
-    try {
-      const permissionStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      permissionStream.getTracks().forEach((track) => track.stop());
-    } catch {
-      setError('Microphone access was blocked. Allow the microphone for this site in Brave settings.');
-      return;
-    }
     const rec = new Ctor();
     rec.lang = langRef.current;
     rec.continuous = false;

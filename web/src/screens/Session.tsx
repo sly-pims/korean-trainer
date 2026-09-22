@@ -608,7 +608,7 @@ function ReadAloudSentence({
         <SpeakButton text={target} rate={rate} voiceUri={voiceUri} label="Hear the sentence" />
       </div>
       <div className="row">
-        <button onClick={rec.listening ? rec.stop : () => void rec.start()} disabled={!rec.supported}>
+        <button onClick={rec.listening ? rec.stop : rec.start} disabled={!rec.supported}>
           {rec.listening ? '⏹ Stop' : '🎤 Start speaking'}
         </button>
         {rec.supported && (rec.interim || transcript) && (
