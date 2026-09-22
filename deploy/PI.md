@@ -102,6 +102,18 @@ off-box (rsync/borg).
 
 ## Updating
 
+The repeatable Docker deployment path is:
+
+```bash
+cd /opt/korean-trainer
+./deploy/update.sh
+```
+
+The script pulls fast-forwardable Git changes, rebuilds the image, recreates the
+container, and preserves the bind-mounted `data/` directory.
+
+For a manual update without Docker:
+
 ```bash
 sudo systemctl stop korean-trainer
 cd /opt/korean-trainer && sudo -u korean git pull && sudo -u korean npm ci && sudo -u korean npm run build
