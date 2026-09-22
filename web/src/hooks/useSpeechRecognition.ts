@@ -93,7 +93,7 @@ export function useSpeechRecognition(lang = 'ko-KR') {
       setListening(false);
       permissionStreamRef.current?.getTracks().forEach((track) => track.stop());
       permissionStreamRef.current = null;
-      const done = finalRef.current;
+      const done = finalRef.current || interimRef.current;
       if (done.trim()) onFinalRef.current(done.trim());
       finalRef.current = '';
       interimRef.current = '';

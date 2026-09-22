@@ -581,6 +581,7 @@ function ReadAloudSentence({
 
   useEffect(() => {
     rec.onFinal((text) => setTranscript(text));
+    rec.onInterim((text) => setTranscript(text));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
