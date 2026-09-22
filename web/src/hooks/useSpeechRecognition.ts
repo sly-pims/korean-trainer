@@ -38,7 +38,6 @@ export function useSpeechRecognition(lang = 'ko-KR') {
   const [final, setFinal] = useState('');
   const [error, setError] = useState('');
   const recRef = useRef<RecLike | null>(null);
-  const permissionStreamRef = useRef<MediaStream | null>(null);
   const finalRef = useRef('');
   const interimRef = useRef('');
   const langRef = useRef(lang);
@@ -66,7 +65,8 @@ export function useSpeechRecognition(lang = 'ko-KR') {
       return;
     }
     try {
-      permissionStreamRef.current = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const permissionStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      permissionStream.getTracks().forEach((track) => track.stop());
     } catch {
       setError('Microphone access was blocked. Allow the microphone for this site in Brave settings.');
       return;
@@ -91,8 +91,6 @@ export function useSpeechRecognition(lang = 'ko-KR') {
     };
     rec.onend = () => {
       setListening(false);
-      permissionStreamRef.current?.getTracks().forEach((track) => track.stop());
-      permissionStreamRef.current = null;
       const done = finalRef.current || interimRef.current;
       if (done.trim()) onFinalRef.current(done.trim());
       finalRef.current = '';
@@ -102,7 +100,6 @@ export function useSpeechRecognition(lang = 'ko-KR') {
     };
     rec.onerror = (event) => {
       setListening(false);
-      if (event.error === 'aborted') return;
       const reason = event.error === 'not-allowed' || event.error === 'service-not-allowed'
         ? 'Microphone access was blocked. Allow microphone access or type the transcript below.'
         : `Speech recognition failed${event.error ? `: ${event.error}` : ''}. You can type the transcript below.`;
@@ -114,8 +111,6 @@ export function useSpeechRecognition(lang = 'ko-KR') {
       setListening(true);
     } catch {
       setListening(false);
-      permissionStreamRef.current?.getTracks().forEach((track) => track.stop());
-      permissionStreamRef.current = null;
       setError('Could not start speech recognition. You can type the transcript below.');
     }
   }, []);
@@ -123,7 +118,6 @@ export function useSpeechRecognition(lang = 'ko-KR') {
   useEffect(() => {
     return () => {
       recRef.current?.abort();
-      permissionStreamRef.current?.getTracks().forEach((track) => track.stop());
     };
   }, []);
 
