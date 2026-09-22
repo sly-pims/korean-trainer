@@ -1,0 +1,13 @@
+services:
+  korean-trainer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: korean-trainer:latest
+    container_name: korean-trainer
+    restart: unless-stopped
+    env_file: ./.env
+    ports:
+      - "127.0.0.1:8787:8787"
+    volumes:
+      - ./data:/app/data

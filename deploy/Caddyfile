@@ -1,0 +1,25 @@
+# Korean Daily Trainer — Caddy reverse proxy / HTTPS (Raspberry Pi)
+#
+# 1. Point your DuckDNS hostname at the Pi (deploy/duckdns.sh, cron each 5 min).
+# 2. Forward ports 80 + 443 (HTTPS + ACME) to the Pi.
+# 3. `sudo apt install -y caddy`
+# 4. Replace your.domain.duckdns.org below and `sudo caddy run --config /etc/caddy/Caddyfile`.
+
+your.domain.duckdns.org {
+	# Fastify serves everything: the JSON API + the built PWA (web/dist).
+	reverse_proxy 127.0.0.1:8787
+
+	# Optional: force perfect-forward-secrecy-safe headers
+	header {
+		-X-Frame-Options DENY
+		X-Content-Type-Options nosniff
+		Referrer-Policy same-origin
+	}
+
+	encode zstd gzip
+
+	# Uploaded recordings come back at the same origin; 25 MB cap is plenty.
+	request_body {
+		max_size 25MB
+	}
+}

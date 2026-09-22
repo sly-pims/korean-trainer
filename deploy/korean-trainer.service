@@ -1,0 +1,28 @@
+# Korean Daily Trainer — systemd service (Raspberry Pi)
+
+[Unit]
+Description=Korean Daily Trainer (Fastify + PWA)
+Documentation=file:///opt/korean-trainer/deploy/PI.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=korean
+Group=korean
+WorkingDirectory=/opt/korean-trainer
+# Load secrets/environment without committing them (see deploy/.env on the Pi).
+EnvironmentFile=/opt/korean-trainer/deploy/.env
+ExecStart=/usr/bin/node /opt/korean-trainer/server/dist/index.js
+Restart=always
+RestartSec=5
+# node:sqlite + ffmpeg spawn need real-time-compatible limits, not strict sandboxing.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ReadWritePaths=/var/lib/korean-trainer
+# Turn on if the server is the only listener on the box:
+# HardeningOptions=SystemCallFilter=~@mount
+
+[Install]
+WantedBy=multi-user.target

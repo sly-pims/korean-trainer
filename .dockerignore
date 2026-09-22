@@ -1,0 +1,11 @@
+.git
+data
+.env
+*.log
+node_modules
+**/node_modules
+deploy
+README.md
+implementation-plan.md
+start-pc.cmd
+resources
