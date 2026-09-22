@@ -215,6 +215,7 @@ function Read({
   const [reveal, setReveal] = useState<Record<number, boolean>>({});
   const [qAnswers, setQAnswers] = useState<Record<number, number>>({});
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     setTappable(new Set(pack.glossary.map((g) => g.surface)));
@@ -243,6 +244,7 @@ function Read({
   };
 
   const saveAnswers = async (answers: Record<number, number>) => {
+    setSaving(true);
     try {
       await api.gradeRead(
         sessionId,
@@ -251,6 +253,8 @@ function Read({
       setSaved(true);
     } catch {
       /* keep the Continue button available so the save can be retried */
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -327,7 +331,7 @@ function Read({
           </div>
         );
       })}
-      <button className="primary big-cta" disabled={!allAnswered || saved} onClick={onDone}>
+      <button className="primary big-cta" disabled={!allAnswered || saving} onClick={onDone}>
         Continue to writing →
       </button>
       {allAnswered && !saved && <p className="small muted center">Your answers will be saved as you continue.</p>}
