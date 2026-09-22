@@ -214,7 +214,6 @@ function Read({
   const [showEn, setShowEn] = useState(false);
   const [reveal, setReveal] = useState<Record<number, boolean>>({});
   const [qAnswers, setQAnswers] = useState<Record<number, number>>({});
-  const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -238,24 +237,26 @@ function Read({
     const nextAnswers = { ...qAnswers, [qi]: choice };
     setQAnswers(nextAnswers);
     setReveal((m) => ({ ...m, [qi]: true }));
-    if (Object.keys(nextAnswers).length === pack.questions.length && !saved) {
-      await saveAnswers(nextAnswers);
-    }
   };
 
-  const saveAnswers = async (answers: Record<number, number>) => {
+  const saveAnswers = async (answers: Record<number, number>): Promise<boolean> => {
     setSaving(true);
     try {
       await api.gradeRead(
         sessionId,
         pack.questions.map((_q, i) => answers[i]),
       );
-      setSaved(true);
+      return true;
     } catch {
-      /* keep the Continue button available so the save can be retried */
+      return false;
     } finally {
       setSaving(false);
     }
+  };
+
+  const continueToWriting = async () => {
+    if (!allAnswered || !(await saveAnswers(qAnswers))) return;
+    onDone();
   };
 
   const allAnswered = pack.questions.length > 0 && pack.questions.every((_, i) => qAnswers[i] !== undefined);
@@ -331,10 +332,10 @@ function Read({
           </div>
         );
       })}
-      <button className="primary big-cta" disabled={!allAnswered || saving} onClick={onDone}>
+      <button className="primary big-cta" disabled={!allAnswered || saving} onClick={() => void continueToWriting()}>
         Continue to writing →
       </button>
-      {allAnswered && !saved && <p className="small muted center">Your answers will be saved as you continue.</p>}
+      {allAnswered && <p className="small muted center">Your answers will be saved as you continue.</p>}
     </>
   );
 }
