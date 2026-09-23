@@ -186,17 +186,25 @@ export class ReviewService {
   async transcribeAudio(context: string, audio: Buffer, ext: string): Promise<string> {
     if (!this.callManager) throw new Error('LLM is not configured, cannot transcribe audio.');
     const wav = await convertToWav16k(audio, ext, this.ffmpegPath);
+    // Gemini regularly uses a different key (or an empty object) for verbose
+    // audio, so accept several spellings and treat misses as "no speech".
     const out = await this.callManager.generateJSONFromAudio({
       system:
         'You are a meticulous Korean speech transcriber. Write EXACTLY what you hear, including errors and hesitations. Only use an empty string if the audio contains no human speech at all.',
       prompt: context
         ? `Context: the learner is reading this Korean sentence aloud: ${context}\nTranscribe the spoken audio verbatim as Korean text.`
         : 'Transcribe the spoken Korean audio verbatim.',
-      schema: z.object({ transcript_ko: z.string() }),
+      schema: z.object({
+        transcript_ko: z.string().nullable().optional(),
+        transcript: z.string().nullable().optional(),
+        text: z.string().nullable().optional(),
+      }),
       audio: wav,
       mimeType: 'audio/wav',
     });
-    return out.transcript_ko.trim();
+    const transcript = (out.transcript_ko ?? out.transcript ?? out.text ?? '').trim();
+    if (!transcript) return '';
+    return transcript;
   }
 
   // ---- Retry queue (§4.2 #5, #6) ----

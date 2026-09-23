@@ -332,6 +332,136 @@ label {
   color: var(--primary);
 }
 
+.big-num {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--text);
+}
+.stat-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-2);
+  font-weight: 700;
+}
+
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+.cal-heads {
+  margin-bottom: 6px;
+}
+.cal-heads span {
+  text-align: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-2);
+}
+.cal-cell {
+  aspect-ratio: 1;
+  border-radius: 8px;
+  background: var(--surface-2);
+}
+.cal-cell.active {
+  background: var(--primary);
+}
+.cal-cell.today {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.session-row {
+  border-bottom: 1px solid var(--border);
+  padding: 10px 0;
+}
+.session-row:last-child {
+  border-bottom: none;
+}
+.session-date {
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+.today-tag {
+  font-style: normal;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin-left: 6px;
+}
+.score-row {
+  margin-top: 6px;
+}
+.score-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: var(--surface-2);
+  color: var(--text);
+}
+.score-chip .score-chip-label {
+  font-size: 0.66rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-2);
+}
+.score-chip.read {
+  background: #e8f0fe;
+  color: #0842a0;
+}
+.score-chip.write {
+  background: #fbeef3;
+  color: #a03a6b;
+}
+.score-chip.listen {
+  background: #e6f4ea;
+  color: #1e4d2e;
+}
+.score-chip.speak {
+  background: #fef3e2;
+  color: #8a4b00;
+}
+.score-chip.vocab {
+  background: #efe9fb;
+  color: #4a2d99;
+}
+.score-chip.skipped {
+  background: var(--surface-2);
+  color: var(--text-2);
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.legend-item .dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+.dot.read {
+  background: #0842a0;
+}
+.dot.write {
+  background: #a03a6b;
+}
+.dot.listen {
+  background: #1e4d2e;
+}
+.dot.speak {
+  background: #8a4b00;
+}
+.dot.vocab {
+  background: #4a2d99;
+}
+
 .spinner {
   width: 22px;
   height: 22px;

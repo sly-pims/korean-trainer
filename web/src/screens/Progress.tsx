@@ -1,6 +1,14 @@
 import { useEffect, useState } from 'react';
-import { api, formatDuration, humanizeLevel, scorePercent } from '../api';
+import { api, formatDuration, humanizeLevel } from '../api';
 import type { ProgressData } from '../types';
+
+const SKILLS = [
+  { key: 'read_score', label: 'Reading', color: 'read', hint: 'comprehension check' },
+  { key: 'write_score', label: 'Writing', color: 'write', hint: 'your free-written note' },
+  { key: 'listen_score', label: 'Listening', color: 'listen', hint: 'dictation' },
+  { key: 'speak_score', label: 'Speaking', color: 'speak', hint: 'read-aloud & speaking' },
+  { key: 'vocab_score', label: 'Vocab', color: 'vocab', hint: 'word review' },
+] as const;
 
 export function Progress() {
   const [data, setData] = useState<ProgressData | null>(null);
@@ -20,6 +28,7 @@ export function Progress() {
   if (!data) return <div className="spinner" />;
 
   const { settings, sessions, streakCalendar, history } = data;
+  const todayIso = toIso(new Date());
 
   return (
     <>
@@ -27,14 +36,14 @@ export function Progress() {
       <div className="card row">
         <div className="grow">
           <div className="big-num">{settings.streak}</div>
-          <div className="muted small">day streak</div>
+          <div className="stat-label">day streak</div>
         </div>
         <div className="grow">
-          <div className="muted small">Level</div>
+          <div className="stat-label">Level</div>
           <div className="big-num">{humanizeLevel(settings.level)}</div>
         </div>
         <div className="grow">
-          <div className="muted small">Sessions</div>
+          <div className="stat-label">Sessions done</div>
           <div className="big-num">{sessions.length}</div>
         </div>
       </div>
@@ -42,19 +51,36 @@ export function Progress() {
       <StreakCalendar days={streakCalendar} lastDate={settings.last_session_date} />
 
       <h3>Recent sessions</h3>
+      <p className="small muted">
+        Each row is one day's session. Scores are <b>% correct</b> — an em dash ({'—'}) means that skill was skipped.
+      </p>
       <div className="card">
         {sessions.length === 0 && <p className="muted">No sessions yet. Finished your first one today?</p>}
         {sessions.map((s, i) => (
-          <div key={i} className="list-item">
-            <span className="grow small">{s.date}</span>
-            <ScoreRow label="R" value={s.read_score} color="read" />
-            <ScoreRow label="W" value={s.write_score} color="write" />
-            <ScoreRow label="L" value={s.listen_score} color="listen" />
-            <ScoreRow label="S" value={s.speak_score} color="speak" />
-            <ScoreRow label="V" value={s.vocab_score} color="vocab" />
-            {s.duration_s !== null && <span className="muted small">{formatDuration(s.duration_s)}</span>}
+          <div className="session-row" key={i}>
+            <div className="row">
+              <span className="session-date grow">
+                {formatDate(s.date)}
+                {s.date === todayIso && <em className="today-tag">today</em>}
+              </span>
+              {s.duration_s !== null && <span className="small muted">{formatDuration(s.duration_s)}</span>}
+            </div>
+            <div className="row wrap score-row">
+              {SKILLS.map((k) => (
+                <ScoreChip key={k.key} label={k.label} value={s[k.key] as number | null} color={k.color} />
+              ))}
+            </div>
           </div>
         ))}
+      </div>
+      <div className="card">
+        <div className="row wrap">
+          {SKILLS.map((k) => (
+            <span key={k.key} className="small muted legend-item">
+              <span className={`dot ${k.color}`} /> {k.label} = {k.hint}
+            </span>
+          ))}
+        </div>
       </div>
 
       <h3>Level history</h3>
@@ -62,9 +88,9 @@ export function Progress() {
         {history.length === 0 && <p className="muted">Level changes will appear here.</p>}
         {history.map((h, i) => (
           <div className="list-item" key={i}>
-            <span className="grow small">{h.change_date}</span>
+            <span className="grow small">{formatDate(h.change_date)}</span>
             <span className="small">
-              L{h.from_level} → L{h.to_level}
+              Level {h.from_level} → Level {h.to_level}
             </span>
           </div>
         ))}
@@ -73,14 +99,20 @@ export function Progress() {
   );
 }
 
-function ScoreRow({ label, value, color }: { label: string; value: number | null; color: string }) {
-  const pct = scorePercent(value);
+function ScoreChip({ label, value, color }: { label: string; value: number | null; color: string }) {
+  const skipped = value === null || value === undefined;
   return (
-    <span className={`score-chip ${color}`} title={`${label}: ${pct === null ? '—' : pct + '%'}`}>
-      {label}
-      {pct === null ? '' : pct}
+    <span className={`score-chip ${color} ${skipped ? 'skipped' : ''}`}>
+      <span className="score-chip-label">{label}</span>
+      {skipped ? '—' : `${value}%`}
     </span>
   );
+}
+
+function formatDate(iso: string): string {
+  const d = new Date(`${iso}T00:00:00`);
+  const base = d.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' });
+  return d.getFullYear() === new Date().getFullYear() ? base : `${base} ${d.getFullYear()}`;
 }
 
 function StreakCalendar({ days, lastDate }: { days: string[]; lastDate: string | null }) {
@@ -95,11 +127,9 @@ function StreakCalendar({ days, lastDate }: { days: string[]; lastDate: string |
   const weekLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
   return (
     <div className="card">
-      <div className="row small muted">
+      <div className="cal-grid cal-heads">
         {weekLabels.map((w, i) => (
-          <span key={i} className="cal-cell-head">
-            {w}
-          </span>
+          <span key={i}>{w}</span>
         ))}
       </div>
       <div className="cal-grid">
