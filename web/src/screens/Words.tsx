@@ -252,19 +252,19 @@ function AddWordForm({
       <input lang="ko" placeholder="Word (e.g. 사과)" value={lemma} onChange={(e) => setLemma(e.target.value)} />
       <input placeholder="Meaning in English" value={meaning} onChange={(e) => setMeaning(e.target.value)} />
       <input lang="ko" placeholder="Example sentence (optional)" value={example} onChange={(e) => setExample(e.target.value)} />
-      <div className="row">
-        <label htmlFor="add-level" className="small muted grow">
-          Level
+      <div className="controls">
+        <label className="control">
+          <span className="small muted">Level</span>
           <select id="add-level" value={level} onChange={(e) => setLevel(Number(e.target.value))}>
             {[1, 2, 3, 4, 5, 6].map((l) => (
               <option key={l} value={l}>
-                {l}
+                Level {l}
               </option>
             ))}
           </select>
         </label>
         <button
-          className="small primary"
+          className="control-suggest primary small"
           disabled={busy || lemma.trim() === '' || meaning.trim() === ''}
           onClick={add}
         >
@@ -349,19 +349,19 @@ function DiscoverCard() {
       {open && (
         <div className="stack">
           <input placeholder="Optional topic (e.g. cooking, travel)…" value={topic} onChange={(e) => setTopic(e.target.value)} />
-          <div className="row">
-            <label className="small muted grow">
-              Match my level: {level}
+          <div className="controls">
+            <label className="control">
+              <span className="small muted">Match my level</span>
               <select value={level} onChange={(e) => setLevel(Number(e.target.value))}>
                 {[1, 2, 3, 4, 5, 6].map((l) => (
                   <option key={l} value={l}>
-                    {l}
+                    Level {l}
                   </option>
                 ))}
               </select>
             </label>
-            <label className="small muted">
-              How many
+            <label className="control">
+              <span className="small muted">How many</span>
               <select value={count} onChange={(e) => setCount(Number(e.target.value))}>
                 {[3, 5, 10].map((c) => (
                   <option key={c} value={c}>
@@ -370,7 +370,7 @@ function DiscoverCard() {
                 ))}
               </select>
             </label>
-            <button className="primary small" disabled={busy} onClick={run}>
+            <button className="control-suggest primary small" disabled={busy} onClick={run}>
               {busy ? 'Thinking…' : 'Suggest'}
             </button>
           </div>
