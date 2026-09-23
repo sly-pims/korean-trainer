@@ -47,7 +47,13 @@ export function useMediaRecorder(onStartError?: (msg: string) => void): Recordin
   const stop = useCallback(() => {
     const rec = recRef.current;
     if (rec && rec.state !== 'inactive') {
-      rec.onstop = null;
+      // Flush any buffered audio *before* stopping so a final blob always
+      // materialises (some Android builds drop empty final dataavailable events).
+      try {
+        rec.requestData();
+      } catch {
+        // requestData is optional on some platforms; ignore.
+      }
       rec.stop();
     }
     mediaRef.current?.getTracks().forEach((t) => t.stop());
@@ -71,7 +77,14 @@ export function useMediaRecorder(onStartError?: (msg: string) => void): Recordin
       };
       rec.onstop = () => {
         const blob = chunksRef.current.length ? new Blob(chunksRef.current, { type: ext }) : null;
-        setState((s) => ({ ...s, recording: false, blob, mimeType: ext, elapsedMs: Date.now() - startMsRef.current }));
+        setState((s) => ({
+          ...s,
+          recording: false,
+          blob,
+          mimeType: ext,
+          elapsedMs: Date.now() - startMsRef.current,
+          error: blob ? null : s.error ?? 'No audio was captured — please try again.',
+        }));
       };
       rec.onerror = () => {
         setState((s) => ({ ...s, recording: false, error: 'Recording failed.' }));
@@ -79,7 +92,9 @@ export function useMediaRecorder(onStartError?: (msg: string) => void): Recordin
       recRef.current = rec;
       mediaRef.current = stream;
       startMsRef.current = Date.now();
-      rec.start();
+      // Timeslice forces periodic dataavailable events, which some Android
+      // builds skip when the recording is stopped without one.
+      rec.start(250);
       setState((s) => ({ ...s, recording: true }));
     } catch (err) {
       onStartError?.(err instanceof Error ? err.message : 'Could not open the microphone.');
