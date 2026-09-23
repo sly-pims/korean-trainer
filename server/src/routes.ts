@@ -165,19 +165,49 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
   });
 
   // ---------- Speaking (M5) ----------
-  app.post('/api/session/:id/speaking/read-aloud', async (req: PReq<{ sentence_index?: number; transcript?: string }>, reply) => {
-    const parsed = z
-      .object({ sentence_index: z.number().int().min(0).max(9), transcript: z.string().max(500) })
-      .safeParse(req.body ?? {});
-    if (!parsed.success) return reply.code(400).send({ error: parsed.error.message });
+  app.post('/api/session/:id/speaking/read-aloud', async (req: FastifyRequest<{ Params: { id: string } }>, reply) => {
     const sessionId = Number(req.params.id);
     const pack = content.packForSession(sessionId) as Pack;
-    const target = pack.sentences[parsed.data.sentence_index]?.ko ?? '';
-    const diff = compareStrings(target, parsed.data.transcript);
-    const attemptId = review.createReadAloudAttempt(sessionId, target, parsed.data.transcript, diff.percent);
+    const ct = (req.headers['content-type'] ?? '').toLowerCase();
+    // Typed transcript (desktop/keyboard): compare client text directly.
+    if (ct.includes('json')) {
+      const parsed = z
+        .object({ sentence_index: z.number().int().min(0).max(9), transcript: z.string().max(500) })
+        .safeParse(req.body ?? {});
+      if (!parsed.success) return reply.code(400).send({ error: parsed.error.message });
+      const target = pack.sentences[parsed.data.sentence_index]?.ko ?? '';
+      const diff = compareStrings(target, parsed.data.transcript);
+      const attemptId = review.createReadAloudAttempt(sessionId, target, parsed.data.transcript, diff.percent);
+      return reply.send({
+        target,
+        ...diff,
+        transcript: parsed.data.transcript,
+        attempt_id: attemptId,
+        note_en: 'A mismatch may be a recognizer error, not only a pronunciation error.',
+      });
+    }
+    // Raw audio: transcribe server-side (reliable on Android, unlike the Web Speech API).
+    const index = Number(req.headers['x-sentence-index'] ?? -1);
+    if (!Number.isInteger(index) || index < 0 || index > 9) {
+      return reply.code(400).send({ error: 'missing or invalid x-sentence-index header' });
+    }
+    const buf = req.body as Buffer | undefined;
+    if (!buf || buf.length === 0) return reply.code(400).send({ error: 'empty recording' });
+    const target = pack.sentences[index]?.ko ?? '';
+    const ext = mimeToExt(ct || 'audio/webm');
+    let transcript: string;
+    try {
+      transcript = await review.transcribeAudio(target, buf, ext);
+    } catch (e) {
+      req.log.warn({ err: e }, 'read-aloud transcription failed');
+      return reply.code(502).send({ error: e instanceof Error ? e.message : 'transcription failed' });
+    }
+    const diff = compareStrings(target, transcript);
+    const attemptId = review.createReadAloudAttempt(sessionId, target, transcript, diff.percent);
     return {
       target,
       ...diff,
+      transcript,
       attempt_id: attemptId,
       note_en: 'A mismatch may be a recognizer error, not only a pronunciation error.',
     };
@@ -194,6 +224,22 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
     if (!attempt) return { attempt: null };
     const feedback = attempt.feedback_json ? JSON.parse(attempt.feedback_json as string) : null;
     return { attempt, feedback };
+  });
+
+  // Verbatim transcription of an uploaded recording (used where the client-side
+  // Web Speech API is unreliable, e.g. Android for the practice read-aloud drill).
+  app.post('/api/transcribe', async (req: FastifyRequest, reply) => {
+    const buf = req.body as Buffer | undefined;
+    if (!buf || buf.length === 0) return reply.code(400).send({ error: 'empty recording' });
+    const mime = (req.headers['content-type'] ?? 'audio/webm').toLowerCase();
+    let transcript: string;
+    try {
+      transcript = await review.transcribeAudio('', buf, mimeToExt(mime));
+    } catch (e) {
+      req.log.warn({ err: e }, 'transcription failed');
+      return reply.code(502).send({ error: e instanceof Error ? e.message : 'transcription failed' });
+    }
+    return { transcript };
   });
 
   // ---------- Completion / wrap-up (M6) ----------
@@ -265,6 +311,24 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
       streakCalendar: (db.prepare("SELECT date FROM sessions WHERE status='done' ORDER BY date").all() as Array<{ date: string }>).map((r) => r.date),
       history: content.history(),
     };
+  });
+
+  // Wipe all learning-derived state and start over (keeps settings like TTS).
+  app.delete('/api/progress', async (req: FastifyRequest, reply) => {
+    const parsed = z.object({ confirm: z.literal('reset') }).safeParse(req.body ?? {});
+    if (!parsed.success) return reply.code(400).send({ error: 'must send {"confirm":"reset"}' });
+    const del = (t: string) => Number(db.prepare(`DELETE FROM ${t}`).run().changes ?? 0);
+    const deleted = {
+      writing_entries: del('writing_entries'),
+      speaking_attempts: del('speaking_attempts'),
+      srs_cards: del('srs_cards'),
+      sessions: del('sessions'),
+      words: del('words'),
+      level_history: del('level_history'),
+    };
+    db.prepare('UPDATE settings SET level=1, streak=0, last_session_date=NULL WHERE id=1').run();
+    db.prepare('UPDATE passages SET used=0, intended_date=NULL').run();
+    return { ok: true, deleted };
   });
 
   // ---------- Speaking practice (standalone screen) ----------

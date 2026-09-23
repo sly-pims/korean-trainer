@@ -107,6 +107,23 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ sentence_index: sentenceIndex, transcript }),
     }),
+  readAloudAudio: (id: number, sentenceIndex: number, audio: Blob, mime: string) =>
+    request<{ percent: number; attempt_id: number; transcript: string }>(`/api/session/${id}/speaking/read-aloud`, {
+      method: 'POST',
+      body: audio,
+      headers: { 'Content-Type': mime, 'X-Sentence-Index': String(sentenceIndex) },
+    }),
+  transcribe: (audio: Blob, mime: string) =>
+    request<{ transcript: string }>('/api/transcribe', {
+      method: 'POST',
+      body: audio,
+      headers: { 'Content-Type': mime },
+    }),
+  resetProgress: () =>
+    request<{ ok: boolean }>('/api/progress', {
+      method: 'DELETE',
+      body: JSON.stringify({ confirm: 'reset' }),
+    }),
   gradeReadAloudSelf: (target: string, transcript: string) =>
     request<{ percent: number; attempt_id: number }>('/api/practice/read-aloud', {
       method: 'POST',

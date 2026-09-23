@@ -43,6 +43,8 @@ export function SettingsScreen() {
   const [err, setErr] = useState('');
   const [saved, setSaved] = useState('');
   const [busy, setBusy] = useState(false);
+  const [resetting, setResetting] = useState(false);
+  const [resetMsg, setResetMsg] = useState<{ text: string; error: boolean } | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -58,6 +60,23 @@ export function SettingsScreen() {
   if (!s) return <div className="spinner" />;
 
   const patch = (p: Partial<Settings>) => setS((cur) => (cur ? { ...cur, ...p } : cur));
+
+  const reset = async () => {
+    const ok = window.confirm(
+      'Reset ALL progress? This deletes every session, word, writing entry and speaking attempt, sets your level back to Beginner 1 and clears the streak. Voice/speed settings are kept. This cannot be undone.',
+    );
+    if (!ok) return;
+    setResetting(true);
+    setResetMsg(null);
+    try {
+      const r = await api.resetProgress();
+      setResetMsg(r.ok ? { text: 'Progress reset — you are ready to start from scratch.', error: false } : { text: 'Reset reported a problem.', error: true });
+    } catch (e) {
+      setResetMsg({ text: e instanceof Error ? e.message : 'reset failed', error: true });
+    } finally {
+      setResetting(false);
+    }
+  };
 
   const save = async () => {
     if (!s) return;
@@ -161,6 +180,18 @@ export function SettingsScreen() {
           {busy ? 'Saving…' : 'Save settings'}
         </button>
         {saved && <span className="small muted">{saved}</span>}
+      </div>
+
+      <h3 style={{ marginTop: 24 }}>Danger zone</h3>
+      <div className="card">
+        <p className="small muted">
+          Reset ALL progress: every session, word, writing entry and speaking attempt is deleted, your level returns to
+          Beginner 1 and the streak is cleared. Voice/speed settings are kept. This cannot be undone.
+        </p>
+        <button className="danger" disabled={resetting} onClick={reset}>
+          {resetting ? 'Resetting…' : 'Reset all progress'}
+        </button>
+        {resetMsg && <p className={`small ${resetMsg.error ? 'error-banner' : 'muted'}`}>{resetMsg.text}</p>}
       </div>
     </>
   );

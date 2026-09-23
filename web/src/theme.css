@@ -30,6 +30,7 @@ body {
   font-family: 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui, -apple-system, sans-serif;
   font-size: 16px;
   line-height: 1.55;
+  -webkit-text-size-adjust: 100%;
 }
 
 #root {
@@ -73,6 +74,16 @@ button.primary {
   background: var(--primary);
   color: var(--primary-contrast);
 }
+button.ghost {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-2);
+}
+button.danger {
+  background: transparent;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+}
 
 input,
 textarea,
@@ -115,6 +126,7 @@ label {
 }
 .grow {
   flex: 1;
+  min-width: 0;
 }
 .muted {
   color: var(--text-2);
@@ -348,6 +360,22 @@ label {
 .login-box {
   width: 100%;
   max-width: 340px;
+}
+
+@media (max-width: 480px) {
+  main {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  .row {
+    flex-wrap: wrap;
+  }
+  .row.no-wrap {
+    flex-wrap: nowrap;
+  }
+  button {
+    padding: 12px 12px;
+  }
 }
 
 @media (min-width: 760px) {

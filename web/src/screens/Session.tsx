@@ -7,7 +7,6 @@ import { GlossCard } from '../components/GlossCard';
 import { SrsCard } from '../components/SrsCard';
 import { SpeakButton, SpeakToggle } from '../components/SpeakButton';
 import { useMediaRecorder } from '../hooks/useMediaRecorder';
-import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
 import type { GlossaryEntry, ListeningResult, SessionWithPack, Settings, SrsRating, WritingFeedback } from '../types';
 
 const STEP_ORDER = ['warmup', 'read', 'writing', 'listening', 'speaking', 'done'] as const;
@@ -572,7 +571,7 @@ function ReadAloudSentence({
   rate: number;
   voiceUri: string;
 }) {
-  const rec = useSpeechRecognition('ko-KR');
+  const rec = useMediaRecorder();
   const [transcript, setTranscript] = useState('');
   const [percent, setPercent] = useState<number | null>(null);
   const [segments, setSegments] = useState<{ type: 'equal' | 'delete' | 'insert'; text: string }[] | null>(null);
@@ -580,10 +579,23 @@ function ReadAloudSentence({
   const [err, setErr] = useState('');
 
   useEffect(() => {
-    rec.onFinal((text) => setTranscript(text));
-    rec.onInterim((text) => setTranscript(text));
+    if (!rec.blob) return;
+    (async () => {
+      setBusy(true);
+      setErr('');
+      try {
+        const r = await api.readAloudAudio(sessionId, index, rec.blob!, rec.mimeType);
+        setTranscript(r.transcript);
+        setPercent(r.percent);
+        setSegments(buildSegments(target, r.transcript));
+      } catch (e) {
+        setErr(e instanceof Error ? e.message : 'check failed');
+      } finally {
+        setBusy(false);
+      }
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [rec.blob]);
 
   const check = async () => {
     if (!transcript.trim()) return;
@@ -609,22 +621,22 @@ function ReadAloudSentence({
       </div>
       <div className="row">
         <button
+          className="primary"
           onClick={() => {
-            if (rec.listening) {
+            if (rec.recording) {
               rec.stop();
             } else {
               setPercent(null);
               setSegments(null);
-              rec.start();
+              rec.reset();
+              void rec.start();
             }
           }}
           disabled={!rec.supported}
         >
-          {rec.listening ? '⏹ Stop' : '🎤 Start speaking'}
+          {rec.recording ? '⏹ Stop recording' : '🎤 Record & check'}
         </button>
-        {rec.supported && (rec.interim || transcript) && (
-          <span className="small muted grow">{rec.listening ? rec.interim || '…' : transcript}</span>
-        )}
+        {rec.recording && <span className="small muted grow">Recording… read it out loud, then tap stop.</span>}
       </div>
       {rec.error && <div className="error-banner">{rec.error}</div>}
       <label htmlFor={`transcript-${index}`}>Transcript</label>
@@ -818,7 +830,7 @@ function FreeResponse({
           )}
         </div>
       )}
-      <button className="" onClick={onDone} disabled={attemptId !== null && !queued}>
+      <button className="ghost" onClick={onDone} disabled={attemptId !== null && !queued}>
         Skip speaking (still counts towards your session)
       </button>
     </>
@@ -913,7 +925,7 @@ function WrapUp({
           </button>
         </div>
       )}
-      <button className="" onClick={onBack}>
+      <button className="ghost" onClick={onBack}>
         Back to home
       </button>
     </>

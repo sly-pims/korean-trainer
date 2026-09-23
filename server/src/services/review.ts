@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
+import { z } from 'zod';
 import { CallManager } from '../llm/callManager.js';
 import { DailyCapReachedError } from '../llm/errors.js';
 import { writingGradePrompt, writingGradeSystem } from '../prompts/writingGrade.js';
@@ -175,6 +176,27 @@ export class ReviewService {
       this.db.prepare('UPDATE sessions SET speak_score=? WHERE id=?').run(score, attempt.session_id);
     }
     return true;
+  }
+
+  /**
+   * Transcribe a recording server-side (used by the read-aloud drills so the
+   * phone doesn't depend on the flaky Android Web Speech API).
+   * Returns the verbatim Korean transcription ('' if no speech was heard).
+   */
+  async transcribeAudio(context: string, audio: Buffer, ext: string): Promise<string> {
+    if (!this.callManager) throw new Error('LLM is not configured, cannot transcribe audio.');
+    const wav = await convertToWav16k(audio, ext, this.ffmpegPath);
+    const out = await this.callManager.generateJSONFromAudio({
+      system:
+        'You are a meticulous Korean speech transcriber. Write EXACTLY what you hear, including errors and hesitations. Only use an empty string if the audio contains no human speech at all.',
+      prompt: context
+        ? `Context: the learner is reading this Korean sentence aloud: ${context}\nTranscribe the spoken audio verbatim as Korean text.`
+        : 'Transcribe the spoken Korean audio verbatim.',
+      schema: z.object({ transcript_ko: z.string() }),
+      audio: wav,
+      mimeType: 'audio/wav',
+    });
+    return out.transcript_ko.trim();
   }
 
   // ---- Retry queue (§4.2 #5, #6) ----

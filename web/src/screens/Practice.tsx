@@ -5,7 +5,6 @@ import { SpeakingEvaluation } from '../components/Feedback';
 import { GlossCard } from '../components/GlossCard';
 import { SpeakButton, SpeakToggle } from '../components/SpeakButton';
 import { useMediaRecorder } from '../hooks/useMediaRecorder';
-import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
 import type { GlossaryEntry, SpeakingFeedback } from '../types';
 
 /** Standalone practice screen: random pack, read-aloud drill and a free-response drill. */
@@ -94,16 +93,27 @@ function splitPassage(text: string, surfaces: string[]): { text: string; surface
 
 function ReadAloudPractice({ pack, rate, voiceUri }: { pack: import('../types').ContentPack; rate: number; voiceUri: string }) {
   const target = pack.sentences[0]?.ko ?? pack.speaking_prompt.ko;
-  const rec = useSpeechRecognition('ko-KR');
+  const rec = useMediaRecorder();
   const [typed, setTyped] = useState('');
   const [result, setResult] = useState<{ percent: number; segments: { type: 'equal' | 'delete' | 'insert'; text: string }[] } | null>(null);
   const [err, setErr] = useState('');
 
   useEffect(() => {
-    rec.onFinal((text) => setTyped(text));
-    rec.onInterim((text) => setTyped(text));
+    if (!rec.blob) return;
+    (async () => {
+      setErr('');
+      setResult(null);
+      try {
+        const r = await api.transcribe(rec.blob!, rec.mimeType);
+        setTyped(r.transcript);
+        const graded = await api.gradeReadAloudSelf(target, r.transcript);
+        setResult({ percent: graded.percent, segments: splitCharDiff(target, r.transcript) });
+      } catch (e) {
+        setErr(e instanceof Error ? e.message : 'check failed');
+      }
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [rec.blob]);
 
   const check = async () => {
     if (!typed.trim()) return;
@@ -125,21 +135,21 @@ function ReadAloudPractice({ pack, rate, voiceUri }: { pack: import('../types').
       </div>
       <div className="row">
         <button
+          className="primary"
           onClick={() => {
-            if (rec.listening) {
+            if (rec.recording) {
               rec.stop();
             } else {
               setResult(null);
-              rec.start();
+              rec.reset();
+              void rec.start();
             }
           }}
           disabled={!rec.supported}
         >
-          {rec.listening ? '⏹ Stop' : '🎤 Start speaking'}
+          {rec.recording ? '⏹ Stop recording' : '🎤 Record & check'}
         </button>
-        {rec.supported && (rec.interim || typed) && (
-          <span className="small muted grow">{rec.listening ? rec.interim || '…' : typed}</span>
-        )}
+        {rec.recording && <span className="small muted grow">Reading… tap stop when done.</span>}
       </div>
       {rec.error && <div className="error-banner">{rec.error}</div>}
       <input lang="ko" value={typed} onChange={(e) => setTyped(e.target.value)} placeholder="Speak it, or type or paste what you said" />
