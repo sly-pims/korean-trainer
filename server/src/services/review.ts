@@ -181,16 +181,16 @@ export class ReviewService {
    * Transcribe a recording server-side (used by the read-aloud drills so the
    * phone doesn't depend on the flaky Android Web Speech API).
    * Returns the verbatim Korean transcription ('' if no speech was heard).
+   * The target sentence is deliberately NOT included in the prompt: Gemini
+   * anchors to it and echoes it back for silent audio, faking a 100% match.
    */
-  async transcribeAudio(context: string, audio: Buffer, ext: string): Promise<string> {
+  async transcribeAudio(audio: Buffer, ext: string): Promise<string> {
     if (!this.callManager) throw new Error('LLM is not configured, cannot transcribe audio.');
     const wav = await convertToWav16k(audio, ext, this.ffmpegPath);
     const raw = await this.callManager.generateTextFromAudio({
       system:
         'You are a meticulous Korean speech transcriber. Transcribe exactly what is spoken, verbatim, including errors and hesitations. If there is no human speech in the audio, reply with the single word EMPTY.',
-      prompt: context
-        ? `Context: the learner is reading this Korean sentence aloud: ${context}\nTranscribe the spoken audio verbatim as Korean text.`
-        : 'Transcribe the spoken Korean audio verbatim.',
+      prompt: 'Transcribe the spoken Korean audio verbatim.',
       audio: wav,
       mimeType: 'audio/wav',
     });

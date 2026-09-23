@@ -197,7 +197,7 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
     const ext = mimeToExt(ct || 'audio/webm');
     let transcript: string;
     try {
-      transcript = await review.transcribeAudio(target, buf, ext);
+      transcript = await review.transcribeAudio(buf, ext);
     } catch (e) {
       req.log.warn({ err: e }, 'read-aloud transcription failed');
       return reply.code(502).send({ error: e instanceof Error ? e.message : 'transcription failed' });
@@ -234,7 +234,7 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
     const mime = (req.headers['content-type'] ?? 'audio/webm').toLowerCase();
     let transcript: string;
     try {
-      transcript = await review.transcribeAudio('', buf, mimeToExt(mime));
+      transcript = await review.transcribeAudio(buf, mimeToExt(mime));
     } catch (e) {
       req.log.warn({ err: e }, 'transcription failed');
       return reply.code(502).send({ error: e instanceof Error ? e.message : 'transcription failed' });
