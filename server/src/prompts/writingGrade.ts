@@ -9,6 +9,7 @@ export function writingGradeSystem(level: number): string {
 Rules:
 - Be encouraging and specific. Explain issues in English.
 - Correct particles, spelling, spacing, conjugation, word choice and naturalness, but DO NOT over-correct at a low level: leave minor, acceptable alternatives alone.
+- The prompt text is a MODEL sentence showing the target grammar. The learner must write their OWN sentence about their own life (family, hobbies, plans, etc.) and is not expected to copy the model. Reward personal, correct use of the target pattern — never penalize the learner for writing something different from the model.
 - If the text is already good, return an empty "issues" array and a high score.
 - "more_natural_ko": a slightly more natural way to say the same thing (Korean).
 - Focus feedback on issues the learner can fix at their current level.`;

@@ -381,21 +381,28 @@ function Write({
     <>
       <h3>Writing</h3>
       <div className="card">
+        <p className="small muted">
+          Write about <b>your own life</b> — this model sentence only shows the pattern to use. Don't copy it verbatim.
+        </p>
         <div className="row">
-          <p className="ko grow">{pack.writing_prompt.ko}</p>
-          <SpeakButton text={pack.writing_prompt.ko} rate={rate} voiceUri={voiceUri} label="Hear the prompt" />
+          <span className="tag">model sentence</span>
+          <span className="grow" />
+          <SpeakButton text={pack.writing_prompt.ko} rate={rate} voiceUri={voiceUri} label="Hear the model" />
         </div>
-        <p className="muted">{pack.writing_prompt.en}</p>
-        {pack.writing_prompt.target_grammar && <span className="tag">{pack.writing_prompt.target_grammar}</span>}
+        <p className="ko grow">{pack.writing_prompt.ko}</p>
+        <p className="muted">
+          {pack.writing_prompt.en} — try the same pattern with your own details (family, hobbies, plans…).
+        </p>
+        {pack.writing_prompt.target_grammar && <span className="tag small-label">{pack.writing_prompt.target_grammar}</span>}
       </div>
-      <label htmlFor="write">Write your answer in Korean</label>
+      <label htmlFor="write">Write your own sentence in Korean (any topic using the same structure)</label>
       <textarea
         id="write"
         lang="ko"
         enterKeyHint="done"
         value={text}
         onChange={(e) => setText(e.target.value)}
-        placeholder="한국어로 써 보세요…"
+        placeholder="나의 문장을 써 보세요… (e.g. 저는 가족이 세 명이에요)"
       />
       {err && <div className="error-banner">{err}</div>}
       {queued && <p className="muted small">Sent for grading — feedback will appear shortly.</p>}
