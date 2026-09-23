@@ -228,7 +228,8 @@ export class ContentService {
     } else {
       const res = this.db
         .prepare(
-          'INSERT INTO words (lemma, surface_example, meaning_en, pos, level, first_seen_at, source_passage_id) VALUES (?,?,?,?,?,?,?)',
+          `INSERT INTO words (lemma, surface_example, meaning_en, pos, level, first_seen_at, source_passage_id, source, example_ko, example_en)
+           VALUES (?,?,?,?,?,?,?,'reading',NULL,NULL)`,
         )
         .run(
           entry.lemma,
@@ -261,6 +262,9 @@ export class ContentService {
     meaning_en: string;
     pos?: string;
     level?: number;
+    source?: 'manual' | 'suggested';
+    example_ko?: string;
+    example_en?: string;
   }): Record<string, unknown> {
     const settings = this.db.prepare('SELECT level FROM settings WHERE id=1').get() as {
       level: number;
@@ -274,7 +278,8 @@ export class ContentService {
     }
     const res = this.db
       .prepare(
-        'INSERT INTO words (lemma, surface_example, meaning_en, pos, level, first_seen_at, source_passage_id) VALUES (?,?,?,?,?,?,?)',
+        `INSERT INTO words (lemma, surface_example, meaning_en, pos, level, first_seen_at, source, example_ko, example_en)
+         VALUES (?,?,?,?,?,?,?,?,?)`,
       )
       .run(
         input.lemma,
@@ -283,7 +288,9 @@ export class ContentService {
         input.pos ?? 'noun',
         level,
         this.today(),
-        null,
+        input.source ?? 'manual',
+        input.example_ko ?? null,
+        input.example_en ?? null,
       );
     const wordId = Number(res.lastInsertRowid);
     this.db
@@ -314,6 +321,13 @@ export class ContentService {
          LIMIT ?`,
       )
       .all(today, limit) as Array<Record<string, unknown>>;
+  }
+
+  countDueCards(): number {
+    const today = this.today();
+    return (this.db.prepare('SELECT COUNT(*) AS c FROM srs_cards WHERE due_date <= ?').get(today) as {
+      c: number;
+    }).c;
   }
 
   reviewCard(wordId: number, rating: import('./srs.js').Rating): Record<string, unknown> {

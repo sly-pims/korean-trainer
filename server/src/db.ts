@@ -51,6 +51,9 @@ CREATE TABLE IF NOT EXISTS words (
   level INTEGER NOT NULL,
   first_seen_at TEXT NOT NULL,
   source_passage_id INTEGER,
+  source TEXT NOT NULL DEFAULT 'reading' CHECK (source IN ('reading','manual','suggested')),
+  example_ko TEXT,
+  example_en TEXT,
   FOREIGN KEY (source_passage_id) REFERENCES passages(id)
 );
 
@@ -115,6 +118,11 @@ export function openDb(dbPath: string): DatabaseSync {
   db.exec('PRAGMA foreign_keys = ON;');
   db.exec('PRAGMA busy_timeout = 5000;');
   db.exec(SCHEMA_SQL);
+  const wordsCols = db.prepare('PRAGMA table_info(words)').all() as { name: string }[];
+  const hasWordCol = (name: string) => wordsCols.some((c) => c.name === name);
+  if (!hasWordCol('source')) db.exec("ALTER TABLE words ADD COLUMN source TEXT NOT NULL DEFAULT 'reading'");
+  if (!hasWordCol('example_ko')) db.exec('ALTER TABLE words ADD COLUMN example_ko TEXT');
+  if (!hasWordCol('example_en')) db.exec('ALTER TABLE words ADD COLUMN example_en TEXT');
   db.prepare('INSERT OR IGNORE INTO settings (id) VALUES (1)').run();
   db.prepare(
     "UPDATE settings SET tts_voice=COALESCE(NULLIF(tts_voice,''), 'ko-KR-SunHiNeural'), tts_rate=COALESCE(NULLIF(tts_rate,0), 1), keep_recordings_days=COALESCE(NULLIF(keep_recordings_days,0), 14), level=COALESCE(NULLIF(level,0), 1) WHERE id=1",

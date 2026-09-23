@@ -77,3 +77,18 @@ export const SpeakingFeedbackSchema = z.object({
 export type ContentPack = z.infer<typeof ContentPackSchema>;
 export type WritingFeedback = z.infer<typeof WritingFeedbackSchema>;
 export type SpeakingFeedback = z.infer<typeof SpeakingFeedbackSchema>;
+
+// §8.4 New word suggestions
+export const WordSuggestionSchema = z.object({
+  lemma: z.string().min(1),
+  pos: z.enum(['noun', 'verb', 'adjective', 'adverb', 'particle', 'other']),
+  meaning_en: z.string().min(1),
+  example_ko: z.string().min(1),
+  example_en: z.string().min(1),
+});
+
+export const WordSuggestionsSchema = z.object({
+  words: z.array(WordSuggestionSchema).min(1).max(10),
+});
+
+export type WordSuggestion = z.infer<typeof WordSuggestionSchema>;

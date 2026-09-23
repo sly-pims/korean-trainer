@@ -78,9 +78,10 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ surface }),
     }),
-  warmupCards: (id: number) => request<{ cards: SrsCardRow[] }>(`/api/session/${id}/warmup`),
   reviewCard: (wordId: number, rating: SrsRating) =>
     request<{ due_date: string }>('/api/srs/review', { method: 'POST', body: JSON.stringify({ word_id: wordId, rating }) }),
+
+  srsDue: () => request<{ cards: SrsCardRow[]; due_total: number }>('/api/srs/due'),
 
   gradeRead: (id: number, answers: number[]) =>
     request<{ correct: boolean[] }>(`/api/session/${id}/read`, {
@@ -144,8 +145,21 @@ export const api = {
   practiceRead: () => request<{ pack: SessionWithPack['pack'] | null }>('/api/practice/read'),
 
   words: () => request<{ words: WordRow[] }>('/api/words'),
-  addWord: (input: { lemma: string; surface: string; meaning_en: string; pos?: string }) =>
-    request<{ word: WordRow; isNew: boolean }>('/api/words', { method: 'POST', body: JSON.stringify(input) }),
+  addWord: (input: {
+    lemma: string;
+    surface: string;
+    meaning_en: string;
+    pos?: string;
+    level?: number;
+    source?: 'manual' | 'suggested';
+    example_ko?: string;
+    example_en?: string;
+  }) => request<{ word: WordRow; isNew: boolean }>('/api/words', { method: 'POST', body: JSON.stringify(input) }),
+  suggestWords: (opts: { level?: number; topic?: string; count?: number }) =>
+    request<{ suggestions: import('./types').WordSuggestion[] }>('/api/words/suggest', {
+      method: 'POST',
+      body: JSON.stringify(opts),
+    }),
 
   progress: () => request<ProgressData>('/api/progress'),
   llmStatus: () => request<LlmStatus>('/api/llm/status'),

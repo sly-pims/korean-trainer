@@ -9,6 +9,8 @@ import { mimeToExt } from './services/audio.js';
 import { compareReadAloud, compareStrings } from './services/diff.js';
 import * as tts from './services/tts.js';
 import { DailyCapReachedError } from './llm/errors.js';
+import { wordSuggestSystem, wordSuggestPrompt } from './prompts/wordSuggest.js';
+import { WordSuggestionsSchema } from './schema/content.js';
 
 type PReq<TBody = unknown> = FastifyRequest<{ Params: { id: string }; Body: TBody }>;
 type Pack = ReturnType<Ctx['content']['packForSession']>;
@@ -266,7 +268,7 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
     const rows = q
       ? db
           .prepare(
-            `SELECT w.id, w.lemma, w.surface_example, w.meaning_en, w.pos, w.level,
+            `SELECT w.id, w.lemma, w.surface_example, w.meaning_en, w.pos, w.level, w.source, w.example_ko, w.example_en,
                     c.ease, c.interval_days, c.due_date, c.reps, c.lapses
              FROM words w LEFT JOIN srs_cards c ON c.word_id = w.id
              WHERE w.lemma LIKE ? OR w.meaning_en LIKE ? OR w.surface_example LIKE ?
@@ -275,7 +277,7 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
           .all(`%${q}%`, `%${q}%`, `%${q}%`)
       : db
           .prepare(
-            `SELECT w.id, w.lemma, w.surface_example, w.meaning_en, w.pos, w.level,
+            `SELECT w.id, w.lemma, w.surface_example, w.meaning_en, w.pos, w.level, w.source, w.example_ko, w.example_en,
                     c.ease, c.interval_days, c.due_date, c.reps, c.lapses
              FROM words w LEFT JOIN srs_cards c ON c.word_id = w.id
              ORDER BY w.first_seen_at DESC, w.id DESC LIMIT 200`,
@@ -292,10 +294,49 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
         surface_example: z.string().optional(),
         pos: z.string().optional(),
         level: z.number().int().min(1).max(6).optional(),
+        source: z.enum(['manual', 'suggested']).optional(),
+        example_ko: z.string().optional(),
+        example_en: z.string().optional(),
       })
       .safeParse(req.body ?? {});
     if (!parsed.success) return reply.code(400).send({ error: parsed.error.message });
     return content.addWordManually(parsed.data);
+  });
+
+  app.get('/api/srs/due', async () => ({
+    cards: content.dueCards(10),
+    due_total: content.countDueCards(),
+  }));
+
+  app.post('/api/words/suggest', async (req: FastifyRequest<{ Body: unknown }>, reply) => {
+    const parsed = z
+      .object({
+        level: z.number().int().min(1).max(6).optional(),
+        topic: z.string().min(1).max(60).optional(),
+        count: z.number().int().min(1).max(10).optional(),
+      })
+      .safeParse(req.body ?? {});
+    if (!parsed.success) return reply.code(400).send({ error: parsed.error.message });
+    if (!ctx.callManager) return reply.code(503).send({ error: 'LLM not configured' });
+    const settings = db.prepare('SELECT level FROM settings WHERE id=1').get() as { level: number };
+    try {
+      const suggestions = await ctx.callManager.generateJSON({
+        system: wordSuggestSystem(parsed.data.level ?? settings.level),
+        prompt: wordSuggestPrompt(
+          parsed.data.topic ?? null,
+          parsed.data.count ?? 5,
+          (db.prepare('SELECT lemma FROM words').all() as { lemma: string }[]).map((r) => r.lemma),
+        ),
+        schema: WordSuggestionsSchema,
+      });
+      const known = new Set(
+        (db.prepare('SELECT lemma FROM words').all() as { lemma: string }[]).map((r) => r.lemma.toLowerCase()),
+      );
+      return { suggestions: suggestions.words.filter((w) => !known.has(w.lemma.toLowerCase())) };
+    } catch (err) {
+      if (err instanceof DailyCapReachedError) return reply.code(429).send({ error: err.message });
+      throw err;
+    }
   });
 
   // ---------- Progress (M6) ----------

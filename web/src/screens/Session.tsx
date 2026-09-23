@@ -7,7 +7,8 @@ import { GlossCard } from '../components/GlossCard';
 import { SrsCard } from '../components/SrsCard';
 import { SpeakButton, SpeakToggle } from '../components/SpeakButton';
 import { useMediaRecorder } from '../hooks/useMediaRecorder';
-import type { GlossaryEntry, ListeningResult, SessionWithPack, Settings, SrsRating, WritingFeedback } from '../types';
+import { useSrsReview } from '../hooks/useSrsReview';
+import type { GlossaryEntry, ListeningResult, SessionWithPack, Settings, WritingFeedback } from '../types';
 
 const STEP_ORDER = ['warmup', 'read', 'writing', 'listening', 'speaking', 'done'] as const;
 
@@ -98,7 +99,7 @@ export function Session() {
           onBack={() => nav('/')}
         />
       ) : step === 'warmup' ? (
-        <Warmup sessionId={sessionId} onDone={() => go('read')} />
+        <Warmup onDone={() => go('read')} />
       ) : step === 'read' ? (
         <Read
           pack={data.pack}
@@ -138,40 +139,8 @@ export function Session() {
 
 // ---------------- Warmup ----------------
 
-function Warmup({
-  sessionId,
-  onDone,
-}: {
-  sessionId: number;
-  onDone: () => void;
-}) {
-  const [cards, setCards] = useState<import('../types').SrsCardRow[] | null>(null);
-  const [busyId, setBusyId] = useState<number | null>(null);
-  const [err, setErr] = useState('');
-
-  const load = async () => {
-    try {
-      const { cards } = await api.warmupCards(sessionId);
-      setCards(cards);
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : 'warmup failed');
-    }
-  };
-  useEffect(() => {
-    void load();
-  }, [sessionId]);
-
-  const review = async (wordId: number, rating: SrsRating) => {
-    setBusyId(wordId);
-    try {
-      await api.reviewCard(wordId, rating);
-      await load();
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : 'review failed');
-    } finally {
-      setBusyId(null);
-    }
-  };
+function Warmup({ onDone }: { onDone: () => void }) {
+  const { cards, busyId, err, review } = useSrsReview();
 
   if (err) return <div className="error-banner">{err}</div>;
   if (cards === null) return <div className="spinner" />;

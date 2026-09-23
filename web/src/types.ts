@@ -88,7 +88,18 @@ export interface WordRow {
   level: number;
   first_seen_at: string;
   source_passage_id: number | null;
+  source?: 'reading' | 'manual' | 'suggested' | null;
+  example_ko?: string | null;
+  example_en?: string | null;
   card?: SrsCardRow | null;
+}
+
+export interface WordSuggestion {
+  lemma: string;
+  pos: 'noun' | 'verb' | 'adjective' | 'adverb' | 'particle' | 'other';
+  meaning_en: string;
+  example_ko: string;
+  example_en: string;
 }
 
 export interface WritingFeedback {
