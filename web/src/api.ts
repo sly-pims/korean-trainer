@@ -114,7 +114,7 @@ export const api = {
     }),
   freeSpeech: (id: number | null, audio: Blob, mime: string) => {
     const url = id === null ? '/api/practice/free-response' : `/api/session/${id}/speaking/free-response`;
-    return request<{ attempt_id: number; queued: boolean }>(url, {
+    return request<{ attempt_id: number; queued: boolean; feedback: import('./types').SpeakingFeedback | null }>(url, {
       method: 'POST',
       body: audio,
       headers: { 'Content-Type': mime },

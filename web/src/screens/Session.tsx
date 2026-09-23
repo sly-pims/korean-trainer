@@ -608,7 +608,18 @@ function ReadAloudSentence({
         <SpeakButton text={target} rate={rate} voiceUri={voiceUri} label="Hear the sentence" />
       </div>
       <div className="row">
-        <button onClick={rec.listening ? rec.stop : rec.start} disabled={!rec.supported}>
+        <button
+          onClick={() => {
+            if (rec.listening) {
+              rec.stop();
+            } else {
+              setPercent(null);
+              setSegments(null);
+              rec.start();
+            }
+          }}
+          disabled={!rec.supported}
+        >
           {rec.listening ? '⏹ Stop' : '🎤 Start speaking'}
         </button>
         {rec.supported && (rec.interim || transcript) && (
@@ -714,6 +725,7 @@ function FreeResponse({
       const res = await api.freeSpeech(sessionId, blob, rec.mimeType || 'audio/webm');
       setAttemptId(res.attempt_id);
       setQueued(res.queued);
+      setFeedback(res.feedback ?? null);
       localStorage.setItem('kt:privacy-ok', '1');
       setShowPrivacy(false);
     } catch (e) {
