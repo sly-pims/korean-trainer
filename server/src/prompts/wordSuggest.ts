@@ -15,6 +15,7 @@ Rules:
 - Prefer high-frequency, useful everyday vocabulary the learner will actually meet.
 - Each suggestion has a dictionary-form lemma, its word class, a one-line English meaning, and one short, natural example sentence in Korean with an English gloss.
 - Keep examples short (under ~15 syllables) and at or slightly above the learner's level.
+- Each example sentence must use only the suggested word plus simple, common vocabulary the learner already knows — no rare words, and no typos, spacing mistakes or garbled text.
 - If a topic is given, bias word choice toward it but do not force awkward fits.
 - Value naturalness and correctness. If unsure, choose simpler, more common words.`;
 }
