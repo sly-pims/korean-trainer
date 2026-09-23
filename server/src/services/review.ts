@@ -1,7 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
-import { z } from 'zod';
 import { CallManager } from '../llm/callManager.js';
 import { DailyCapReachedError } from '../llm/errors.js';
 import { writingGradePrompt, writingGradeSystem } from '../prompts/writingGrade.js';
@@ -178,7 +177,7 @@ export class ReviewService {
     return true;
   }
 
-  /**
+/**
    * Transcribe a recording server-side (used by the read-aloud drills so the
    * phone doesn't depend on the flaky Android Web Speech API).
    * Returns the verbatim Korean transcription ('' if no speech was heard).
@@ -186,25 +185,20 @@ export class ReviewService {
   async transcribeAudio(context: string, audio: Buffer, ext: string): Promise<string> {
     if (!this.callManager) throw new Error('LLM is not configured, cannot transcribe audio.');
     const wav = await convertToWav16k(audio, ext, this.ffmpegPath);
-    // Gemini regularly uses a different key (or an empty object) for verbose
-    // audio, so accept several spellings and treat misses as "no speech".
-    const out = await this.callManager.generateJSONFromAudio({
+    const raw = await this.callManager.generateTextFromAudio({
       system:
-        'You are a meticulous Korean speech transcriber. Write EXACTLY what you hear, including errors and hesitations. Only use an empty string if the audio contains no human speech at all.',
+        'You are a meticulous Korean speech transcriber. Transcribe exactly what is spoken, verbatim, including errors and hesitations. If there is no human speech in the audio, reply with the single word EMPTY.',
       prompt: context
         ? `Context: the learner is reading this Korean sentence aloud: ${context}\nTranscribe the spoken audio verbatim as Korean text.`
         : 'Transcribe the spoken Korean audio verbatim.',
-      schema: z.object({
-        transcript_ko: z.string().nullable().optional(),
-        transcript: z.string().nullable().optional(),
-        text: z.string().nullable().optional(),
-      }),
       audio: wav,
       mimeType: 'audio/wav',
     });
-    const transcript = (out.transcript_ko ?? out.transcript ?? out.text ?? '').trim();
-    if (!transcript) return '';
-    return transcript;
+    const t = raw.replace(/\s+/g, ' ').trim();
+    // Plain-text mode can return prose like "The audio is silent." — without
+    // any Hangul there is no transcription to grade.
+    if (!t || /^EMPTY$/i.test(t) || !/[\uac00-\ud7af]/.test(t)) return '';
+    return t;
   }
 
   // ---- Retry queue (§4.2 #5, #6) ----

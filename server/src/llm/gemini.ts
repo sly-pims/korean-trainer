@@ -6,7 +6,7 @@ import {
   RateLimitError,
   ServerError,
 } from './errors.js';
-import { GenerateAudioOptions, GenerateOptions, LLMProvider } from './provider.js';
+import { GenerateAudioOptions, GenerateOptions, GenerateTextAudioOptions, LLMProvider } from './provider.js';
 
 // Model names and free quotas change; keep the default in env-config and
 // prefer a Flash-Lite class model (most generous free daily allowance).
@@ -57,6 +57,49 @@ export class GeminiProvider implements LLMProvider {
       buffer: opts.audio,
       mimeType: opts.mimeType,
     });
+  }
+
+  generateTextFromAudio(opts: GenerateTextAudioOptions): Promise<string> {
+    if (!this.apiKey) {
+      throw new QuotaError('No Gemini API key configured');
+    }
+    const parts: Array<{ text: string } | { inline_data: { mime_type: string; data: string } }> = [
+      { text: opts.prompt },
+      {
+        inline_data: { mime_type: opts.mimeType, data: opts.audio.toString('base64') },
+      },
+    ];
+    const body = {
+      system_instruction: { parts: [{ text: opts.system }] },
+      contents: [{ role: 'user', parts }],
+      generationConfig: { temperature: 0.1 },
+    };
+    return this.postAndReadText(this.buildUrl(), body);
+  }
+
+  private buildUrl(): string {
+    return `${this.baseUrl}/models/${encodeURIComponent(this.model)}:generateContent?key=${encodeURIComponent(this.apiKey)}`;
+  }
+
+  private async postAndReadText(url: string, body: Record<string, unknown>): Promise<string> {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (res.status === 429) throw new RateLimitError(`Gemini 429 (quota/rate limit)`);
+    if (res.status === 401 || res.status === 403) {
+      throw new QuotaError(`Gemini ${res.status}: API key rejected`);
+    }
+    if (res.status >= 500) throw new ServerError(`Gemini ${res.status} server error`);
+    if (!res.ok) throw new ProviderError(`Gemini ${res.status}: ${(await res.text()).slice(0, 300)}`);
+    const data = (await res.json()) as {
+      candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+    };
+    return (data.candidates?.[0]?.content?.parts ?? [])
+      .map((p) => p.text ?? '')
+      .join('')
+      .trim();
   }
 
   private async call<T>(

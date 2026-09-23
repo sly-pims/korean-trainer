@@ -11,6 +11,13 @@ export interface GenerateAudioOptions<T> extends GenerateOptions<T> {
   mimeType: string;
 }
 
+export interface GenerateTextAudioOptions {
+  system: string;
+  prompt: string;
+  audio: Buffer;
+  mimeType: string;
+}
+
 /**
  * Provider abstraction (§4.1). Adding another provider (OpenRouter, Groq,
  * local Ollama…) means adding one file that implements this interface and
@@ -19,6 +26,8 @@ export interface GenerateAudioOptions<T> extends GenerateOptions<T> {
 export interface LLMProvider {
   generateJSON<T>(opts: GenerateOptions<T>): Promise<T>;
   generateJSONFromAudio<T>(opts: GenerateAudioOptions<T>): Promise<T>;
+  /** Plain (non-JSON) transcription/free-text from audio. */
+  generateTextFromAudio(opts: GenerateTextAudioOptions): Promise<string>;
   readonly name: string;
   readonly model: string;
 }

@@ -5,7 +5,7 @@ import {
   InvalidJSONError,
   isRetryable,
 } from './errors.js';
-import { GenerateAudioOptions, GenerateOptions, LLMProvider } from './provider.js';
+import { GenerateAudioOptions, GenerateOptions, GenerateTextAudioOptions, LLMProvider } from './provider.js';
 
 const JSON_REMINDER =
   '\n\n(Previous attempt had invalid JSON. Return valid JSON only, no markdown, no prose outside the JSON.)';
@@ -86,6 +86,18 @@ export class CallManager {
         system: opts.system,
         prompt: opts.prompt + (reminder ?? ''),
         schema: opts.schema,
+        audio: opts.audio,
+        mimeType: opts.mimeType,
+      }),
+    );
+  }
+
+  /** Free-text transcription: one capped call, retryable, no JSON validation. */
+  generateTextFromAudio(opts: GenerateTextAudioOptions): Promise<string> {
+    return this.run((reminder) =>
+      this.provider.generateTextFromAudio({
+        system: opts.system,
+        prompt: opts.prompt + (reminder ?? ''),
         audio: opts.audio,
         mimeType: opts.mimeType,
       }),
