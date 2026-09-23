@@ -52,7 +52,7 @@ export function Progress() {
 
       <h3>Recent sessions</h3>
       <p className="small muted">
-        Each row is one day's session. Scores are <b>% correct</b> — an em dash ({'—'}) means that skill was skipped.
+        Each row is one day's session. Scores are <b>% correct</b>; <b>—</b> means that skill was skipped.
       </p>
       <div className="card">
         {sessions.length === 0 && <p className="muted">No sessions yet. Finished your first one today?</p>}
