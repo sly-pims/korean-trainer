@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api';
 import { DiffView } from '../components/DiffView';
+import { SpeakingEvaluation } from '../components/Feedback';
 import { GlossCard } from '../components/GlossCard';
 import { SpeakButton, SpeakToggle } from '../components/SpeakButton';
-import type { GlossaryEntry } from '../types';
+import { useMediaRecorder } from '../hooks/useMediaRecorder';
+import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
+import type { GlossaryEntry, SpeakingFeedback } from '../types';
 
 /** Standalone practice screen: random pack, read-aloud drill and a free-response drill. */
 export function Practice() {
@@ -91,11 +94,19 @@ function splitPassage(text: string, surfaces: string[]): { text: string; surface
 
 function ReadAloudPractice({ pack, rate, voiceUri }: { pack: import('../types').ContentPack; rate: number; voiceUri: string }) {
   const target = pack.sentences[0]?.ko ?? pack.speaking_prompt.ko;
+  const rec = useSpeechRecognition('ko-KR');
   const [typed, setTyped] = useState('');
   const [result, setResult] = useState<{ percent: number; segments: { type: 'equal' | 'delete' | 'insert'; text: string }[] } | null>(null);
   const [err, setErr] = useState('');
 
+  useEffect(() => {
+    rec.onFinal((text) => setTyped(text));
+    rec.onInterim((text) => setTyped(text));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const check = async () => {
+    if (!typed.trim()) return;
     setErr('');
     try {
       const r = await api.gradeReadAloudSelf(target, typed);
@@ -112,7 +123,26 @@ function ReadAloudPractice({ pack, rate, voiceUri }: { pack: import('../types').
         <span className="ko grow">{target}</span>
         <SpeakToggle text={target} rate={rate} voiceUri={voiceUri} />
       </div>
-      <input lang="ko" value={typed} onChange={(e) => setTyped(e.target.value)} placeholder="Type or paste what you said" />
+      <div className="row">
+        <button
+          onClick={() => {
+            if (rec.listening) {
+              rec.stop();
+            } else {
+              setResult(null);
+              rec.start();
+            }
+          }}
+          disabled={!rec.supported}
+        >
+          {rec.listening ? '⏹ Stop' : '🎤 Start speaking'}
+        </button>
+        {rec.supported && (rec.interim || typed) && (
+          <span className="small muted grow">{rec.listening ? rec.interim || '…' : typed}</span>
+        )}
+      </div>
+      {rec.error && <div className="error-banner">{rec.error}</div>}
+      <input lang="ko" value={typed} onChange={(e) => setTyped(e.target.value)} placeholder="Speak it, or type or paste what you said" />
       <div className="row">
         <button className="small" onClick={check} disabled={typed.trim() === ''}>
           Check match
@@ -164,30 +194,61 @@ function splitCharDiff(aRaw: string, bRaw: string): { type: 'equal' | 'delete' |
 }
 
 function FreeResponsePractice({ pack, rate, voiceUri }: { pack: import('../types').ContentPack; rate: number; voiceUri: string }) {
-  const [recorded, setRecorded] = useState<Blob | null>(null);
-  const [mime, setMime] = useState('audio/webm');
+  const rec = useMediaRecorder();
+  const [attemptId, setAttemptId] = useState<number | null>(null);
+  const [queued, setQueued] = useState(false);
+  const [feedback, setFeedback] = useState<SpeakingFeedback | null>(null);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
 
-  const onFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0];
-    if (!f) return;
-    setRecorded(f);
-    setMime(f.type || 'audio/webm');
-  };
-
-  const submit = async () => {
-    if (!recorded) return;
+  const submit = async (blob: Blob, mime: string) => {
     setBusy(true);
     setMsg('');
     try {
-      const res = await api.freeSpeech(null, recorded, mime);
+      const res = await api.freeSpeech(null, blob, mime);
+      setAttemptId(res.attempt_id);
+      setQueued(res.queued);
+      setFeedback(res.feedback ?? null);
       setMsg(res.queued ? 'Submitted — feedback will appear after grading.' : 'Submitted.');
     } catch (e) {
       setMsg(e instanceof Error ? e.message : 'upload failed');
     } finally {
       setBusy(false);
     }
+  };
+
+  const submitRecording = () => {
+    const blob = rec.blob;
+    const mime = rec.mimeType || 'audio/webm';
+    if (!blob) return;
+    rec.reset();
+    void submit(blob, mime);
+  };
+
+  const onFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    void submit(f, f.type || 'audio/webm');
+  };
+
+  const pollFeedback = async () => {
+    if (attemptId === null) return;
+    try {
+      const r = await api.getSpeakingAttempt(attemptId);
+      if (r.feedback) {
+        setFeedback(r.feedback as SpeakingFeedback);
+        setQueued(false);
+      }
+    } catch (e) {
+      setMsg(e instanceof Error ? e.message : 'feedback check failed');
+    }
+  };
+
+  const recordAgain = () => {
+    setFeedback(null);
+    setAttemptId(null);
+    setQueued(false);
+    setMsg('');
   };
 
   return (
@@ -197,17 +258,57 @@ function FreeResponsePractice({ pack, rate, voiceUri }: { pack: import('../types
         <p className="ko grow">{pack.speaking_prompt.ko}</p>
         <SpeakButton text={pack.speaking_prompt.ko} rate={rate} voiceUri={voiceUri} label="Hear prompt" />
       </div>
-      <p className="small muted">
-        On a phone this uses a short recording; on a desktop you can attach a file. Feedback appears on the newly
-        created attempt.
-      </p>
-      <input type="file" accept="audio/*,video/*" onChange={onFile} />
-      {recorded && (
-        <button className="small primary" disabled={busy} onClick={submit}>
-          {busy ? 'Uploading…' : 'Submit recording'}
-        </button>
+      {feedback ? (
+        <>
+          <SpeakingEvaluation feedback={feedback} rate={rate} voiceUri={voiceUri} />
+          <button className="small" onClick={recordAgain}>
+            Record another answer
+          </button>
+        </>
+      ) : (
+        <>
+          {!rec.supported ? (
+            <div className="error-banner">Recording needs HTTPS and a supported browser — you can attach a file below.</div>
+          ) : (
+            <div className="row">
+              <button
+                className={rec.recording ? '' : 'primary'}
+                onClick={() => {
+                  if (rec.recording) {
+                    rec.stop();
+                  } else {
+                    void rec.start();
+                    setMsg('');
+                  }
+                }}
+                disabled={busy}
+              >
+                {rec.recording ? '⏹ Stop recording' : '🎤 Start recording'}
+              </button>
+              {rec.recording && <span className="small muted grow">max 60s</span>}
+            </div>
+          )}
+          {rec.blob && attemptId === null && (
+            <div className="row">
+              <button className="small primary" disabled={busy} onClick={submitRecording}>
+                {busy ? 'Uploading…' : 'Submit recording'}
+              </button>
+            </div>
+          )}
+          {queued && (
+            <div className="row">
+              <span className="small muted grow">Grading in progress — check back in a moment.</span>
+              <button className="small" onClick={pollFeedback} disabled={!attemptId}>
+                Check feedback
+              </button>
+            </div>
+          )}
+          <p className="small muted">…or attach a recording on desktop:</p>
+          <input type="file" accept="audio/*,video/*" onChange={onFile} disabled={busy} />
+          {rec.error && <div className="error-banner">{rec.error}</div>}
+          {msg && <p className="small muted">{msg}</p>}
+        </>
       )}
-      {msg && <p className="small muted">{msg}</p>}
     </div>
   );
 }
