@@ -46,6 +46,7 @@ export function useSpeechRecognition(lang = 'ko-KR') {
   const [error, setError] = useState('');
   const recRef = useRef<RecLike | null>(null);
   const activeRef = useRef(false);
+  const stoppingRef = useRef(false);
   const genRef = useRef(0);
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const finalRef = useRef('');
@@ -71,12 +72,14 @@ export function useSpeechRecognition(lang = 'ko-KR') {
 
   const stop = useCallback(() => {
     clearTimers();
+    stoppingRef.current = true;
     recRef.current?.stop();
   }, [clearTimers]);
 
   const start = useCallback(() => {
     const Ctor = getRecognition();
     if (!Ctor || activeRef.current) return;
+    stoppingRef.current = false;
     activeRef.current = true;
     const gen = ++genRef.current;
     setError('');
@@ -127,9 +130,15 @@ export function useSpeechRecognition(lang = 'ko-KR') {
 
     rec.onerror = (event) => {
       if (genRef.current !== gen) return;
+      // A user-initiated stop() makes Chromium on Android report 'aborted'.
+      // When that's the case, end cleanly and never auto-restart.
+      if (stoppingRef.current) {
+        endSession();
+        return;
+      }
       const transient = TRANSIENT_ERRORS.has(event.error ?? '');
       // Don't retry permission denials — turning them into an infinite loop is worse.
-      if (transient && genRef.current === gen && activeRef.current && MAX_RETRIES > 0) {
+      if (transient && activeRef.current && MAX_RETRIES > 0) {
         endSession();
         if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
         retryTimerRef.current = setTimeout(() => {
