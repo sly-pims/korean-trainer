@@ -360,6 +360,29 @@ label {
   color: var(--text-2);
   font-weight: 700;
 }
+.progress-header {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  align-items: center;
+  padding-top: 22px;
+  padding-bottom: 22px;
+}
+.header-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.level-name {
+  font-size: 2.3rem;
+  font-weight: 800;
+  line-height: 1.1;
+  text-align: center;
+}
+.header-streak .big-num {
+  color: var(--accent);
+}
 
 .cal-grid {
   display: grid;

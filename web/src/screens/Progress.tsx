@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { api, formatDuration, humanizeLevel } from '../api';
+import { api, formatDuration, humanizeLevel, timeEstimate } from '../api';
 import type { ProgressData } from '../types';
 
 const SKILLS = [
@@ -33,18 +33,19 @@ export function Progress() {
   return (
     <>
       <h2>Progress</h2>
-      <div className="card row">
-        <div className="grow">
+      <div className="card progress-header">
+        <div className="header-stat header-level">
+          <div className="level-name">{humanizeLevel(settings.level)}</div>
+          <div className="stat-label">Level</div>
+          <div className="small muted">~{timeEstimate(settings.level)} min/day</div>
+        </div>
+        <div className="header-stat">
+          <div className="big-num">{sessions.length}</div>
+          <div className="stat-label">sessions done</div>
+        </div>
+        <div className="header-stat header-streak">
           <div className="big-num">{settings.streak}</div>
           <div className="stat-label">day streak</div>
-        </div>
-        <div className="grow">
-          <div className="stat-label">Level</div>
-          <div className="big-num">{humanizeLevel(settings.level)}</div>
-        </div>
-        <div className="grow">
-          <div className="stat-label">Sessions done</div>
-          <div className="big-num">{sessions.length}</div>
         </div>
       </div>
 
