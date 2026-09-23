@@ -55,7 +55,8 @@ function installRecognition(RecCtor: typeof FakeRec) {
   vi.stubGlobal('webkitSpeechRecognition', RecCtor);
 }
 
-it('auto-restarts once on a spurious abort at start, then delivers the transcript', () => {
+describe('useSpeechRecognition', () => {
+  it('auto-restarts once on a spurious abort at start, then delivers the transcript', () => {
   installRecognition(FakeRec);
   const { result } = renderHook(() => useSpeechRecognition('ko-KR'));
   const finals: string[] = [];
@@ -142,4 +143,5 @@ it('reports unsupported when no SpeechRecognition is exposed', () => {
   expect(result.current.supported).toBe(false);
   expect(() => act(() => result.current.start())).not.toThrow();
   expect(result.current.listening).toBe(false);
+});
 });
