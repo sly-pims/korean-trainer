@@ -20,7 +20,7 @@ const envSchema = z.object({
   LLM_PROVIDER: z.string().default('gemini'),
   GEMINI_API_KEY: z.string().default(''),
   GEMINI_MODEL: z.string().default(''),
-  LLM_DAILY_CAP: z.coerce.number().int().default(30),
+  LLM_DAILY_CAP: z.coerce.number().int().default(100),
   FFMPEG_PATH: z.string().default('ffmpeg'),
   SEED_PATH: z.string().default('seed/passages.json'),
   WEB_DIST: z.string().default('web/dist'),

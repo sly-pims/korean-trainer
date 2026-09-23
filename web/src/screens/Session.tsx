@@ -99,7 +99,7 @@ export function Session() {
           onBack={() => nav('/')}
         />
       ) : step === 'warmup' ? (
-        <Warmup onDone={() => go('read')} />
+        <Warmup rate={ui.settings.tts_rate} voiceUri={ui.settings.tts_voice} onDone={() => go('read')} />
       ) : step === 'read' ? (
         <Read
           pack={data.pack}
@@ -139,7 +139,7 @@ export function Session() {
 
 // ---------------- Warmup ----------------
 
-function Warmup({ onDone }: { onDone: () => void }) {
+function Warmup({ rate, voiceUri, onDone }: { rate: number; voiceUri: string; onDone: () => void }) {
   const { cards, busyId, err, review } = useSrsReview();
 
   if (err) return <div className="error-banner">{err}</div>;
@@ -153,7 +153,7 @@ function Warmup({ onDone }: { onDone: () => void }) {
           <p className="muted">No words due right now. Great job keeping on top of them!</p>
         </div>
       ) : (
-        <SrsCard cards={cards} busy={busyId} onReview={review} />
+        <SrsCard cards={cards} busy={busyId} rate={rate} voiceUri={voiceUri} onReview={review} />
       )}
       <button className="primary big-cta" onClick={onDone}>
         Continue to reading →

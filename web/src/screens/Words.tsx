@@ -14,20 +14,31 @@ const SOURCE_LABEL: Record<string, string> = {
 };
 
 export function Words() {
+  const [refreshKey, setRefreshKey] = useState(0);
   return (
     <>
-      <PracticeCard />
-      <BrowseCard />
-      <DiscoverCard />
+      <PracticeCard onReviewed={() => setRefreshKey((k) => k + 1)} />
+      <BrowseCard refreshKey={refreshKey} />
+      <DiscoverCard onChanged={() => setRefreshKey((k) => k + 1)} />
     </>
   );
 }
 
 // ---------------- Practice due cards ----------------
 
-function PracticeCard() {
-  const { cards, busyId, err, load, review } = useSrsReview();
+function PracticeCard({ onReviewed }: { onReviewed: () => void }) {
+  const { cards, dueTotal, busyId, err, load, review } = useSrsReview();
   const [open, setOpen] = useState(false);
+  const [settings, setSettings] = useState<Settings | null>(null);
+
+  useEffect(() => {
+    void api.getSettings().then(setSettings);
+  }, []);
+
+  const reviewAndRefresh = async (wordId: number, rating: import('../types').SrsRating) => {
+    await review(wordId, rating);
+    onReviewed();
+  };
 
   return (
     <div className="card">
@@ -35,7 +46,7 @@ function PracticeCard() {
         <div className="grow">
           <b>SRS review</b>
           <p className="small muted">
-            {cards === null ? '…' : cards.length === 0 ? 'No words due right now.' : `${cards.length} due now`}
+            {cards === null ? '…' : dueTotal === 0 ? 'No words due right now.' : `${dueTotal} due now`}
             {open && cards !== null && cards.length > 0 ? ' · ' : ''}
           </p>
         </div>
@@ -48,7 +59,15 @@ function PracticeCard() {
           {err && <div className="error-banner">{err}</div>}
           {cards && cards.length > 0 ? (
             <>
-              <SrsCard cards={cards} busy={busyId} onReview={review} />
+              {settings && (
+                <SrsCard
+                  cards={cards}
+                  busy={busyId}
+                  rate={settings.tts_rate}
+                  voiceUri={settings.tts_voice}
+                  onReview={reviewAndRefresh}
+                />
+              )}
               <button className="ghost" onClick={() => { setOpen(false); void load(); }}>
                 Stop practice
               </button>
@@ -64,7 +83,7 @@ function PracticeCard() {
 
 // ---------------- Browse & search ----------------
 
-function BrowseCard() {
+function BrowseCard({ refreshKey }: { refreshKey: number }) {
   const [words, setWords] = useState<WordRow[] | null>(null);
   const [settings, setSettings] = useState<Settings | null>(null);
   const [query, setQuery] = useState('');
@@ -86,7 +105,8 @@ function BrowseCard() {
   };
   useEffect(() => {
     void reload();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refreshKey]);
 
   const filtered = useMemo(() => {
     if (!words) return [];
@@ -277,7 +297,7 @@ function AddWordForm({
 
 // ---------------- Discover (LLM suggestions) ----------------
 
-function DiscoverCard() {
+function DiscoverCard({ onChanged }: { onChanged: () => void }) {
   const [open, setOpen] = useState(false);
   const [topic, setTopic] = useState('');
   const [count, setCount] = useState(5);
@@ -326,6 +346,7 @@ function DiscoverCard() {
       });
       setAdded((m) => ({ ...m, [s.lemma]: true }));
       setSaved((n) => n + 1);
+      onChanged();
     } catch (e) {
       setErr(e instanceof Error ? e.message : 'could not add word');
     }
