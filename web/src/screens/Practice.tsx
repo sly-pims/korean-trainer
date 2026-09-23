@@ -160,9 +160,17 @@ function ReadAloudPractice({ pack, rate, voiceUri }: { pack: import('../types').
         {result && <span className={`tag ${result.percent >= 80 ? '' : 'small-label'}`}>{result.percent}%</span>}
       </div>
       {result && <DiffView segments={result.segments} />}
+      {result && <p className="small muted" style={{ margin: '6px 0 0' }}>{readAloudBand(result.percent)}</p>}
       {err && <div className="error-banner">{err}</div>}
     </div>
   );
+}
+
+function readAloudBand(p: number): string {
+  if (p >= 90) return 'Great job — you covered nearly the whole sentence.';
+  if (p >= 70) return 'Close — a syllable or two didn\'t come through.';
+  if (p >= 50) return 'Roughly there — keep practising for a smoother read.';
+  return 'Not quite — try again slowly, syllable by syllable.';
 }
 
 function splitCharDiff(aRaw: string, bRaw: string): { type: 'equal' | 'delete' | 'insert'; text: string }[] {

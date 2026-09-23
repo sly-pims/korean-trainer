@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { Ctx } from './ctx.js';
 import { addDays } from './dates.js';
 import { mimeToExt } from './services/audio.js';
-import { compareStrings } from './services/diff.js';
+import { compareReadAloud, compareStrings } from './services/diff.js';
 import * as tts from './services/tts.js';
 import { DailyCapReachedError } from './llm/errors.js';
 
@@ -176,7 +176,7 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
         .safeParse(req.body ?? {});
       if (!parsed.success) return reply.code(400).send({ error: parsed.error.message });
       const target = pack.sentences[parsed.data.sentence_index]?.ko ?? '';
-      const diff = compareStrings(target, parsed.data.transcript);
+      const diff = compareReadAloud(target, parsed.data.transcript);
       const attemptId = review.createReadAloudAttempt(sessionId, target, parsed.data.transcript, diff.percent);
       return reply.send({
         target,
@@ -202,7 +202,7 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
       req.log.warn({ err: e }, 'read-aloud transcription failed');
       return reply.code(502).send({ error: e instanceof Error ? e.message : 'transcription failed' });
     }
-    const diff = compareStrings(target, transcript);
+    const diff = compareReadAloud(target, transcript);
     const attemptId = review.createReadAloudAttempt(sessionId, target, transcript, diff.percent);
     return {
       target,
@@ -343,7 +343,7 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
   app.post('/api/practice/read-aloud', async (req: FastifyRequest<{ Body: { target?: string; transcript?: string } }>, reply) => {
     const parsed = z.object({ target: z.string().min(1), transcript: z.string().max(500) }).safeParse(req.body ?? {});
     if (!parsed.success) return reply.code(400).send({ error: parsed.error.message });
-    const diff = compareStrings(parsed.data.target, parsed.data.transcript);
+    const diff = compareReadAloud(parsed.data.target, parsed.data.transcript);
     review.createReadAloudAttempt(null, parsed.data.target, parsed.data.transcript, diff.percent);
     return { target: parsed.data.target, ...diff };
   });

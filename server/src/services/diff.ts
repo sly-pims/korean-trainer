@@ -98,3 +98,19 @@ export function compareStrings(aRaw: string, bRaw: string): CharDiffResult {
     percent: matchPercent(a.length, b.length, matched),
   };
 }
+
+/**
+ * Read-aloud score: how much of the TARGET you actually said
+ * (matched / target length), tolerant of extra words that come from
+ * hesitation, filler, or speech-recognizer noise. In contrast to
+ * compareStrings it does NOT punish a longer transcript, so honest
+ * attempts don't swing between 70 and 100% on recognition jitter.
+ */
+export function compareReadAloud(aRaw: string, bRaw: string): CharDiffResult {
+  const a = splitTokens(normalizeForCompare(aRaw));
+  const b = splitTokens(normalizeForCompare(bRaw));
+  const ops = diffTokens(a, b);
+  const matched = ops.filter((o) => o.type === 'equal').length;
+  const percent = a.length === 0 ? 0 : Math.min(100, Math.round((matched / a.length) * 100));
+  return { matched, ops, segments: groupOps(ops), percent };
+}
