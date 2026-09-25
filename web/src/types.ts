@@ -167,6 +167,7 @@ export interface SessionCompleteResult {
 export interface ProgressData {
   settings: Settings;
   sessions: {
+    id: number;
     date: string;
     read_score: number | null;
     write_score: number | null;
@@ -177,6 +178,78 @@ export interface ProgressData {
   }[];
   streakCalendar: string[];
   history: { change_date: string; from_level: number; to_level: number; reason: string }[];
+}
+
+export interface SessionHistoryRow {
+  id: number;
+  date: string;
+  topic: string;
+  title_ko: string | null;
+  read_score: number | null;
+  write_score: number | null;
+  listen_score: number | null;
+  speak_score: number | null;
+  vocab_score: number | null;
+  duration_s: number | null;
+}
+
+export interface ReadAnswerRow {
+  index: number;
+  q_ko: string;
+  q_en: string;
+  choices: string[];
+  chosen_index: number | null;
+  answer_index: number;
+  correct: boolean;
+  explanation_en: string;
+}
+
+export interface WritingEntryRow {
+  id: number;
+  prompt: { ko: string; en: string; target_grammar?: string; level?: number };
+  user_text: string;
+  feedback: WritingFeedback | null;
+}
+
+export interface DictationEntryRow {
+  id: number;
+  sentence_index: number;
+  target_ko: string;
+  typed_text: string;
+  score: number;
+  percent: number;
+  segments: { type: 'equal' | 'delete' | 'insert'; text: string }[];
+}
+
+export interface SpeakingEntryRow {
+  id: number;
+  mode: 'read_aloud' | 'free_speech';
+  target: string | null;
+  transcript: string | null;
+  score: number | null;
+  percent: number | null;
+  segments: { type: 'equal' | 'delete' | 'insert'; text: string }[] | null;
+  feedback: SpeakingFeedback | null;
+}
+
+export interface SessionDetail {
+  session: {
+    id: number;
+    date: string;
+    status: string;
+    current_step: string;
+    read_score: number | null;
+    write_score: number | null;
+    listen_score: number | null;
+    speak_score: number | null;
+    vocab_score: number | null;
+    duration_s: number | null;
+  };
+  pack: ContentPack;
+  read: ReadAnswerRow[];
+  writing: WritingEntryRow[];
+  dictation: DictationEntryRow[];
+  speaking: SpeakingEntryRow[];
 }
 
 export interface LlmStatus {

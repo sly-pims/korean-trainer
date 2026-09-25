@@ -9,6 +9,8 @@ const Practice = lazy(() => import('./screens/Practice').then((m) => ({ default:
 const Words = lazy(() => import('./screens/Words').then((m) => ({ default: m.Words })));
 const Progress = lazy(() => import('./screens/Progress').then((m) => ({ default: m.Progress })));
 const SettingsScreen = lazy(() => import('./screens/Settings').then((m) => ({ default: m.SettingsScreen })));
+const History = lazy(() => import('./screens/History').then((m) => ({ default: m.History })));
+const HistoryReplay = lazy(() => import('./screens/History').then((m) => ({ default: m.HistoryReplay })));
 
 type AuthState = 'checking' | 'logged-in' | 'logged-out';
 
@@ -59,6 +61,8 @@ export function App() {
                 <Route path="/practice" element={<Practice />} />
                 <Route path="/words" element={<Words />} />
                 <Route path="/progress" element={<Progress />} />
+                <Route path="/history" element={<History />} />
+                <Route path="/history/:id" element={<HistoryReplay />} />
                 <Route path="/settings" element={<SettingsScreen />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>

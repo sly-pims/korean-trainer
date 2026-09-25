@@ -327,14 +327,13 @@ label {
   font-weight: 700;
 }
 
-.diff-corrected {
+.diff-match {
   color: var(--good);
   font-weight: 700;
 }
-.diff-original {
+.diff-mismatch {
   color: var(--accent);
-  text-decoration: line-through;
-  text-decoration-thickness: 2px;
+  font-weight: 700;
 }
 
 .diff-seg {

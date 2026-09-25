@@ -39,6 +39,7 @@ CREATE TABLE IF NOT EXISTS sessions (
   speak_score INTEGER,
   vocab_score INTEGER,
   duration_s INTEGER,
+  read_answers_json TEXT,
   FOREIGN KEY (passage_id) REFERENCES passages(id)
 );
 
@@ -90,6 +91,17 @@ CREATE TABLE IF NOT EXISTS speaking_attempts (
   FOREIGN KEY (session_id) REFERENCES sessions(id)
 );
 
+CREATE TABLE IF NOT EXISTS dictation_entries (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  session_id INTEGER,
+  sentence_index INTEGER NOT NULL,
+  target_ko TEXT NOT NULL,
+  typed_text TEXT NOT NULL,
+  score INTEGER NOT NULL,
+  created_at TEXT NOT NULL,
+  FOREIGN KEY (session_id) REFERENCES sessions(id)
+);
+
 CREATE TABLE IF NOT EXISTS llm_usage (
   date TEXT PRIMARY KEY,
   calls INTEGER NOT NULL DEFAULT 0
@@ -123,6 +135,9 @@ export function openDb(dbPath: string): DatabaseSync {
   if (!hasWordCol('source')) db.exec("ALTER TABLE words ADD COLUMN source TEXT NOT NULL DEFAULT 'reading'");
   if (!hasWordCol('example_ko')) db.exec('ALTER TABLE words ADD COLUMN example_ko TEXT');
   if (!hasWordCol('example_en')) db.exec('ALTER TABLE words ADD COLUMN example_en TEXT');
+  const sessionsCols = db.prepare('PRAGMA table_info(sessions)').all() as { name: string }[];
+  const hasSessionCol = (name: string) => sessionsCols.some((c) => c.name === name);
+  if (!hasSessionCol('read_answers_json')) db.exec('ALTER TABLE sessions ADD COLUMN read_answers_json TEXT');
   db.prepare('INSERT OR IGNORE INTO settings (id) VALUES (1)').run();
   db.prepare(
     "UPDATE settings SET tts_voice=COALESCE(NULLIF(tts_voice,''), 'ko-KR-SunHiNeural'), tts_rate=COALESCE(NULLIF(tts_rate,0), 1), keep_recordings_days=COALESCE(NULLIF(keep_recordings_days,0), 14), level=COALESCE(NULLIF(level,0), 1) WHERE id=1",

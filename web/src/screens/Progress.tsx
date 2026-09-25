@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api, formatDuration, humanizeLevel, timeEstimate } from '../api';
 import type { ProgressData } from '../types';
 
@@ -11,6 +12,7 @@ const SKILLS = [
 ] as const;
 
 export function Progress() {
+  const navto = useNavigate();
   const [data, setData] = useState<ProgressData | null>(null);
   const [err, setErr] = useState('');
 
@@ -58,8 +60,17 @@ export function Progress() {
       <div className="card">
         {sessions.length === 0 && <p className="muted">No sessions yet. Finished your first one today?</p>}
         {sessions.map((s, i) => (
-          <div className="session-row" key={i}>
-            <div className="row">
+          <div
+            className="session-row"
+            key={i}
+            role="link"
+            tabIndex={0}
+onClick={() => navto(`/history/${s.id}`)}
+onKeyDown={(e) => {
+  if (e.key === 'Enter') navto(`/history/${s.id}`);
+}}
+          >
+            <div className="row">hol
               <span className="session-date grow">
                 {formatDate(s.date)}
                 {s.date === todayIso && <em className="today-tag">today</em>}

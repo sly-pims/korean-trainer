@@ -162,6 +162,9 @@ export const api = {
     }),
 
   progress: () => request<ProgressData>('/api/progress'),
+  sessions: () => request<{ sessions: import('./types').SessionHistoryRow[] }>('/api/sessions'),
+  sessionDetail: (id: number) =>
+    request<{ detail: import('./types').SessionDetail | null }>(`/api/sessions/${id}/detail`),
   llmStatus: () => request<LlmStatus>('/api/llm/status'),
   getSettings: () => request<Settings>('/api/settings'),
   updateSettings: (patch: Partial<Settings>) =>

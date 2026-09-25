@@ -155,14 +155,17 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
       .object({ transcripts: z.array(z.string().max(500)).min(1).max(10) })
       .safeParse(req.body ?? {});
     if (!parsed.success) return reply.code(400).send({ error: parsed.error.message });
-    const pack = content.packForSession(Number(req.params.id)) as Pack;
+    const sessionId = Number(req.params.id);
+    const pack = content.packForSession(sessionId) as Pack;
     const targets = pack.sentences.slice(0, 3);
     const perSentence = parsed.data.transcripts.slice(0, 3).map((typed, i) => {
       const target = targets[i]?.ko ?? '';
       const diff = compareStrings(target, typed);
       return { target, typed, ...diff };
     });
-    const score = content.listenScore(Number(req.params.id), perSentence.map((p) => p.percent));
+    const score = content.listenScore(sessionId, perSentence.map((p) => p.percent));
+    const entries = perSentence.map((p, i) => ({ index: i, target: p.target, typed: p.typed, score: p.percent }));
+    if (entries.length) content.saveDictationEntries(sessionId, entries);
     return { score, perSentence };
   });
 
@@ -339,11 +342,20 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
     }
   });
 
+  // ---------- Session history ----------
+  app.get('/api/sessions', async () => ({ sessions: content.listDoneSessions() }));
+
+  app.get('/api/sessions/:id/detail', async (req: PReq, reply) => {
+    const detail = content.sessionDetail(Number(req.params.id));
+    if (!detail) return reply.code(404).send({ error: 'no completed session found' });
+    return { detail };
+  });
+
   // ---------- Progress (M6) ----------
   app.get('/api/progress', async () => {
     const sessions = db
       .prepare(
-        "SELECT date, read_score, write_score, listen_score, speak_score, vocab_score, duration_s FROM sessions WHERE status='done' ORDER BY date",
+        "SELECT id, date, read_score, write_score, listen_score, speak_score, vocab_score, duration_s FROM sessions WHERE status='done' ORDER BY date",
       )
       .all() as Array<Record<string, unknown>>;
     return {
@@ -362,6 +374,7 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
     const deleted = {
       writing_entries: del('writing_entries'),
       speaking_attempts: del('speaking_attempts'),
+      dictation_entries: del('dictation_entries'),
       srs_cards: del('srs_cards'),
       sessions: del('sessions'),
       words: del('words'),

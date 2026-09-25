@@ -6,6 +6,7 @@ import { CallManager } from '../llm/callManager.js';
 import { validateContentPack } from '../prompts/contentPack.js';
 import { ContentPackSchema } from '../schema/content.js';
 import { filterGlossaryByPassage } from './glossary.js';
+import { compareReadAloud, compareStrings } from './diff.js';
 import { reviewCard as sm2Review } from './srs.js';
 import { computeStreak } from './streak.js';
 
@@ -29,6 +30,7 @@ export interface SessionRow {
   speak_score: number | null;
   vocab_score: number | null;
   duration_s: number | null;
+  read_answers_json: string | null;
 }
 
 export interface PassageRow {
@@ -357,8 +359,142 @@ export class ContentService {
     const pack = this.packForSession(sessionId) as import('../schema/content.js').ContentPack;
     const correct = pack.questions.map((q, i) => (answers[i] ?? -1) === q.answer_index);
     const score = Math.round((correct.filter(Boolean).length / pack.questions.length) * 100);
-    this.db.prepare('UPDATE sessions SET read_score=? WHERE id=?').run(score, sessionId);
+    this.db
+      .prepare('UPDATE sessions SET read_score=?, read_answers_json=? WHERE id=?')
+      .run(score, JSON.stringify(answers), sessionId);
     return { score, correct };
+  }
+
+  // ---- Dictation persistence (history) ----
+
+  saveDictationEntries(
+    sessionId: number,
+    entries: { index: number; target: string; typed: string; score: number }[],
+  ): void {
+    this.db.prepare('DELETE FROM dictation_entries WHERE session_id=?').run(sessionId);
+    const ins = this.db.prepare(
+      'INSERT INTO dictation_entries (session_id, sentence_index, target_ko, typed_text, score, created_at) VALUES (?,?,?,?,?,?)',
+    );
+    for (const e of entries) {
+      ins.run(sessionId, e.index, e.target, e.typed, e.score, new Date().toISOString());
+    }
+  }
+
+  // ---- Session history ----
+
+  listDoneSessions() {
+    const rows = this.db
+      .prepare(
+        `SELECT s.id, s.date, s.read_score, s.write_score, s.listen_score, s.speak_score, s.vocab_score, s.duration_s,
+                p.topic, p.payload_json
+         FROM sessions s JOIN passages p ON p.id = s.passage_id
+         WHERE s.status='done'
+         ORDER BY s.date DESC, s.id DESC`,
+      )
+      .all() as Array<Record<string, unknown>>;
+    return rows.map((r) => {
+      const { payload_json, ...rest } = r;
+      let title_ko: string | null = null;
+      try {
+        title_ko = (JSON.parse(payload_json as string) as { title_ko?: unknown }).title_ko as string ?? null;
+      } catch {
+        /* keep null */
+      }
+      return { ...rest, title_ko };
+    });
+  }
+
+  sessionDetail(sessionId: number): Record<string, unknown> | null {
+    const s = this.db.prepare('SELECT * FROM sessions WHERE id=?').get(sessionId) as unknown as
+      | SessionRow
+      | undefined;
+    if (!s || s.status !== 'done') return null;
+    const p = this.db.prepare('SELECT * FROM passages WHERE id=?').get(s.passage_id) as unknown as PassageRow;
+    const pack = JSON.parse(p.payload_json) as import('../schema/content.js').ContentPack;
+    const answers: (number | null)[] = s.read_answers_json ? (JSON.parse(s.read_answers_json) as number[]) : [];
+    const read = pack.questions.map((q, i) => {
+      const chosen = answers[i] ?? null;
+      return {
+        index: i,
+        q_ko: q.q_ko,
+        q_en: q.q_en,
+        choices: q.choices,
+        chosen_index: chosen,
+        answer_index: q.answer_index,
+        correct: chosen !== null && chosen === q.answer_index,
+        explanation_en: q.explanation_en,
+      };
+    });
+    const writing = (
+      this.db
+        .prepare('SELECT id, prompt_json, user_text, feedback_json FROM writing_entries WHERE session_id=? ORDER BY id')
+        .all(sessionId) as Array<Record<string, unknown>>
+    ).map((w) => ({
+      id: w.id,
+      prompt: JSON.parse(w.prompt_json as string),
+      user_text: w.user_text,
+      feedback: w.feedback_json ? (JSON.parse(w.feedback_json as string) as unknown) : null,
+    }));
+    const dictation = (
+      this.db
+        .prepare('SELECT id, sentence_index, target_ko, typed_text, score FROM dictation_entries WHERE session_id=? ORDER BY sentence_index, id')
+        .all(sessionId) as Array<Record<string, unknown>>
+    ).map((d) => {
+      const diff = compareStrings(d.target_ko as string, d.typed_text as string);
+      return { ...d, segments: diff.segments, percent: diff.percent };
+    });
+    const attempts = this.db
+      .prepare('SELECT id, mode, prompt_json, transcript, feedback_json, score FROM speaking_attempts WHERE session_id=? ORDER BY id')
+      .all(sessionId) as Array<Record<string, unknown>>;
+    const speaking = attempts.map((a) => {
+      const mode = a.mode as string;
+      if (mode === 'read_aloud') {
+        const target = (JSON.parse(a.prompt_json as string) as { target?: string }).target ?? '';
+        const transcript = (a.transcript as string | null) ?? '';
+        const diff = compareReadAloud(target, transcript);
+        return {
+          id: a.id,
+          mode,
+          target,
+          transcript,
+          score: a.score,
+          percent: diff.percent,
+          segments: diff.segments,
+          feedback: null,
+        };
+      }
+      const prompt = JSON.parse((a.prompt_json as string) ?? '{}');
+      return {
+        id: a.id,
+        mode,
+        target: null,
+        transcript: a.transcript ?? null,
+        score: a.score,
+        percent: null,
+        segments: null,
+        feedback: a.feedback_json ? (JSON.parse(a.feedback_json as string) as unknown) : null,
+        prompt,
+      };
+    });
+    return {
+      session: {
+        id: s.id,
+        date: s.date,
+        status: s.status,
+        current_step: s.current_step,
+        read_score: s.read_score,
+        write_score: s.write_score,
+        listen_score: s.listen_score,
+        speak_score: s.speak_score,
+        vocab_score: s.vocab_score,
+        duration_s: s.duration_s,
+      },
+      pack,
+      read,
+      writing,
+      dictation,
+      speaking,
+    };
   }
 
   listenScore(sessionId: number, perSentence: number[]): number {

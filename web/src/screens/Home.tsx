@@ -63,6 +63,14 @@ export function Home() {
         </div>
       </div>
 
+      <Link className="card row" to="/history">
+        <span className="grow">
+          <b>History</b>
+          <span className="block small muted">Review past sessions, replay any day</span>
+        </span>
+        <span aria-hidden>&rsaquo;</span>
+      </Link>
+
       {!s && (
         <button className="primary big-cta" disabled={busy} onClick={start}>
           {busy ? 'Preparing…' : '▶ Begin today’s session'}
