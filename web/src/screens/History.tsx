@@ -60,7 +60,7 @@ export function History() {
               <span className="small muted">{formatDuration(s.duration_s)}</span>
             )}
           </div>
-          <p className="ko grow">{s.title_ko ?? s.topic}</p>
+          <p className="target-text grow">{s.title_target ?? s.topic}</p>
           <div className="row wrap score-row">
             {(
               [
@@ -149,15 +149,15 @@ export function HistoryReplay() {
       <div className="card">
         <div className="row">
           <span className="small muted grow">passage</span>
-          <SpeakButton text={d2.pack.passage_ko} rate={1} label="Play passage" />
+          <SpeakButton text={d2.pack.passage_target} rate={1} label="Play passage" />
         </div>
-        <p className="ko">{d2.pack.passage_ko}</p>
-        <p className="muted small">{d2.pack.passage_en}</p>
+        <p className="target-text">{d2.pack.passage_target}</p>
+        <p className="muted small">{d2.pack.passage_native}</p>
       </div>
       {d2.read.map((q) => (
         <div className="card" key={q.index}>
-          <p className="ko">{q.q_ko}</p>
-          <p className="muted small">{q.q_en}</p>
+          <p className="target-text">{q.q_target}</p>
+          <p className="muted small">{q.q_native}</p>
           {q.choices.map((c, ci) => {
             let cls = 'choice';
             if (ci === q.answer_index) cls += ' correct';
@@ -177,7 +177,7 @@ export function HistoryReplay() {
               : q.correct
                 ? 'Correct ✓'
                 : 'Incorrect ✗'}{' '}
-            {q.explanation_en}
+            {q.explanation_native}
           </p>
         </div>
       ))}
@@ -191,10 +191,10 @@ export function HistoryReplay() {
       {d2.writing.map((w) => (
         <div className="card" key={w.id}>
           <p className="small muted">prompt</p>
-          <p className="ko">{w.prompt.ko}</p>
-          <p className="muted small">{w.prompt.en}</p>
+          <p className="target-text">{w.prompt.target}</p>
+          <p className="muted small">{w.prompt.native}</p>
           <p className="small muted">your sentence</p>
-          <p className="ko">{w.user_text}</p>
+          <p className="target-text">{w.user_text}</p>
           {w.feedback ? (
             <>
               <p className="small muted">feedback</p>
@@ -225,9 +225,9 @@ export function HistoryReplay() {
             <span className="tag">{di.percent}%</span>
           </div>
           <p className="small muted">target</p>
-          <p className="ko">{di.target_ko}</p>
+          <p className="target-text">{di.target_text}</p>
           <p className="small muted">you typed</p>
-          <p className="ko">{di.typed_text}</p>
+          <p className="target-text">{di.typed_text}</p>
           <DiffView segments={di.segments} />
         </div>
       ))}
@@ -249,15 +249,15 @@ export function HistoryReplay() {
           {a.mode === 'read_aloud' ? (
             <>
               <p className="small muted">target</p>
-              <p className="ko">{a.target}</p>
+              <p className="target-text">{a.target}</p>
               <p className="small muted">you said</p>
-              <p className="ko">{a.transcript ?? '—'}</p>
+              <p className="target-text">{a.transcript ?? '—'}</p>
               {a.segments && <DiffView segments={a.segments} />}
             </>
           ) : (
             <>
               <p className="small muted">prompt</p>
-              <p className="ko">{a.target ?? ''}</p>
+              <p className="target-text">{a.target ?? ''}</p>
               <p className="muted small">
                 Your transcript and evaluation for this attempt weren't
                 available in the replay.

@@ -32,6 +32,12 @@
     "6": { "passage": "20+ sentences", "grammar": "Idioms, literary register, opinion pieces, nuanced connectors" }
   },
   "topics": ["family", "food", "travel", "work", "weather", "hobbies", "health", "shopping", "news"],
+  "fallbacks": {
+    "speakingPrompt": {
+      "target": "Qu'est-ce que vous avez fait la semaine dernière ?",
+      "native": "What did you do last week?"
+    }
+  },
   "scriptPattern": "[A-Za-zÀ-ÖØ-öø-ÿŒœ]",
   "silenceMarkers": ["EMPTY"]
 }

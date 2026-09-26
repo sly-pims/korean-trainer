@@ -77,15 +77,15 @@ export class ReviewService {
     if (!entry) return false;
     if (entry.feedback_json) return true;
     const prompt = JSON.parse(entry.prompt_json) as {
-      ko: string;
-      en: string;
+      target: string;
+      native: string;
       level: number;
     };
     const text = entry.user_text;
     if (!this.callManager) return false;
     const feedback = await this.callManager.generateJSON({
       system: writingGradeSystem(prompt.level ?? 1),
-      prompt: writingGradePrompt(prompt.level ?? 1, prompt.ko, prompt.en, text),
+      prompt: writingGradePrompt(prompt.level ?? 1, prompt.target, prompt.native, text),
       schema: WritingFeedbackSchema,
     });
     this.db
@@ -153,8 +153,8 @@ export class ReviewService {
       return false;
     }
     const prompt = JSON.parse(attempt.prompt_json ?? '{}') as {
-      ko: string;
-      en: string;
+      target: string;
+      native: string;
       level: number;
     };
     const ext = path.extname(audioPath).slice(1) || 'webm';
@@ -162,14 +162,14 @@ export class ReviewService {
     if (!this.callManager) return false;
     const feedback = await this.callManager.generateJSONFromAudio({
       system: speakingFeedbackSystem(prompt.level ?? 1),
-      prompt: speakingFeedbackPrompt(prompt.level ?? 1, prompt.ko, prompt.en),
+      prompt: speakingFeedbackPrompt(prompt.level ?? 1, prompt.target, prompt.native),
       schema: SpeakingFeedbackSchema,
       audio: wav,
       mimeType: 'audio/wav',
     });
     this.db
       .prepare('UPDATE speaking_attempts SET transcript=?, feedback_json=?, score=? WHERE id=?')
-      .run(feedback.transcript_ko, JSON.stringify(feedback), feedback.score, id);
+      .run(feedback.transcript_target, JSON.stringify(feedback), feedback.score, id);
     const score = Math.round((feedback.score / 5) * 100);
     if (attempt.session_id !== null) {
       this.db.prepare('UPDATE sessions SET speak_score=? WHERE id=?').run(score, attempt.session_id);

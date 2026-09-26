@@ -31,12 +31,12 @@ export const TOPIC_LIST = [
 const SCHEMA_DESCRIPTION = `{
   "level": <number 1-6>,
   "topic": "string",
-  "title_ko": "string",
-  "passage_ko": "string",
-  "passage_en": "string",
+  "title_target": "string",
+  "passage_target": "string",
+  "passage_native": "string",
   "sentences": [{"ko": "string", "en": "string"}],
-  "glossary": [{"surface": "string", "lemma": "string", "pos": "verb|noun|adjective|adverb|particle|expression|conjunction|determiner|numeral|counter", "meaning_en": "string"}],
-  "questions": [{"q_ko": "string", "q_en": "string", "choices": ["4 strings"], "answer_index": 0, "explanation_en": "string"}],
+  "glossary": [{"surface": "string", "lemma": "string", "pos": "verb|noun|adjective|adverb|particle|expression|conjunction|determiner|numeral|counter", "meaning_native": "string"}],
+  "questions": [{"q_target": "string", "q_native": "string", "choices": ["4 strings"], "answer_index": 0, "explanation_native": "string"}],
   "writing_prompt": {"ko": "string", "en": "string", "target_grammar": "string"},
   "speaking_prompt": {"ko": "string", "en": "string"}
 }`;
@@ -63,7 +63,7 @@ Rules:
 - The passage must be interesting, concrete and natural — everyday life topics adapted to the target level.
 - EVERY word in the passage that could be unfamiliar at this level must appear in "glossary". The "surface" must match the text exactly (same spelling) so tap-to-translate works.
 - Exactly 3 questions, each with exactly 4 choices and exactly one correct answer. Questions check real understanding of the passage.
-- "sentences": 3-5 short sentences FROM the passage, each under about 20 syllables, suitable for dictation and reading aloud. Their "ko" must appear verbatim inside "passage_ko".
+- "sentences": 3-5 short sentences FROM the passage, each under about 20 syllables, suitable for dictation and reading aloud. Their "ko" must appear verbatim inside "passage_target".
 - "speaking_prompt": a simple open question or scenario related to the passage that a learner can answer in 20-40 seconds (e.g. "What did you do last weekend?").
 - "writing_prompt.target_grammar": name the grammar point to practice (e.g. "past tense -았/었어요").
 - Value accuracy: correct ${languageName}, correct particles, natural word order. If unsure, choose simpler phrasing.`;

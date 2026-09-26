@@ -39,6 +39,10 @@ export const languageProfileSchema = z
     learnerProfile: z.string().min(1),
     styleGuidance: z.string().min(1),
     topics: z.array(z.string().min(1)).min(1),
+    /** Used when the database holds no passage for this language yet. */
+    fallbacks: z.object({
+      speakingPrompt: z.object({ target: z.string().min(1), native: z.string().min(1) }),
+    }),
     /** Regex source used to detect that a transcript is in the target script. */
     scriptPattern: z.string().min(1),
     /** Literal replies that mean "no speech was heard". */

@@ -32,7 +32,7 @@ export function SrsCard({ cards, busy, rate, voiceUri, onReview }: Props) {
   return (
     <div className="card">
       <div className="row">
-        <span className="ko grow" style={{ fontSize: '1.6rem', fontWeight: 700 }}>
+        <span className="target-text grow" style={{ fontSize: '1.6rem', fontWeight: 700 }}>
           {card.surface_example || card.lemma}
         </span>
         <span className="tag">due today</span>
@@ -44,7 +44,7 @@ export function SrsCard({ cards, busy, rate, voiceUri, onReview }: Props) {
         </button>
       ) : (
         <>
-          <p className="muted">{card.meaning_en}</p>
+          <p className="muted">{card.meaning_native}</p>
           <div className="row">
             <SpeakButton text={card.lemma} rate={rate} voiceUri={voiceUri} label="Hear it" />
             <span className="small muted grow">How well did you know it?</span>

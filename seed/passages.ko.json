@@ -2,862 +2,2047 @@
   {
     "level": 1,
     "topic": "family",
-    "title_ko": "우리 가족",
-    "passage_ko": "저는 김민수예요. 가족이 네 명이에요. 아버지, 어머니, 누나가 있어요. 우리 집은 서울에 있어요. 저는 가족을 사랑해요.",
-    "passage_en": "I am Kim Minsu. My family has four people. There is my father, my mother, and my older sister. Our house is in Seoul. I love my family.",
+    "title_target": "우리 가족",
+    "passage_target": "저는 김민수예요. 가족이 네 명이에요. 아버지, 어머니, 누나가 있어요. 우리 집은 서울에 있어요. 저는 가족을 사랑해요.",
+    "passage_native": "I am Kim Minsu. My family has four people. There is my father, my mother, and my older sister. Our house is in Seoul. I love my family.",
     "sentences": [
-      { "ko": "가족이 네 명이에요.", "en": "My family has four people." },
-      { "ko": "아버지, 어머니, 누나가 있어요.", "en": "There is my father, my mother, and my older sister." },
-      { "ko": "우리 집은 서울에 있어요.", "en": "Our house is in Seoul." },
-      { "ko": "저는 가족을 사랑해요.", "en": "I love my family." }
+      {
+        "target": "가족이 네 명이에요.",
+        "native": "My family has four people."
+      },
+      {
+        "target": "아버지, 어머니, 누나가 있어요.",
+        "native": "There is my father, my mother, and my older sister."
+      },
+      {
+        "target": "우리 집은 서울에 있어요.",
+        "native": "Our house is in Seoul."
+      },
+      {
+        "target": "저는 가족을 사랑해요.",
+        "native": "I love my family."
+      }
     ],
     "glossary": [
-      { "surface": "가족", "lemma": "가족", "pos": "noun", "meaning_en": "family" },
-      { "surface": "네", "lemma": "네", "pos": "numeral", "meaning_en": "four" },
-      { "surface": "명", "lemma": "명", "pos": "counter", "meaning_en": "counter for people" },
-      { "surface": "아버지", "lemma": "아버지", "pos": "noun", "meaning_en": "father" },
-      { "surface": "어머니", "lemma": "어머니", "pos": "noun", "meaning_en": "mother" },
-      { "surface": "누나", "lemma": "누나", "pos": "noun", "meaning_en": "older sister (said by a male)" },
-      { "surface": "집", "lemma": "집", "pos": "noun", "meaning_en": "house, home" },
-      { "surface": "서울", "lemma": "서울", "pos": "noun", "meaning_en": "Seoul" },
-      { "surface": "사랑해요", "lemma": "사랑하다", "pos": "verb", "meaning_en": "to love (polite)" }
+      {
+        "surface": "가족",
+        "lemma": "가족",
+        "pos": "noun",
+        "meaning_native": "family"
+      },
+      {
+        "surface": "네",
+        "lemma": "네",
+        "pos": "numeral",
+        "meaning_native": "four"
+      },
+      {
+        "surface": "명",
+        "lemma": "명",
+        "pos": "counter",
+        "meaning_native": "counter for people"
+      },
+      {
+        "surface": "아버지",
+        "lemma": "아버지",
+        "pos": "noun",
+        "meaning_native": "father"
+      },
+      {
+        "surface": "어머니",
+        "lemma": "어머니",
+        "pos": "noun",
+        "meaning_native": "mother"
+      },
+      {
+        "surface": "누나",
+        "lemma": "누나",
+        "pos": "noun",
+        "meaning_native": "older sister (said by a male)"
+      },
+      {
+        "surface": "집",
+        "lemma": "집",
+        "pos": "noun",
+        "meaning_native": "house, home"
+      },
+      {
+        "surface": "서울",
+        "lemma": "서울",
+        "pos": "noun",
+        "meaning_native": "Seoul"
+      },
+      {
+        "surface": "사랑해요",
+        "lemma": "사랑하다",
+        "pos": "verb",
+        "meaning_native": "to love (polite)"
+      }
     ],
     "questions": [
       {
-        "q_ko": "김민수 씨의 가족은 몇 명이에요?",
-        "q_en": "How many people are in Minsu's family?",
-        "choices": ["네 명", "두 명", "다섯 명", "세 명"],
+        "q_target": "김민수 씨의 가족은 몇 명이에요?",
+        "q_native": "How many people are in Minsu's family?",
+        "choices": [
+          "네 명",
+          "두 명",
+          "다섯 명",
+          "세 명"
+        ],
         "answer_index": 0,
-        "explanation_en": "The passage says '가족이 네 명이에요' — the family has four people."
+        "explanation_native": "The passage says '가족이 네 명이에요' — the family has four people."
       },
       {
-        "q_ko": "김민수 씨의 집은 어디에 있어요?",
-        "q_en": "Where is Minsu's home?",
-        "choices": ["부산", "서울", "대구", "제주도"],
+        "q_target": "김민수 씨의 집은 어디에 있어요?",
+        "q_native": "Where is Minsu's home?",
+        "choices": [
+          "부산",
+          "서울",
+          "대구",
+          "제주도"
+        ],
         "answer_index": 1,
-        "explanation_en": "'우리 집은 서울에 있어요' means 'Our home is in Seoul.'"
+        "explanation_native": "'우리 집은 서울에 있어요' means 'Our home is in Seoul.'"
       },
       {
-        "q_ko": "김민수 씨의 가족은 누가 있어요?",
-        "q_en": "Who is in Minsu's family?",
-        "choices": ["아버지, 어머니, 누나", "아버지와 할머니", "어머니와 오빠", "할아버지, 할머니"],
+        "q_target": "김민수 씨의 가족은 누가 있어요?",
+        "q_native": "Who is in Minsu's family?",
+        "choices": [
+          "아버지, 어머니, 누나",
+          "아버지와 할머니",
+          "어머니와 오빠",
+          "할아버지, 할머니"
+        ],
         "answer_index": 0,
-        "explanation_en": "The passage lists 아버지 (father), 어머니 (mother), and 누나 (older sister)."
+        "explanation_native": "The passage lists 아버지 (father), 어머니 (mother), and 누나 (older sister)."
       }
     ],
     "writing_prompt": {
-      "ko": "우리 가족을 소개해 주세요. 가족이 몇 명인지 말하고, 한 명씩 소개하세요.",
-      "en": "Introduce your family. Say how many people there are and introduce each one.",
+      "target": "우리 가족을 소개해 주세요. 가족이 몇 명인지 말하고, 한 명씩 소개하세요.",
+      "native": "Introduce your family. Say how many people there are and introduce each one.",
       "target_grammar": "이에요/예요, 있어요"
     },
     "speaking_prompt": {
-      "ko": "당신의 가족은 몇 명인가요? 가족을 두세 문장으로 소개해 보세요.",
-      "en": "How many people are in your family? Introduce your family in two or three sentences."
+      "target": "당신의 가족은 몇 명인가요? 가족을 두세 문장으로 소개해 보세요.",
+      "native": "How many people are in your family? Introduce your family in two or three sentences."
     }
   },
   {
     "level": 1,
     "topic": "food",
-    "title_ko": "좋아하는 음식",
-    "passage_ko": "저는 한국 음식을 좋아해요. 불고기와 김치를 좋아해요. 밥도 좋아해요. 맵지 않은 음식을 먹어요. 매일 김치를 먹어요.",
-    "passage_en": "I like Korean food. I like bulgogi and kimchi. I also like rice. I eat food that is not spicy. I eat kimchi every day.",
+    "title_target": "좋아하는 음식",
+    "passage_target": "저는 한국 음식을 좋아해요. 불고기와 김치를 좋아해요. 밥도 좋아해요. 맵지 않은 음식을 먹어요. 매일 김치를 먹어요.",
+    "passage_native": "I like Korean food. I like bulgogi and kimchi. I also like rice. I eat food that is not spicy. I eat kimchi every day.",
     "sentences": [
-      { "ko": "저는 한국 음식을 좋아해요.", "en": "I like Korean food." },
-      { "ko": "불고기와 김치를 좋아해요.", "en": "I like bulgogi and kimchi." },
-      { "ko": "맵지 않은 음식을 먹어요.", "en": "I eat food that is not spicy." },
-      { "ko": "매일 김치를 먹어요.", "en": "I eat kimchi every day." }
+      {
+        "target": "저는 한국 음식을 좋아해요.",
+        "native": "I like Korean food."
+      },
+      {
+        "target": "불고기와 김치를 좋아해요.",
+        "native": "I like bulgogi and kimchi."
+      },
+      {
+        "target": "맵지 않은 음식을 먹어요.",
+        "native": "I eat food that is not spicy."
+      },
+      {
+        "target": "매일 김치를 먹어요.",
+        "native": "I eat kimchi every day."
+      }
     ],
     "glossary": [
-      { "surface": "음식", "lemma": "음식", "pos": "noun", "meaning_en": "food" },
-      { "surface": "좋아해요", "lemma": "좋아하다", "pos": "verb", "meaning_en": "to like (polite)" },
-      { "surface": "불고기", "lemma": "불고기", "pos": "noun", "meaning_en": "bulgogi (grilled marinated beef)" },
-      { "surface": "김치", "lemma": "김치", "pos": "noun", "meaning_en": "kimchi" },
-      { "surface": "밥", "lemma": "밥", "pos": "noun", "meaning_en": "rice, cooked meal" },
-      { "surface": "먹어요", "lemma": "먹다", "pos": "verb", "meaning_en": "to eat (polite)" },
-      { "surface": "매일", "lemma": "매일", "pos": "adverb", "meaning_en": "every day" }
+      {
+        "surface": "음식",
+        "lemma": "음식",
+        "pos": "noun",
+        "meaning_native": "food"
+      },
+      {
+        "surface": "좋아해요",
+        "lemma": "좋아하다",
+        "pos": "verb",
+        "meaning_native": "to like (polite)"
+      },
+      {
+        "surface": "불고기",
+        "lemma": "불고기",
+        "pos": "noun",
+        "meaning_native": "bulgogi (grilled marinated beef)"
+      },
+      {
+        "surface": "김치",
+        "lemma": "김치",
+        "pos": "noun",
+        "meaning_native": "kimchi"
+      },
+      {
+        "surface": "밥",
+        "lemma": "밥",
+        "pos": "noun",
+        "meaning_native": "rice, cooked meal"
+      },
+      {
+        "surface": "먹어요",
+        "lemma": "먹다",
+        "pos": "verb",
+        "meaning_native": "to eat (polite)"
+      },
+      {
+        "surface": "매일",
+        "lemma": "매일",
+        "pos": "adverb",
+        "meaning_native": "every day"
+      }
     ],
     "questions": [
       {
-        "q_ko": "김민수 씨는 무엇을 좋아해요?",
-        "q_en": "What does Minsu like?",
-        "choices": ["외국 음식", "한국 음식", "일본 음식", "달콤한 음식"],
+        "q_target": "김민수 씨는 무엇을 좋아해요?",
+        "q_native": "What does Minsu like?",
+        "choices": [
+          "외국 음식",
+          "한국 음식",
+          "일본 음식",
+          "달콤한 음식"
+        ],
         "answer_index": 1,
-        "explanation_en": "The passage starts with '저는 한국 음식을 좋아해요' — I like Korean food."
+        "explanation_native": "The passage starts with '저는 한국 음식을 좋아해요' — I like Korean food."
       },
       {
-        "q_ko": "김민수 씨는 어떤 음식을 먹어요?",
-        "q_en": "What kind of food does Minsu eat?",
-        "choices": ["매운 음식", "짠 음식", "맵지 않은 음식", "싱거운 음식"],
+        "q_target": "김민수 씨는 어떤 음식을 먹어요?",
+        "q_native": "What kind of food does Minsu eat?",
+        "choices": [
+          "매운 음식",
+          "짠 음식",
+          "맵지 않은 음식",
+          "싱거운 음식"
+        ],
         "answer_index": 2,
-        "explanation_en": "'맵지 않은 음식을 먹어요' means 'I eat food that is not spicy.'"
+        "explanation_native": "'맵지 않은 음식을 먹어요' means 'I eat food that is not spicy.'"
       },
       {
-        "q_ko": "김민수 씨는 매일 무엇을 먹어요?",
-        "q_en": "What does Minsu eat every day?",
-        "choices": ["떡", "국수", "김치", "라면"],
+        "q_target": "김민수 씨는 매일 무엇을 먹어요?",
+        "q_native": "What does Minsu eat every day?",
+        "choices": [
+          "떡",
+          "국수",
+          "김치",
+          "라면"
+        ],
         "answer_index": 2,
-        "explanation_en": "The last sentence is '매일 김치를 먹어요' — I eat kimchi every day."
+        "explanation_native": "The last sentence is '매일 김치를 먹어요' — I eat kimchi every day."
       }
     ],
     "writing_prompt": {
-      "ko": "당신이 좋아하는 음식을 소개해 주세요. 무엇을 좋아하는지, 자주 먹는지 이야기하세요.",
-      "en": "Introduce a food you like. Say what you like and whether you eat it often.",
+      "target": "당신이 좋아하는 음식을 소개해 주세요. 무엇을 좋아하는지, 자주 먹는지 이야기하세요.",
+      "native": "Introduce a food you like. Say what you like and whether you eat it often.",
       "target_grammar": "좋아해요, 먹어요"
     },
     "speaking_prompt": {
-      "ko": "당신이 가장 좋아하는 음식은 무엇인가요? 왜 좋아하는지 이야기해 보세요.",
-      "en": "What is your favorite food? Talk about why you like it."
+      "target": "당신이 가장 좋아하는 음식은 무엇인가요? 왜 좋아하는지 이야기해 보세요.",
+      "native": "What is your favorite food? Talk about why you like it."
     }
   },
   {
     "level": 1,
     "topic": "weather",
-    "title_ko": "좋은 날씨",
-    "passage_ko": "오늘 날씨가 좋아요. 하늘이 맑아요. 날씨가 따뜻해요. 저는 공원에 가요. 공원에서 놀아요.",
-    "passage_en": "Today the weather is nice. The sky is clear. The weather is warm. I go to the park. I play at the park.",
+    "title_target": "좋은 날씨",
+    "passage_target": "오늘 날씨가 좋아요. 하늘이 맑아요. 날씨가 따뜻해요. 저는 공원에 가요. 공원에서 놀아요.",
+    "passage_native": "Today the weather is nice. The sky is clear. The weather is warm. I go to the park. I play at the park.",
     "sentences": [
-      { "ko": "오늘 날씨가 좋아요.", "en": "Today the weather is nice." },
-      { "ko": "하늘이 맑아요.", "en": "The sky is clear." },
-      { "ko": "날씨가 따뜻해요.", "en": "The weather is warm." },
-      { "ko": "저는 공원에 가요.", "en": "I go to the park." }
+      {
+        "target": "오늘 날씨가 좋아요.",
+        "native": "Today the weather is nice."
+      },
+      {
+        "target": "하늘이 맑아요.",
+        "native": "The sky is clear."
+      },
+      {
+        "target": "날씨가 따뜻해요.",
+        "native": "The weather is warm."
+      },
+      {
+        "target": "저는 공원에 가요.",
+        "native": "I go to the park."
+      }
     ],
     "glossary": [
-      { "surface": "오늘", "lemma": "오늘", "pos": "noun", "meaning_en": "today" },
-      { "surface": "날씨", "lemma": "날씨", "pos": "noun", "meaning_en": "weather" },
-      { "surface": "좋아요", "lemma": "좋다", "pos": "adjective", "meaning_en": "to be good, nice (polite)" },
-      { "surface": "하늘", "lemma": "하늘", "pos": "noun", "meaning_en": "sky" },
-      { "surface": "맑아요", "lemma": "맑다", "pos": "adjective", "meaning_en": "to be clear, clean (polite)" },
-      { "surface": "따뜻해요", "lemma": "따뜻하다", "pos": "adjective", "meaning_en": "to be warm (polite)" },
-      { "surface": "공원", "lemma": "공원", "pos": "noun", "meaning_en": "park" },
-      { "surface": "가요", "lemma": "가다", "pos": "verb", "meaning_en": "to go (polite)" },
-      { "surface": "놀아요", "lemma": "놀다", "pos": "verb", "meaning_en": "to play (polite)" }
+      {
+        "surface": "오늘",
+        "lemma": "오늘",
+        "pos": "noun",
+        "meaning_native": "today"
+      },
+      {
+        "surface": "날씨",
+        "lemma": "날씨",
+        "pos": "noun",
+        "meaning_native": "weather"
+      },
+      {
+        "surface": "좋아요",
+        "lemma": "좋다",
+        "pos": "adjective",
+        "meaning_native": "to be good, nice (polite)"
+      },
+      {
+        "surface": "하늘",
+        "lemma": "하늘",
+        "pos": "noun",
+        "meaning_native": "sky"
+      },
+      {
+        "surface": "맑아요",
+        "lemma": "맑다",
+        "pos": "adjective",
+        "meaning_native": "to be clear, clean (polite)"
+      },
+      {
+        "surface": "따뜻해요",
+        "lemma": "따뜻하다",
+        "pos": "adjective",
+        "meaning_native": "to be warm (polite)"
+      },
+      {
+        "surface": "공원",
+        "lemma": "공원",
+        "pos": "noun",
+        "meaning_native": "park"
+      },
+      {
+        "surface": "가요",
+        "lemma": "가다",
+        "pos": "verb",
+        "meaning_native": "to go (polite)"
+      },
+      {
+        "surface": "놀아요",
+        "lemma": "놀다",
+        "pos": "verb",
+        "meaning_native": "to play (polite)"
+      }
     ],
     "questions": [
       {
-        "q_ko": "오늘 날씨는 어때요?",
-        "q_en": "How is today's weather?",
-        "choices": ["좋아요", "추워요", "비가 와요", "바람이 불어요"],
+        "q_target": "오늘 날씨는 어때요?",
+        "q_native": "How is today's weather?",
+        "choices": [
+          "좋아요",
+          "추워요",
+          "비가 와요",
+          "바람이 불어요"
+        ],
         "answer_index": 0,
-        "explanation_en": "The passage begins '오늘 날씨가 좋아요' — today the weather is good."
+        "explanation_native": "The passage begins '오늘 날씨가 좋아요' — today the weather is good."
       },
       {
-        "q_ko": "하늘은 어때요?",
-        "q_en": "How is the sky?",
-        "choices": ["어두워요", "맑아요", "구름이 많아요", "비켜요"],
+        "q_target": "하늘은 어때요?",
+        "q_native": "How is the sky?",
+        "choices": [
+          "어두워요",
+          "맑아요",
+          "구름이 많아요",
+          "비켜요"
+        ],
         "answer_index": 1,
-        "explanation_en": "'하늘이 맑아요' means 'the sky is clear.'"
+        "explanation_native": "'하늘이 맑아요' means 'the sky is clear.'"
       },
       {
-        "q_ko": "김민수 씨는 어디에 가요?",
-        "q_en": "Where does Minsu go?",
-        "choices": ["학교", "회사", "공원", "시장"],
+        "q_target": "김민수 씨는 어디에 가요?",
+        "q_native": "Where does Minsu go?",
+        "choices": [
+          "학교",
+          "회사",
+          "공원",
+          "시장"
+        ],
         "answer_index": 2,
-        "explanation_en": "The passage says '저는 공원에 가요' — I go to the park."
+        "explanation_native": "The passage says '저는 공원에 가요' — I go to the park."
       }
     ],
     "writing_prompt": {
-      "ko": "오늘 날씨를 소개해 주세요. 하늘은 어때요? 무엇을 할 거예요?",
-      "en": "Describe today's weather. How is the sky? What will you do?",
+      "target": "오늘 날씨를 소개해 주세요. 하늘은 어때요? 무엇을 할 거예요?",
+      "native": "Describe today's weather. How is the sky? What will you do?",
       "target_grammar": "좋아요, 맑아요, 따뜻해요"
     },
     "speaking_prompt": {
-      "ko": "오늘 날씨는 어때요? 오늘 날씨에 대해 이야기해 보세요.",
-      "en": "How is the weather today? Talk about today's weather."
+      "target": "오늘 날씨는 어때요? 오늘 날씨에 대해 이야기해 보세요.",
+      "native": "How is the weather today? Talk about today's weather."
     }
   },
   {
     "level": 1,
     "topic": "hobbies",
-    "title_ko": "영화 보기",
-    "passage_ko": "저는 영화를 좋아해요. 영화를 자주 봐요. 주말에 친구와 같이 봐요. 저는 음악도 좋아해요. 친구와 영화를 보고 이야기해요.",
-    "passage_en": "I like movies. I watch movies often. On weekends I watch them with my friend. I also like music. After watching a movie with my friend, we talk.",
+    "title_target": "영화 보기",
+    "passage_target": "저는 영화를 좋아해요. 영화를 자주 봐요. 주말에 친구와 같이 봐요. 저는 음악도 좋아해요. 친구와 영화를 보고 이야기해요.",
+    "passage_native": "I like movies. I watch movies often. On weekends I watch them with my friend. I also like music. After watching a movie with my friend, we talk.",
     "sentences": [
-      { "ko": "저는 영화를 좋아해요.", "en": "I like movies." },
-      { "ko": "영화를 자주 봐요.", "en": "I watch movies often." },
-      { "ko": "주말에 친구와 같이 봐요.", "en": "On weekends I watch them with my friend." },
-      { "ko": "저는 음악도 좋아해요.", "en": "I also like music." }
+      {
+        "target": "저는 영화를 좋아해요.",
+        "native": "I like movies."
+      },
+      {
+        "target": "영화를 자주 봐요.",
+        "native": "I watch movies often."
+      },
+      {
+        "target": "주말에 친구와 같이 봐요.",
+        "native": "On weekends I watch them with my friend."
+      },
+      {
+        "target": "저는 음악도 좋아해요.",
+        "native": "I also like music."
+      }
     ],
     "glossary": [
-      { "surface": "영화", "lemma": "영화", "pos": "noun", "meaning_en": "movie" },
-      { "surface": "자주", "lemma": "자주", "pos": "adverb", "meaning_en": "often" },
-      { "surface": "봐요", "lemma": "보다", "pos": "verb", "meaning_en": "to watch, see (polite)" },
-      { "surface": "주말", "lemma": "주말", "pos": "noun", "meaning_en": "weekend" },
-      { "surface": "친구", "lemma": "친구", "pos": "noun", "meaning_en": "friend" },
-      { "surface": "같이", "lemma": "같이", "pos": "adverb", "meaning_en": "together" },
-      { "surface": "음악", "lemma": "음악", "pos": "noun", "meaning_en": "music" },
-      { "surface": "이야기해요", "lemma": "이야기하다", "pos": "verb", "meaning_en": "to talk, converse (polite)" }
+      {
+        "surface": "영화",
+        "lemma": "영화",
+        "pos": "noun",
+        "meaning_native": "movie"
+      },
+      {
+        "surface": "자주",
+        "lemma": "자주",
+        "pos": "adverb",
+        "meaning_native": "often"
+      },
+      {
+        "surface": "봐요",
+        "lemma": "보다",
+        "pos": "verb",
+        "meaning_native": "to watch, see (polite)"
+      },
+      {
+        "surface": "주말",
+        "lemma": "주말",
+        "pos": "noun",
+        "meaning_native": "weekend"
+      },
+      {
+        "surface": "친구",
+        "lemma": "친구",
+        "pos": "noun",
+        "meaning_native": "friend"
+      },
+      {
+        "surface": "같이",
+        "lemma": "같이",
+        "pos": "adverb",
+        "meaning_native": "together"
+      },
+      {
+        "surface": "음악",
+        "lemma": "음악",
+        "pos": "noun",
+        "meaning_native": "music"
+      },
+      {
+        "surface": "이야기해요",
+        "lemma": "이야기하다",
+        "pos": "verb",
+        "meaning_native": "to talk, converse (polite)"
+      }
     ],
     "questions": [
       {
-        "q_ko": "김민수 씨는 무엇을 좋아해요?",
-        "q_en": "What does Minsu like?",
-        "choices": ["축구", "영화", "게임", "그림"],
+        "q_target": "김민수 씨는 무엇을 좋아해요?",
+        "q_native": "What does Minsu like?",
+        "choices": [
+          "축구",
+          "영화",
+          "게임",
+          "그림"
+        ],
         "answer_index": 1,
-        "explanation_en": "The passage says '저는 영화를 좋아해요' — I like movies."
+        "explanation_native": "The passage says '저는 영화를 좋아해요' — I like movies."
       },
       {
-        "q_ko": "김민수 씨는 영화를 언제 봐요?",
-        "q_en": "When does Minsu watch movies?",
-        "choices": ["매일 아침", "주말", "밤에만", "월요일"],
+        "q_target": "김민수 씨는 영화를 언제 봐요?",
+        "q_native": "When does Minsu watch movies?",
+        "choices": [
+          "매일 아침",
+          "주말",
+          "밤에만",
+          "월요일"
+        ],
         "answer_index": 1,
-        "explanation_en": "'주말에 친구와 같이 봐요' — on weekends."
+        "explanation_native": "'주말에 친구와 같이 봐요' — on weekends."
       },
       {
-        "q_ko": "친구와 영화를 보고 무엇을 해요?",
-        "q_en": "What does Minsu do after watching a movie with a friend?",
-        "choices": ["잠을 자요", "밥을 먹어요", "이야기해요", "집에 가요"],
+        "q_target": "친구와 영화를 보고 무엇을 해요?",
+        "q_native": "What does Minsu do after watching a movie with a friend?",
+        "choices": [
+          "잠을 자요",
+          "밥을 먹어요",
+          "이야기해요",
+          "집에 가요"
+        ],
         "answer_index": 2,
-        "explanation_en": "The last sentence is '친구와 영화를 보고 이야기해요' — we talk."
+        "explanation_native": "The last sentence is '친구와 영화를 보고 이야기해요' — we talk."
       }
     ],
     "writing_prompt": {
-      "ko": "당신의 취미를 소개해 주세요. 언제, 무엇을 좋아하는지 이야기하세요.",
-      "en": "Introduce your hobby. Say when you do it and what you like about it.",
+      "target": "당신의 취미를 소개해 주세요. 언제, 무엇을 좋아하는지 이야기하세요.",
+      "native": "Introduce your hobby. Say when you do it and what you like about it.",
       "target_grammar": "좋아해요, 봐요/해요"
     },
     "speaking_prompt": {
-      "ko": "당신은 무엇을 좋아하나요? 취미에 대해 두세 문장으로 이야기해 보세요.",
-      "en": "What do you like? Talk about your hobby in two or three sentences."
+      "target": "당신은 무엇을 좋아하나요? 취미에 대해 두세 문장으로 이야기해 보세요.",
+      "native": "What do you like? Talk about your hobby in two or three sentences."
     }
   },
   {
     "level": 1,
     "topic": "shopping",
-    "title_ko": "시장에 가요",
-    "passage_ko": "저는 시장에 가요. 시장에서 과일을 사요. 사과와 배를 사요. 과일이 싸요. 집에 가서 과일을 먹어요.",
-    "passage_en": "I go to the market. I buy fruit at the market. I buy apples and pears. The fruit is cheap. I go home and eat the fruit.",
+    "title_target": "시장에 가요",
+    "passage_target": "저는 시장에 가요. 시장에서 과일을 사요. 사과와 배를 사요. 과일이 싸요. 집에 가서 과일을 먹어요.",
+    "passage_native": "I go to the market. I buy fruit at the market. I buy apples and pears. The fruit is cheap. I go home and eat the fruit.",
     "sentences": [
-      { "ko": "저는 시장에 가요.", "en": "I go to the market." },
-      { "ko": "시장에서 과일을 사요.", "en": "I buy fruit at the market." },
-      { "ko": "과일이 싸요.", "en": "The fruit is cheap." },
-      { "ko": "집에 가서 과일을 먹어요.", "en": "I go home and eat the fruit." }
+      {
+        "target": "저는 시장에 가요.",
+        "native": "I go to the market."
+      },
+      {
+        "target": "시장에서 과일을 사요.",
+        "native": "I buy fruit at the market."
+      },
+      {
+        "target": "과일이 싸요.",
+        "native": "The fruit is cheap."
+      },
+      {
+        "target": "집에 가서 과일을 먹어요.",
+        "native": "I go home and eat the fruit."
+      }
     ],
     "glossary": [
-      { "surface": "시장", "lemma": "시장", "pos": "noun", "meaning_en": "market" },
-      { "surface": "과일", "lemma": "과일", "pos": "noun", "meaning_en": "fruit" },
-      { "surface": "사요", "lemma": "사다", "pos": "verb", "meaning_en": "to buy (polite)" },
-      { "surface": "사과", "lemma": "사과", "pos": "noun", "meaning_en": "apple" },
-      { "surface": "배", "lemma": "배", "pos": "noun", "meaning_en": "pear" },
-      { "surface": "싸요", "lemma": "싸다", "pos": "adjective", "meaning_en": "to be cheap (polite)" },
-      { "surface": "집", "lemma": "집", "pos": "noun", "meaning_en": "house, home" }
+      {
+        "surface": "시장",
+        "lemma": "시장",
+        "pos": "noun",
+        "meaning_native": "market"
+      },
+      {
+        "surface": "과일",
+        "lemma": "과일",
+        "pos": "noun",
+        "meaning_native": "fruit"
+      },
+      {
+        "surface": "사요",
+        "lemma": "사다",
+        "pos": "verb",
+        "meaning_native": "to buy (polite)"
+      },
+      {
+        "surface": "사과",
+        "lemma": "사과",
+        "pos": "noun",
+        "meaning_native": "apple"
+      },
+      {
+        "surface": "배",
+        "lemma": "배",
+        "pos": "noun",
+        "meaning_native": "pear"
+      },
+      {
+        "surface": "싸요",
+        "lemma": "싸다",
+        "pos": "adjective",
+        "meaning_native": "to be cheap (polite)"
+      },
+      {
+        "surface": "집",
+        "lemma": "집",
+        "pos": "noun",
+        "meaning_native": "house, home"
+      }
     ],
     "questions": [
       {
-        "q_ko": "김민수 씨는 어디에 가요?",
-        "q_en": "Where does Minsu go?",
-        "choices": ["백화점", "시장", "마트", "공항"],
+        "q_target": "김민수 씨는 어디에 가요?",
+        "q_native": "Where does Minsu go?",
+        "choices": [
+          "백화점",
+          "시장",
+          "마트",
+          "공항"
+        ],
         "answer_index": 1,
-        "explanation_en": "The first sentence is '저는 시장에 가요' — I go to the market."
+        "explanation_native": "The first sentence is '저는 시장에 가요' — I go to the market."
       },
       {
-        "q_ko": "시장에서 무엇을 사요?",
-        "q_en": "What does Minsu buy at the market?",
-        "choices": ["야채", "고기", "과일", "빵"],
+        "q_target": "시장에서 무엇을 사요?",
+        "q_native": "What does Minsu buy at the market?",
+        "choices": [
+          "야채",
+          "고기",
+          "과일",
+          "빵"
+        ],
         "answer_index": 2,
-        "explanation_en": "'시장에서 과일을 사요' — I buy fruit."
+        "explanation_native": "'시장에서 과일을 사요' — I buy fruit."
       },
       {
-        "q_ko": "과일은 어때요?",
-        "q_en": "How is the fruit?",
-        "choices": ["비싸요", "싸요", "맛없어요", "조금 있어요"],
+        "q_target": "과일은 어때요?",
+        "q_native": "How is the fruit?",
+        "choices": [
+          "비싸요",
+          "싸요",
+          "맛없어요",
+          "조금 있어요"
+        ],
         "answer_index": 1,
-        "explanation_en": "'과일이 싸요' means 'the fruit is cheap.'"
+        "explanation_native": "'과일이 싸요' means 'the fruit is cheap.'"
       }
     ],
     "writing_prompt": {
-      "ko": "시장에 가서 무엇을 사고 싶어요? 무엇을 사는지 이야기해 주세요.",
-      "en": "What do you want to buy at the market? Write about what you buy.",
+      "target": "시장에 가서 무엇을 사고 싶어요? 무엇을 사는지 이야기해 주세요.",
+      "native": "What do you want to buy at the market? Write about what you buy.",
       "target_grammar": "사요, 싸요, 먹어요"
     },
     "speaking_prompt": {
-      "ko": "당신은 시장에 자주 가나요? 시장에서 무엇을 사나요?",
-      "en": "Do you often go to the market? What do you buy there?"
+      "target": "당신은 시장에 자주 가나요? 시장에서 무엇을 사나요?",
+      "native": "Do you often go to the market? What do you buy there?"
     }
   },
   {
     "level": 2,
     "topic": "work",
-    "title_ko": "새 회사",
-    "passage_ko": "지난주에 새 회사에서 일을 시작했어요. 회사가 집에서 가까워요. 그래서 아침에 일찍 일어나요. 회사에서 한국어를 자주 써요. 점심에 동료들과 밥을 먹어요. 일이 재미있지만 조금 힘들어요.",
-    "passage_en": "Last week I started working at a new company. The company is close to home. So I wake up early in the morning. I use Korean often at the company. I eat lunch with my colleagues. Work is fun but a little tiring.",
+    "title_target": "새 회사",
+    "passage_target": "지난주에 새 회사에서 일을 시작했어요. 회사가 집에서 가까워요. 그래서 아침에 일찍 일어나요. 회사에서 한국어를 자주 써요. 점심에 동료들과 밥을 먹어요. 일이 재미있지만 조금 힘들어요.",
+    "passage_native": "Last week I started working at a new company. The company is close to home. So I wake up early in the morning. I use Korean often at the company. I eat lunch with my colleagues. Work is fun but a little tiring.",
     "sentences": [
-      { "ko": "지난주에 새 회사에서 일을 시작했어요.", "en": "Last week I started working at a new company." },
-      { "ko": "회사가 집에서 가까워요.", "en": "The company is close to home." },
-      { "ko": "회사에서 한국어를 자주 써요.", "en": "I use Korean often at the company." },
-      { "ko": "점심에 동료들과 밥을 먹어요.", "en": "I eat lunch with my colleagues." }
+      {
+        "target": "지난주에 새 회사에서 일을 시작했어요.",
+        "native": "Last week I started working at a new company."
+      },
+      {
+        "target": "회사가 집에서 가까워요.",
+        "native": "The company is close to home."
+      },
+      {
+        "target": "회사에서 한국어를 자주 써요.",
+        "native": "I use Korean often at the company."
+      },
+      {
+        "target": "점심에 동료들과 밥을 먹어요.",
+        "native": "I eat lunch with my colleagues."
+      }
     ],
     "glossary": [
-      { "surface": "지난주", "lemma": "지난주", "pos": "noun", "meaning_en": "last week" },
-      { "surface": "새", "lemma": "새", "pos": "adjective", "meaning_en": "new" },
-      { "surface": "회사", "lemma": "회사", "pos": "noun", "meaning_en": "company, office" },
-      { "surface": "일", "lemma": "일", "pos": "noun", "meaning_en": "work" },
-      { "surface": "시작했어요", "lemma": "시작하다", "pos": "verb", "meaning_en": "to start (past, polite)" },
-      { "surface": "가까워요", "lemma": "가깝다", "pos": "adjective", "meaning_en": "to be close/near (polite)" },
-      { "surface": "그래서", "lemma": "그래서", "pos": "conjunction", "meaning_en": "so, therefore" },
-      { "surface": "아침", "lemma": "아침", "pos": "noun", "meaning_en": "morning" },
-      { "surface": "일찍", "lemma": "일찍", "pos": "adverb", "meaning_en": "early" },
-      { "surface": "일어나요", "lemma": "일어나다", "pos": "verb", "meaning_en": "to get up, wake up (polite)" },
-      { "surface": "점심", "lemma": "점심", "pos": "noun", "meaning_en": "lunch" },
-      { "surface": "동료", "lemma": "동료", "pos": "noun", "meaning_en": "colleague" },
-      { "surface": "재미있지만", "lemma": "재미있다", "pos": "adjective", "meaning_en": "fun but (재미있다 + -지만)" },
-      { "surface": "힘들어요", "lemma": "힘들다", "pos": "adjective", "meaning_en": "to be hard, tiring (polite)" }
+      {
+        "surface": "지난주",
+        "lemma": "지난주",
+        "pos": "noun",
+        "meaning_native": "last week"
+      },
+      {
+        "surface": "새",
+        "lemma": "새",
+        "pos": "adjective",
+        "meaning_native": "new"
+      },
+      {
+        "surface": "회사",
+        "lemma": "회사",
+        "pos": "noun",
+        "meaning_native": "company, office"
+      },
+      {
+        "surface": "일",
+        "lemma": "일",
+        "pos": "noun",
+        "meaning_native": "work"
+      },
+      {
+        "surface": "시작했어요",
+        "lemma": "시작하다",
+        "pos": "verb",
+        "meaning_native": "to start (past, polite)"
+      },
+      {
+        "surface": "가까워요",
+        "lemma": "가깝다",
+        "pos": "adjective",
+        "meaning_native": "to be close/near (polite)"
+      },
+      {
+        "surface": "그래서",
+        "lemma": "그래서",
+        "pos": "conjunction",
+        "meaning_native": "so, therefore"
+      },
+      {
+        "surface": "아침",
+        "lemma": "아침",
+        "pos": "noun",
+        "meaning_native": "morning"
+      },
+      {
+        "surface": "일찍",
+        "lemma": "일찍",
+        "pos": "adverb",
+        "meaning_native": "early"
+      },
+      {
+        "surface": "일어나요",
+        "lemma": "일어나다",
+        "pos": "verb",
+        "meaning_native": "to get up, wake up (polite)"
+      },
+      {
+        "surface": "점심",
+        "lemma": "점심",
+        "pos": "noun",
+        "meaning_native": "lunch"
+      },
+      {
+        "surface": "동료",
+        "lemma": "동료",
+        "pos": "noun",
+        "meaning_native": "colleague"
+      },
+      {
+        "surface": "재미있지만",
+        "lemma": "재미있다",
+        "pos": "adjective",
+        "meaning_native": "fun but (재미있다 + -지만)"
+      },
+      {
+        "surface": "힘들어요",
+        "lemma": "힘들다",
+        "pos": "adjective",
+        "meaning_native": "to be hard, tiring (polite)"
+      }
     ],
     "questions": [
       {
-        "q_ko": "김민수 씨는 언제 새 회사에서 일을 시작했어요?",
-        "q_en": "When did Minsu start working at the new company?",
-        "choices": ["어제", "지난달", "지난주", "작년"],
+        "q_target": "김민수 씨는 언제 새 회사에서 일을 시작했어요?",
+        "q_native": "When did Minsu start working at the new company?",
+        "choices": [
+          "어제",
+          "지난달",
+          "지난주",
+          "작년"
+        ],
         "answer_index": 2,
-        "explanation_en": "'지난주에 새 회사에서 일을 시작했어요' — last week."
+        "explanation_native": "'지난주에 새 회사에서 일을 시작했어요' — last week."
       },
       {
-        "q_ko": "회사는 어디에 있어요?",
-        "q_en": "Where is the company?",
-        "choices": ["집에서 멀어요", "집에서 가까워요", "서울 시내에 있어요", "지하철역 옆이에요"],
+        "q_target": "회사는 어디에 있어요?",
+        "q_native": "Where is the company?",
+        "choices": [
+          "집에서 멀어요",
+          "집에서 가까워요",
+          "서울 시내에 있어요",
+          "지하철역 옆이에요"
+        ],
         "answer_index": 1,
-        "explanation_en": "'회사가 집에서 가까워요' — the company is close to home."
+        "explanation_native": "'회사가 집에서 가까워요' — the company is close to home."
       },
       {
-        "q_ko": "점심에 누구와 밥을 먹어요?",
-        "q_en": "With whom does Minsu eat lunch?",
-        "choices": ["가족", "친구", "동료들", "혼자"],
+        "q_target": "점심에 누구와 밥을 먹어요?",
+        "q_native": "With whom does Minsu eat lunch?",
+        "choices": [
+          "가족",
+          "친구",
+          "동료들",
+          "혼자"
+        ],
         "answer_index": 2,
-        "explanation_en": "'점심에 동료들과 밥을 먹어요' — with colleagues."
+        "explanation_native": "'점심에 동료들과 밥을 먹어요' — with colleagues."
       }
     ],
     "writing_prompt": {
-      "ko": "지난주에 무엇을 했어요? 하루를 이야기해 주세요. 언제 무엇을 했는지 써요.",
-      "en": "What did you do last week? Write about a day, and say when you did what.",
+      "target": "지난주에 무엇을 했어요? 하루를 이야기해 주세요. 언제 무엇을 했는지 써요.",
+      "native": "What did you do last week? Write about a day, and say when you did what.",
       "target_grammar": "past tense -았/었어요, 그래서"
     },
     "speaking_prompt": {
-      "ko": "지난주에 무엇을 했나요? 지난주에 있었던 일을 이야기해 보세요.",
-      "en": "What did you do last week? Talk about something that happened last week."
+      "target": "지난주에 무엇을 했나요? 지난주에 있었던 일을 이야기해 보세요.",
+      "native": "What did you do last week? Talk about something that happened last week."
     }
   },
   {
     "level": 2,
     "topic": "travel",
-    "title_ko": "부산 여행",
-    "passage_ko": "지난주에 부산에 여행을 갔어요. 기차로 부산에 갔어요. 바다가 아주 예뻤어요. 해운대에서 산책을 했어요. 밤에는 맛있는 생선을 먹었어요. 여행이 정말 좋았어요. 다음에 또 가고 싶어요.",
-    "passage_en": "Last week I went on a trip to Busan. I went to Busan by train. The sea was very pretty. I strolled at Haeundae. At night I ate delicious fish. The trip was really nice. I want to go again next time.",
+    "title_target": "부산 여행",
+    "passage_target": "지난주에 부산에 여행을 갔어요. 기차로 부산에 갔어요. 바다가 아주 예뻤어요. 해운대에서 산책을 했어요. 밤에는 맛있는 생선을 먹었어요. 여행이 정말 좋았어요. 다음에 또 가고 싶어요.",
+    "passage_native": "Last week I went on a trip to Busan. I went to Busan by train. The sea was very pretty. I strolled at Haeundae. At night I ate delicious fish. The trip was really nice. I want to go again next time.",
     "sentences": [
-      { "ko": "지난주에 부산에 여행을 갔어요.", "en": "Last week I went on a trip to Busan." },
-      { "ko": "기차로 부산에 갔어요.", "en": "I went to Busan by train." },
-      { "ko": "바다가 아주 예뻤어요.", "en": "The sea was very pretty." },
-      { "ko": "다음에 또 가고 싶어요.", "en": "I want to go again next time." }
+      {
+        "target": "지난주에 부산에 여행을 갔어요.",
+        "native": "Last week I went on a trip to Busan."
+      },
+      {
+        "target": "기차로 부산에 갔어요.",
+        "native": "I went to Busan by train."
+      },
+      {
+        "target": "바다가 아주 예뻤어요.",
+        "native": "The sea was very pretty."
+      },
+      {
+        "target": "다음에 또 가고 싶어요.",
+        "native": "I want to go again next time."
+      }
     ],
     "glossary": [
-      { "surface": "여행", "lemma": "여행", "pos": "noun", "meaning_en": "trip, travel" },
-      { "surface": "갔어요", "lemma": "가다", "pos": "verb", "meaning_en": "to go (past, polite)" },
-      { "surface": "기차", "lemma": "기차", "pos": "noun", "meaning_en": "train" },
-      { "surface": "바다", "lemma": "바다", "pos": "noun", "meaning_en": "sea, ocean" },
-      { "surface": "아주", "lemma": "아주", "pos": "adverb", "meaning_en": "very" },
-      { "surface": "예뻤어요", "lemma": "예쁘다", "pos": "adjective", "meaning_en": "to be pretty (past, polite)" },
-      { "surface": "해운대", "lemma": "해운대", "pos": "noun", "meaning_en": "Haeundae (Busan beach district)" },
-      { "surface": "산책", "lemma": "산책", "pos": "noun", "meaning_en": "a walk, stroll" },
-      { "surface": "생선", "lemma": "생선", "pos": "noun", "meaning_en": "fish (as food)" },
-      { "surface": "먹었어요", "lemma": "먹다", "pos": "verb", "meaning_en": "to eat (past, polite)" },
-      { "surface": "정말", "lemma": "정말", "pos": "adverb", "meaning_en": "really" },
-      { "surface": "좋았어요", "lemma": "좋다", "pos": "adjective", "meaning_en": "to be good (past, polite)" }
+      {
+        "surface": "여행",
+        "lemma": "여행",
+        "pos": "noun",
+        "meaning_native": "trip, travel"
+      },
+      {
+        "surface": "갔어요",
+        "lemma": "가다",
+        "pos": "verb",
+        "meaning_native": "to go (past, polite)"
+      },
+      {
+        "surface": "기차",
+        "lemma": "기차",
+        "pos": "noun",
+        "meaning_native": "train"
+      },
+      {
+        "surface": "바다",
+        "lemma": "바다",
+        "pos": "noun",
+        "meaning_native": "sea, ocean"
+      },
+      {
+        "surface": "아주",
+        "lemma": "아주",
+        "pos": "adverb",
+        "meaning_native": "very"
+      },
+      {
+        "surface": "예뻤어요",
+        "lemma": "예쁘다",
+        "pos": "adjective",
+        "meaning_native": "to be pretty (past, polite)"
+      },
+      {
+        "surface": "해운대",
+        "lemma": "해운대",
+        "pos": "noun",
+        "meaning_native": "Haeundae (Busan beach district)"
+      },
+      {
+        "surface": "산책",
+        "lemma": "산책",
+        "pos": "noun",
+        "meaning_native": "a walk, stroll"
+      },
+      {
+        "surface": "생선",
+        "lemma": "생선",
+        "pos": "noun",
+        "meaning_native": "fish (as food)"
+      },
+      {
+        "surface": "먹었어요",
+        "lemma": "먹다",
+        "pos": "verb",
+        "meaning_native": "to eat (past, polite)"
+      },
+      {
+        "surface": "정말",
+        "lemma": "정말",
+        "pos": "adverb",
+        "meaning_native": "really"
+      },
+      {
+        "surface": "좋았어요",
+        "lemma": "좋다",
+        "pos": "adjective",
+        "meaning_native": "to be good (past, polite)"
+      }
     ],
     "questions": [
       {
-        "q_ko": "김민수 씨는 어디에 여행을 갔어요?",
-        "q_en": "Where did Minsu travel?",
-        "choices": ["서울", "제주도", "부산", "대구"],
+        "q_target": "김민수 씨는 어디에 여행을 갔어요?",
+        "q_native": "Where did Minsu travel?",
+        "choices": [
+          "서울",
+          "제주도",
+          "부산",
+          "대구"
+        ],
         "answer_index": 2,
-        "explanation_en": "'부산에 여행을 갔어요' — he went to Busan."
+        "explanation_native": "'부산에 여행을 갔어요' — he went to Busan."
       },
       {
-        "q_ko": "부산에 무엇으로 갔어요?",
-        "q_en": "How did Minsu go to Busan?",
-        "choices": ["버스", "기차", "비행기", "배"],
+        "q_target": "부산에 무엇으로 갔어요?",
+        "q_native": "How did Minsu go to Busan?",
+        "choices": [
+          "버스",
+          "기차",
+          "비행기",
+          "배"
+        ],
         "answer_index": 1,
-        "explanation_en": "'기차로 부산에 갔어요' — by train."
+        "explanation_native": "'기차로 부산에 갔어요' — by train."
       },
       {
-        "q_ko": "밤에 무엇을 먹었어요?",
-        "q_en": "What did Minsu eat at night?",
-        "choices": ["과일", "고기", "생선", "빵"],
+        "q_target": "밤에 무엇을 먹었어요?",
+        "q_native": "What did Minsu eat at night?",
+        "choices": [
+          "과일",
+          "고기",
+          "생선",
+          "빵"
+        ],
         "answer_index": 2,
-        "explanation_en": "'밤에는 맛있는 생선을 먹었어요' — delicious fish."
+        "explanation_native": "'밤에는 맛있는 생선을 먹었어요' — delicious fish."
       }
     ],
     "writing_prompt": {
-      "ko": "당신의 여행 경험을 쓰세요. 어디에 갔어요? 무엇을 보고 먹었어요?",
-      "en": "Write about a trip you took. Where did you go? What did you see and eat?",
+      "target": "당신의 여행 경험을 쓰세요. 어디에 갔어요? 무엇을 보고 먹었어요?",
+      "native": "Write about a trip you took. Where did you go? What did you see and eat?",
       "target_grammar": "past tense, -아서/어서, 그리고"
     },
     "speaking_prompt": {
-      "ko": "가보고 싶은 곳이 있나요? 그곳에 가서 무엇을 하고 싶은지 이야기해 보세요.",
-      "en": "Is there a place you want to visit? Talk about what you would like to do there."
+      "target": "가보고 싶은 곳이 있나요? 그곳에 가서 무엇을 하고 싶은지 이야기해 보세요.",
+      "native": "Is there a place you want to visit? Talk about what you would like to do there."
     }
   },
   {
     "level": 2,
     "topic": "food",
-    "title_ko": "어제 저녁",
-    "passage_ko": "어제 친구와 한식당에 갔어요. 비빔밥과 된장찌개를 먹었어요. 비빔밥이 정말 맛있었어요. 된장찌개는 좀 짰어요. 친구는 매운 음식을 좋아해서 김치찌개를 먹었어요. 우리는 같이 이야기하면서 오래 있었어요. 나중에 또 먹으러 가요.",
-    "passage_en": "Yesterday I went to a Korean restaurant with my friend. I ate bibimbap and doenjang jjigae. The bibimbap was really delicious. The stew was a bit salty. My friend likes spicy food, so she ate kimchi jjigae. We stayed a long time chatting together. Next time we'll go eat there again.",
+    "title_target": "어제 저녁",
+    "passage_target": "어제 친구와 한식당에 갔어요. 비빔밥과 된장찌개를 먹었어요. 비빔밥이 정말 맛있었어요. 된장찌개는 좀 짰어요. 친구는 매운 음식을 좋아해서 김치찌개를 먹었어요. 우리는 같이 이야기하면서 오래 있었어요. 나중에 또 먹으러 가요.",
+    "passage_native": "Yesterday I went to a Korean restaurant with my friend. I ate bibimbap and doenjang jjigae. The bibimbap was really delicious. The stew was a bit salty. My friend likes spicy food, so she ate kimchi jjigae. We stayed a long time chatting together. Next time we'll go eat there again.",
     "sentences": [
-      { "ko": "어제 친구와 한식당에 갔어요.", "en": "Yesterday I went to a Korean restaurant with my friend." },
-      { "ko": "비빔밥이 정말 맛있었어요.", "en": "The bibimbap was really delicious." },
-      { "ko": "된장찌개는 좀 짰어요.", "en": "The stew was a bit salty." },
-      { "ko": "나중에 또 먹으러 가요.", "en": "Next time we'll go eat there again." }
+      {
+        "target": "어제 친구와 한식당에 갔어요.",
+        "native": "Yesterday I went to a Korean restaurant with my friend."
+      },
+      {
+        "target": "비빔밥이 정말 맛있었어요.",
+        "native": "The bibimbap was really delicious."
+      },
+      {
+        "target": "된장찌개는 좀 짰어요.",
+        "native": "The stew was a bit salty."
+      },
+      {
+        "target": "나중에 또 먹으러 가요.",
+        "native": "Next time we'll go eat there again."
+      }
     ],
     "glossary": [
-      { "surface": "한식당", "lemma": "한식당", "pos": "noun", "meaning_en": "Korean restaurant" },
-      { "surface": "비빔밥", "lemma": "비빔밥", "pos": "noun", "meaning_en": "bibimbap (mixed rice)" },
-      { "surface": "된장찌개", "lemma": "된장찌개", "pos": "noun", "meaning_en": "doenjang jjigae (soybean-paste stew)" },
-      { "surface": "맛있었어요", "lemma": "맛있다", "pos": "adjective", "meaning_en": "to be delicious (past, polite)" },
-      { "surface": "짰어요", "lemma": "짜다", "pos": "adjective", "meaning_en": "to be salty (past, polite)" },
-      { "surface": "매운", "lemma": "맵다", "pos": "adjective", "meaning_en": "spicy (attributive)" },
-      { "surface": "김치찌개", "lemma": "김치찌개", "pos": "noun", "meaning_en": "kimchi jjigae (kimchi stew)" },
-      { "surface": "오래", "lemma": "오래", "pos": "adverb", "meaning_en": "for a long time" },
-      { "surface": "있었어요", "lemma": "있다", "pos": "verb", "meaning_en": "to be/stay (past, polite)" }
+      {
+        "surface": "한식당",
+        "lemma": "한식당",
+        "pos": "noun",
+        "meaning_native": "Korean restaurant"
+      },
+      {
+        "surface": "비빔밥",
+        "lemma": "비빔밥",
+        "pos": "noun",
+        "meaning_native": "bibimbap (mixed rice)"
+      },
+      {
+        "surface": "된장찌개",
+        "lemma": "된장찌개",
+        "pos": "noun",
+        "meaning_native": "doenjang jjigae (soybean-paste stew)"
+      },
+      {
+        "surface": "맛있었어요",
+        "lemma": "맛있다",
+        "pos": "adjective",
+        "meaning_native": "to be delicious (past, polite)"
+      },
+      {
+        "surface": "짰어요",
+        "lemma": "짜다",
+        "pos": "adjective",
+        "meaning_native": "to be salty (past, polite)"
+      },
+      {
+        "surface": "매운",
+        "lemma": "맵다",
+        "pos": "adjective",
+        "meaning_native": "spicy (attributive)"
+      },
+      {
+        "surface": "김치찌개",
+        "lemma": "김치찌개",
+        "pos": "noun",
+        "meaning_native": "kimchi jjigae (kimchi stew)"
+      },
+      {
+        "surface": "오래",
+        "lemma": "오래",
+        "pos": "adverb",
+        "meaning_native": "for a long time"
+      },
+      {
+        "surface": "있었어요",
+        "lemma": "있다",
+        "pos": "verb",
+        "meaning_native": "to be/stay (past, polite)"
+      }
     ],
     "questions": [
       {
-        "q_ko": "어제 누구와 한식당에 갔어요?",
-        "q_en": "With whom did Minsu go to the Korean restaurant yesterday?",
-        "choices": ["가족", "친구", "동료", "혼자"],
+        "q_target": "어제 누구와 한식당에 갔어요?",
+        "q_native": "With whom did Minsu go to the Korean restaurant yesterday?",
+        "choices": [
+          "가족",
+          "친구",
+          "동료",
+          "혼자"
+        ],
         "answer_index": 1,
-        "explanation_en": "'어제 친구와 한식당에 갔어요' — with a friend."
+        "explanation_native": "'어제 친구와 한식당에 갔어요' — with a friend."
       },
       {
-        "q_ko": "비빔밥은 어땠어요?",
-        "q_en": "How was the bibimbap?",
-        "choices": ["짰어요", "매웠어요", "맛있었어요", "식었어요"],
+        "q_target": "비빔밥은 어땠어요?",
+        "q_native": "How was the bibimbap?",
+        "choices": [
+          "짰어요",
+          "매웠어요",
+          "맛있었어요",
+          "식었어요"
+        ],
         "answer_index": 2,
-        "explanation_en": "'비빔밥이 정말 맛있었어요' — it was really delicious."
+        "explanation_native": "'비빔밥이 정말 맛있었어요' — it was really delicious."
       },
       {
-        "q_ko": "친구는 왜 김치찌개를 먹었어요?",
-        "q_en": "Why did the friend eat kimchi jjigae?",
-        "choices": ["김치찌개가 싸서", "매운 음식을 좋아해서", "비빔밥이 없어서", "된장찌개가 매워서"],
+        "q_target": "친구는 왜 김치찌개를 먹었어요?",
+        "q_native": "Why did the friend eat kimchi jjigae?",
+        "choices": [
+          "김치찌개가 싸서",
+          "매운 음식을 좋아해서",
+          "비빔밥이 없어서",
+          "된장찌개가 매워서"
+        ],
         "answer_index": 1,
-        "explanation_en": "'친구는 매운 음식을 좋아해서 김치찌개를 먹었어요' — because she likes spicy food."
+        "explanation_native": "'친구는 매운 음식을 좋아해서 김치찌개를 먹었어요' — because she likes spicy food."
       }
     ],
     "writing_prompt": {
-      "ko": "어제 무엇을 먹었어요? 어디에서 누구와 무엇을 먹었는지 써요.",
-      "en": "What did you eat yesterday? Write where, with whom, and what you ate.",
+      "target": "어제 무엇을 먹었어요? 어디에서 누구와 무엇을 먹었는지 써요.",
+      "native": "What did you eat yesterday? Write where, with whom, and what you ate.",
       "target_grammar": "-았/었어요, -아서/어서 (because), -면서"
     },
     "speaking_prompt": {
-      "ko": "어제 무엇을 먹었나요? 어제 먹은 음식에 대해 이야기해 보세요.",
-      "en": "What did you eat yesterday? Talk about the food you ate yesterday."
+      "target": "어제 무엇을 먹었나요? 어제 먹은 음식에 대해 이야기해 보세요.",
+      "native": "What did you eat yesterday? Talk about the food you ate yesterday."
     }
   },
   {
     "level": 2,
     "topic": "weather",
-    "title_ko": "이번 주 날씨",
-    "passage_ko": "이번 주는 날씨가 아주 좋았어요. 매일 하늘이 맑았어요. 주말에는 비가 왔어요. 비가 와서 집에 있었어요. 집에서 책을 읽거나 영화를 봤어요. 비가 그치고 나서 산책을 했어요. 날씨가 다시 좋아졌어요.",
-    "passage_en": "This week the weather was really nice. The sky was clear every day. On the weekend it rained. Because it rained, I stayed home. At home I read books or watched movies. After the rain stopped, I went for a walk. The weather became nice again.",
+    "title_target": "이번 주 날씨",
+    "passage_target": "이번 주는 날씨가 아주 좋았어요. 매일 하늘이 맑았어요. 주말에는 비가 왔어요. 비가 와서 집에 있었어요. 집에서 책을 읽거나 영화를 봤어요. 비가 그치고 나서 산책을 했어요. 날씨가 다시 좋아졌어요.",
+    "passage_native": "This week the weather was really nice. The sky was clear every day. On the weekend it rained. Because it rained, I stayed home. At home I read books or watched movies. After the rain stopped, I went for a walk. The weather became nice again.",
     "sentences": [
-      { "ko": "이번 주는 날씨가 아주 좋았어요.", "en": "This week the weather was really nice." },
-      { "ko": "주말에는 비가 왔어요.", "en": "On the weekend it rained." },
-      { "ko": "비가 와서 집에 있었어요.", "en": "Because it rained, I stayed home." },
-      { "ko": "비가 그치고 나서 산책을 했어요.", "en": "After the rain stopped, I went for a walk." }
+      {
+        "target": "이번 주는 날씨가 아주 좋았어요.",
+        "native": "This week the weather was really nice."
+      },
+      {
+        "target": "주말에는 비가 왔어요.",
+        "native": "On the weekend it rained."
+      },
+      {
+        "target": "비가 와서 집에 있었어요.",
+        "native": "Because it rained, I stayed home."
+      },
+      {
+        "target": "비가 그치고 나서 산책을 했어요.",
+        "native": "After the rain stopped, I went for a walk."
+      }
     ],
     "glossary": [
-      { "surface": "이번", "lemma": "이번", "pos": "noun", "meaning_en": "this (time/passage)" },
-      { "surface": "맑았어요", "lemma": "맑다", "pos": "adjective", "meaning_en": "to be clear (past, polite)" },
-      { "surface": "비", "lemma": "비", "pos": "noun", "meaning_en": "rain" },
-      { "surface": "왔어요", "lemma": "오다", "pos": "verb", "meaning_en": "to come (past, polite)" },
-      { "surface": "책", "lemma": "책", "pos": "noun", "meaning_en": "book" },
-      { "surface": "읽거나", "lemma": "읽다", "pos": "verb", "meaning_en": "to read (V+거나 = or, either)" },
-      { "surface": "봤어요", "lemma": "보다", "pos": "verb", "meaning_en": "to watch/see (past, polite)" },
-      { "surface": "그치고", "lemma": "그치다", "pos": "verb", "meaning_en": "to stop (of rain; V+고 나서 = after)" },
-      { "surface": "다시", "lemma": "다시", "pos": "adverb", "meaning_en": "again" },
-      { "surface": "좋아졌어요", "lemma": "좋아지다", "pos": "verb", "meaning_en": "to become good/nice (past, polite)" }
+      {
+        "surface": "이번",
+        "lemma": "이번",
+        "pos": "noun",
+        "meaning_native": "this (time/passage)"
+      },
+      {
+        "surface": "맑았어요",
+        "lemma": "맑다",
+        "pos": "adjective",
+        "meaning_native": "to be clear (past, polite)"
+      },
+      {
+        "surface": "비",
+        "lemma": "비",
+        "pos": "noun",
+        "meaning_native": "rain"
+      },
+      {
+        "surface": "왔어요",
+        "lemma": "오다",
+        "pos": "verb",
+        "meaning_native": "to come (past, polite)"
+      },
+      {
+        "surface": "책",
+        "lemma": "책",
+        "pos": "noun",
+        "meaning_native": "book"
+      },
+      {
+        "surface": "읽거나",
+        "lemma": "읽다",
+        "pos": "verb",
+        "meaning_native": "to read (V+거나 = or, either)"
+      },
+      {
+        "surface": "봤어요",
+        "lemma": "보다",
+        "pos": "verb",
+        "meaning_native": "to watch/see (past, polite)"
+      },
+      {
+        "surface": "그치고",
+        "lemma": "그치다",
+        "pos": "verb",
+        "meaning_native": "to stop (of rain; V+고 나서 = after)"
+      },
+      {
+        "surface": "다시",
+        "lemma": "다시",
+        "pos": "adverb",
+        "meaning_native": "again"
+      },
+      {
+        "surface": "좋아졌어요",
+        "lemma": "좋아지다",
+        "pos": "verb",
+        "meaning_native": "to become good/nice (past, polite)"
+      }
     ],
     "questions": [
       {
-        "q_ko": "이번 주 날씨는 어땠어요?",
-        "q_en": "How was this week's weather?",
-        "choices": ["나빴어요", "추웠어요", "좋았어요", "흐렸어요"],
+        "q_target": "이번 주 날씨는 어땠어요?",
+        "q_native": "How was this week's weather?",
+        "choices": [
+          "나빴어요",
+          "추웠어요",
+          "좋았어요",
+          "흐렸어요"
+        ],
         "answer_index": 2,
-        "explanation_en": "'이번 주는 날씨가 아주 좋았어요' — the weather was really nice."
+        "explanation_native": "'이번 주는 날씨가 아주 좋았어요' — the weather was really nice."
       },
       {
-        "q_ko": "비가 와서 무엇을 했어요?",
-        "q_en": "Because it rained, what did Minsu do?",
-        "choices": ["공원에 갔어요", "집에 있었어요", "시장에 갔어요", "수영했어요"],
+        "q_target": "비가 와서 무엇을 했어요?",
+        "q_native": "Because it rained, what did Minsu do?",
+        "choices": [
+          "공원에 갔어요",
+          "집에 있었어요",
+          "시장에 갔어요",
+          "수영했어요"
+        ],
         "answer_index": 1,
-        "explanation_en": "'비가 와서 집에 있었어요' — because of the rain, he stayed home."
+        "explanation_native": "'비가 와서 집에 있었어요' — because of the rain, he stayed home."
       },
       {
-        "q_ko": "비가 그치고 나서 무엇을 했어요?",
-        "q_en": "After the rain stopped, what did Minsu do?",
-        "choices": ["잤어요", "밥을 먹었어요", "산책을 했어요", "영화를 봤어요"],
+        "q_target": "비가 그치고 나서 무엇을 했어요?",
+        "q_native": "After the rain stopped, what did Minsu do?",
+        "choices": [
+          "잤어요",
+          "밥을 먹었어요",
+          "산책을 했어요",
+          "영화를 봤어요"
+        ],
         "answer_index": 2,
-        "explanation_en": "'비가 그치고 나서 산책을 했어요' — he went for a walk."
+        "explanation_native": "'비가 그치고 나서 산책을 했어요' — he went for a walk."
       }
     ],
     "writing_prompt": {
-      "ko": "지난주 날씨는 어땠어요? 날씨 때문에 무엇을 했는지 써 주세요.",
-      "en": "How was last week's weather? Write about what you did because of the weather.",
+      "target": "지난주 날씨는 어땠어요? 날씨 때문에 무엇을 했는지 써 주세요.",
+      "native": "How was last week's weather? Write about what you did because of the weather.",
       "target_grammar": "-아서/어서 (reason), -거나, -고 나서"
     },
     "speaking_prompt": {
-      "ko": "비 오는 날에는 보통 무엇을 하나요? 비 오는 날에 대해 이야기해 보세요.",
-      "en": "What do you usually do on rainy days? Talk about rainy days."
+      "target": "비 오는 날에는 보통 무엇을 하나요? 비 오는 날에 대해 이야기해 보세요.",
+      "native": "What do you usually do on rainy days? Talk about rainy days."
     }
   },
   {
     "level": 2,
     "topic": "health",
-    "title_ko": "운동을 시작했어요",
-    "passage_ko": "요즘 운동을 시작했어요. 아침마다 공원에서 걸어요. 달리기가 어렵지만 재미있어요. 조금 피곤했지만 몸이 좋아졌어요. 야채를 많이 먹고 물을 자주 마셔요. 건강해지기 위해 열심히 해요.",
-    "passage_en": "These days I started exercising. Every morning I walk in the park. Running is difficult but fun. I was a bit tired, but my body has gotten better. I eat lots of vegetables and drink water often. I work hard to become healthy.",
+    "title_target": "운동을 시작했어요",
+    "passage_target": "요즘 운동을 시작했어요. 아침마다 공원에서 걸어요. 달리기가 어렵지만 재미있어요. 조금 피곤했지만 몸이 좋아졌어요. 야채를 많이 먹고 물을 자주 마셔요. 건강해지기 위해 열심히 해요.",
+    "passage_native": "These days I started exercising. Every morning I walk in the park. Running is difficult but fun. I was a bit tired, but my body has gotten better. I eat lots of vegetables and drink water often. I work hard to become healthy.",
     "sentences": [
-      { "ko": "요즘 운동을 시작했어요.", "en": "These days I started exercising." },
-      { "ko": "아침마다 공원에서 걸어요.", "en": "Every morning I walk in the park." },
-      { "ko": "달리기가 어렵지만 재미있어요.", "en": "Running is difficult but fun." },
-      { "ko": "야채를 많이 먹고 물을 자주 마셔요.", "en": "I eat lots of vegetables and drink water often." }
+      {
+        "target": "요즘 운동을 시작했어요.",
+        "native": "These days I started exercising."
+      },
+      {
+        "target": "아침마다 공원에서 걸어요.",
+        "native": "Every morning I walk in the park."
+      },
+      {
+        "target": "달리기가 어렵지만 재미있어요.",
+        "native": "Running is difficult but fun."
+      },
+      {
+        "target": "야채를 많이 먹고 물을 자주 마셔요.",
+        "native": "I eat lots of vegetables and drink water often."
+      }
     ],
     "glossary": [
-      { "surface": "요즘", "lemma": "요즘", "pos": "noun", "meaning_en": "these days" },
-      { "surface": "운동", "lemma": "운동", "pos": "noun", "meaning_en": "exercise, sport" },
-      { "surface": "아침마다", "lemma": "아침마다", "pos": "adverb", "meaning_en": "every morning" },
-      { "surface": "걸어요", "lemma": "걷다", "pos": "verb", "meaning_en": "to walk (polite)" },
-      { "surface": "달리기", "lemma": "달리기", "pos": "noun", "meaning_en": "running" },
-      { "surface": "어렵지만", "lemma": "어렵다", "pos": "adjective", "meaning_en": "difficult but (어렵다 + -지만)" },
-      { "surface": "피곤했지만", "lemma": "피곤하다", "pos": "adjective", "meaning_en": "was tired but (past + -지만)" },
-      { "surface": "몸", "lemma": "몸", "pos": "noun", "meaning_en": "body" },
-      { "surface": "야채", "lemma": "야채", "pos": "noun", "meaning_en": "vegetables" },
-      { "surface": "물", "lemma": "물", "pos": "noun", "meaning_en": "water" },
-      { "surface": "마셔요", "lemma": "마시다", "pos": "verb", "meaning_en": "to drink (polite)" },
-      { "surface": "건강해지기", "lemma": "건강해지다", "pos": "verb", "meaning_en": "to become healthy (nominalized)" }
+      {
+        "surface": "요즘",
+        "lemma": "요즘",
+        "pos": "noun",
+        "meaning_native": "these days"
+      },
+      {
+        "surface": "운동",
+        "lemma": "운동",
+        "pos": "noun",
+        "meaning_native": "exercise, sport"
+      },
+      {
+        "surface": "아침마다",
+        "lemma": "아침마다",
+        "pos": "adverb",
+        "meaning_native": "every morning"
+      },
+      {
+        "surface": "걸어요",
+        "lemma": "걷다",
+        "pos": "verb",
+        "meaning_native": "to walk (polite)"
+      },
+      {
+        "surface": "달리기",
+        "lemma": "달리기",
+        "pos": "noun",
+        "meaning_native": "running"
+      },
+      {
+        "surface": "어렵지만",
+        "lemma": "어렵다",
+        "pos": "adjective",
+        "meaning_native": "difficult but (어렵다 + -지만)"
+      },
+      {
+        "surface": "피곤했지만",
+        "lemma": "피곤하다",
+        "pos": "adjective",
+        "meaning_native": "was tired but (past + -지만)"
+      },
+      {
+        "surface": "몸",
+        "lemma": "몸",
+        "pos": "noun",
+        "meaning_native": "body"
+      },
+      {
+        "surface": "야채",
+        "lemma": "야채",
+        "pos": "noun",
+        "meaning_native": "vegetables"
+      },
+      {
+        "surface": "물",
+        "lemma": "물",
+        "pos": "noun",
+        "meaning_native": "water"
+      },
+      {
+        "surface": "마셔요",
+        "lemma": "마시다",
+        "pos": "verb",
+        "meaning_native": "to drink (polite)"
+      },
+      {
+        "surface": "건강해지기",
+        "lemma": "건강해지다",
+        "pos": "verb",
+        "meaning_native": "to become healthy (nominalized)"
+      }
     ],
     "questions": [
       {
-        "q_ko": "김민수 씨는 아침마다 무엇을 해요?",
-        "q_en": "What does Minsu do every morning?",
-        "choices": ["공원에서 걷어요", "수영해요", "달리기만 해요", "자요"],
+        "q_target": "김민수 씨는 아침마다 무엇을 해요?",
+        "q_native": "What does Minsu do every morning?",
+        "choices": [
+          "공원에서 걷어요",
+          "수영해요",
+          "달리기만 해요",
+          "자요"
+        ],
         "answer_index": 0,
-        "explanation_en": "'아침마다 공원에서 걸어요' — he walks in the park every morning."
+        "explanation_native": "'아침마다 공원에서 걸어요' — he walks in the park every morning."
       },
       {
-        "q_ko": "달리기는 어때요?",
-        "q_en": "How is running?",
-        "choices": ["쉬워요", "어렵지만 재미있어요", "무서워요", "지루해요"],
+        "q_target": "달리기는 어때요?",
+        "q_native": "How is running?",
+        "choices": [
+          "쉬워요",
+          "어렵지만 재미있어요",
+          "무서워요",
+          "지루해요"
+        ],
         "answer_index": 1,
-        "explanation_en": "'달리기가 어렵지만 재미있어요' — difficult but fun."
+        "explanation_native": "'달리기가 어렵지만 재미있어요' — difficult but fun."
       },
       {
-        "q_ko": "이유는 무엇인가요? 운동과 야채를 왜 해요?",
-        "q_en": "Why does Minsu exercise and eat vegetables?",
-        "choices": ["건강해지기 위해", "살이 빠지기 위해", "친구 때문에", "취미여서"],
+        "q_target": "이유는 무엇인가요? 운동과 야채를 왜 해요?",
+        "q_native": "Why does Minsu exercise and eat vegetables?",
+        "choices": [
+          "건강해지기 위해",
+          "살이 빠지기 위해",
+          "친구 때문에",
+          "취미여서"
+        ],
         "answer_index": 0,
-        "explanation_en": "'건강해지기 위해 열심히 해요' — he works hard to become healthy."
+        "explanation_native": "'건강해지기 위해 열심히 해요' — he works hard to become healthy."
       }
     ],
     "writing_prompt": {
-      "ko": "당신은 건강을 위해 무엇을 해요? 운동, 음식 같은 것을 써 주세요.",
-      "en": "What do you do for your health? Write about exercise, food, and similar things.",
+      "target": "당신은 건강을 위해 무엇을 해요? 운동, 음식 같은 것을 써 주세요.",
+      "native": "What do you do for your health? Write about exercise, food, and similar things.",
       "target_grammar": "-지만, -아서/어서, -기 위해"
     },
     "speaking_prompt": {
-      "ko": "당신은 건강을 위해 무엇을 하나요? 건강 습관에 대해 이야기해 보세요.",
-      "en": "What do you do for your health? Talk about your healthy habits."
+      "target": "당신은 건강을 위해 무엇을 하나요? 건강 습관에 대해 이야기해 보세요.",
+      "native": "What do you do for your health? Talk about your healthy habits."
     }
   },
   {
     "level": 3,
     "topic": "shopping",
-    "title_ko": "동네 시장",
-    "passage_ko": "저는 주말마다 동네 시장에 가요. 시장에는 신선한 과일과 채소가 많아요. 어머니는 시장에서 파는 물건이 백화점보다 싸서 시장을 좋아하세요. 지난주에도 시장에 갔는데 채소를 많이 샀어요. 가격을 물어보고 흥정하는 것도 재미있어요. 시장에서 산 채소로 맛있는 요리를 해요. 시장에 가면 항상 기분이 좋아져요.",
-    "passage_en": "I go to the neighborhood market every weekend. The market has lots of fresh fruit and vegetables. My mother likes the market because the things sold there are cheaper than in the department store. Last week too I went to the market and bought lots of vegetables. Asking prices and bargaining is also fun. I cook tasty dishes with the vegetables I buy at the market. Whenever I go to the market, my mood always improves.",
+    "title_target": "동네 시장",
+    "passage_target": "저는 주말마다 동네 시장에 가요. 시장에는 신선한 과일과 채소가 많아요. 어머니는 시장에서 파는 물건이 백화점보다 싸서 시장을 좋아하세요. 지난주에도 시장에 갔는데 채소를 많이 샀어요. 가격을 물어보고 흥정하는 것도 재미있어요. 시장에서 산 채소로 맛있는 요리를 해요. 시장에 가면 항상 기분이 좋아져요.",
+    "passage_native": "I go to the neighborhood market every weekend. The market has lots of fresh fruit and vegetables. My mother likes the market because the things sold there are cheaper than in the department store. Last week too I went to the market and bought lots of vegetables. Asking prices and bargaining is also fun. I cook tasty dishes with the vegetables I buy at the market. Whenever I go to the market, my mood always improves.",
     "sentences": [
-      { "ko": "저는 주말마다 동네 시장에 가요.", "en": "I go to the neighborhood market every weekend." },
-      { "ko": "시장에는 신선한 과일과 채소가 많아요.", "en": "The market has lots of fresh fruit and vegetables." },
-      { "ko": "가격을 물어보고 흥정하는 것도 재미있어요.", "en": "Asking prices and bargaining is also fun." },
-      { "ko": "시장에 가면 항상 기분이 좋아져요.", "en": "Whenever I go to the market, my mood always improves." }
+      {
+        "target": "저는 주말마다 동네 시장에 가요.",
+        "native": "I go to the neighborhood market every weekend."
+      },
+      {
+        "target": "시장에는 신선한 과일과 채소가 많아요.",
+        "native": "The market has lots of fresh fruit and vegetables."
+      },
+      {
+        "target": "가격을 물어보고 흥정하는 것도 재미있어요.",
+        "native": "Asking prices and bargaining is also fun."
+      },
+      {
+        "target": "시장에 가면 항상 기분이 좋아져요.",
+        "native": "Whenever I go to the market, my mood always improves."
+      }
     ],
     "glossary": [
-      { "surface": "주말마다", "lemma": "주말마다", "pos": "adverb", "meaning_en": "every weekend" },
-      { "surface": "동네", "lemma": "동네", "pos": "noun", "meaning_en": "neighborhood" },
-      { "surface": "신선한", "lemma": "신선하다", "pos": "adjective", "meaning_en": "fresh (attributive)" },
-      { "surface": "채소", "lemma": "채소", "pos": "noun", "meaning_en": "vegetables" },
-      { "surface": "백화점", "lemma": "백화점", "pos": "noun", "meaning_en": "department store" },
-      { "surface": "좋아하세요", "lemma": "좋아하다", "pos": "verb", "meaning_en": "to like (honorific, polite)" },
-      { "surface": "지난주", "lemma": "지난주", "pos": "noun", "meaning_en": "last week" },
-      { "surface": "샀어요", "lemma": "사다", "pos": "verb", "meaning_en": "to buy (past, polite)" },
-      { "surface": "가격", "lemma": "가격", "pos": "noun", "meaning_en": "price" },
-      { "surface": "흥정", "lemma": "흥정", "pos": "noun", "meaning_en": "bargaining" },
-      { "surface": "요리", "lemma": "요리", "pos": "noun", "meaning_en": "cooking, dish" },
-      { "surface": "기분", "lemma": "기분", "pos": "noun", "meaning_en": "mood, feeling" }
+      {
+        "surface": "주말마다",
+        "lemma": "주말마다",
+        "pos": "adverb",
+        "meaning_native": "every weekend"
+      },
+      {
+        "surface": "동네",
+        "lemma": "동네",
+        "pos": "noun",
+        "meaning_native": "neighborhood"
+      },
+      {
+        "surface": "신선한",
+        "lemma": "신선하다",
+        "pos": "adjective",
+        "meaning_native": "fresh (attributive)"
+      },
+      {
+        "surface": "채소",
+        "lemma": "채소",
+        "pos": "noun",
+        "meaning_native": "vegetables"
+      },
+      {
+        "surface": "백화점",
+        "lemma": "백화점",
+        "pos": "noun",
+        "meaning_native": "department store"
+      },
+      {
+        "surface": "좋아하세요",
+        "lemma": "좋아하다",
+        "pos": "verb",
+        "meaning_native": "to like (honorific, polite)"
+      },
+      {
+        "surface": "지난주",
+        "lemma": "지난주",
+        "pos": "noun",
+        "meaning_native": "last week"
+      },
+      {
+        "surface": "샀어요",
+        "lemma": "사다",
+        "pos": "verb",
+        "meaning_native": "to buy (past, polite)"
+      },
+      {
+        "surface": "가격",
+        "lemma": "가격",
+        "pos": "noun",
+        "meaning_native": "price"
+      },
+      {
+        "surface": "흥정",
+        "lemma": "흥정",
+        "pos": "noun",
+        "meaning_native": "bargaining"
+      },
+      {
+        "surface": "요리",
+        "lemma": "요리",
+        "pos": "noun",
+        "meaning_native": "cooking, dish"
+      },
+      {
+        "surface": "기분",
+        "lemma": "기분",
+        "pos": "noun",
+        "meaning_native": "mood, feeling"
+      }
     ],
     "questions": [
       {
-        "q_ko": "저자는 언제 시장에 가요?",
-        "q_en": "When does the writer go to the market?",
-        "choices": ["매일", "주말마다", "지난주에만", "한 달에 한 번"],
+        "q_target": "저자는 언제 시장에 가요?",
+        "q_native": "When does the writer go to the market?",
+        "choices": [
+          "매일",
+          "주말마다",
+          "지난주에만",
+          "한 달에 한 번"
+        ],
         "answer_index": 1,
-        "explanation_en": "'주말마다 동네 시장에 가요' — every weekend."
+        "explanation_native": "'주말마다 동네 시장에 가요' — every weekend."
       },
       {
-        "q_ko": "어머니는 왜 시장을 좋아하세요?",
-        "q_en": "Why does the mother like the market?",
-        "choices": ["시장이 가까워서", "물건이 백화점보다 싸서", "물건이 예뻐서", "사람이 많아서"],
+        "q_target": "어머니는 왜 시장을 좋아하세요?",
+        "q_native": "Why does the mother like the market?",
+        "choices": [
+          "시장이 가까워서",
+          "물건이 백화점보다 싸서",
+          "물건이 예뻐서",
+          "사람이 많아서"
+        ],
         "answer_index": 1,
-        "explanation_en": "'시장에서 파는 물건이 백화점보다 싸서' — because things are cheaper than the department store."
+        "explanation_native": "'시장에서 파는 물건이 백화점보다 싸서' — because things are cheaper than the department store."
       },
       {
-        "q_ko": "시장에 가면 기분이 어떻게 돼요?",
-        "q_en": "How does the writer feel when going to the market?",
-        "choices": ["기분이 나빠져요", "기분이 좋아져요", "피곤해져요", "바빠져요"],
+        "q_target": "시장에 가면 기분이 어떻게 돼요?",
+        "q_native": "How does the writer feel when going to the market?",
+        "choices": [
+          "기분이 나빠져요",
+          "기분이 좋아져요",
+          "피곤해져요",
+          "바빠져요"
+        ],
         "answer_index": 1,
-        "explanation_en": "'시장에 가면 항상 기분이 좋아져요' — the mood always improves."
+        "explanation_native": "'시장에 가면 항상 기분이 좋아져요' — the mood always improves."
       }
     ],
     "writing_prompt": {
-      "ko": "자주 가는 시장이나 가게에 대해 써 주세요. 무엇을 사고, 왜 그곳을 좋아하는지 이야기하세요.",
-      "en": "Write about a market or shop you often visit. Say what you buy and why you like it.",
+      "target": "자주 가는 시장이나 가게에 대해 써 주세요. 무엇을 사고, 왜 그곳을 좋아하는지 이야기하세요.",
+      "native": "Write about a market or shop you often visit. Say what you buy and why you like it.",
       "target_grammar": "-(으)면서, -는데, -(으)면"
     },
     "speaking_prompt": {
-      "ko": "장을 볼 때 시장과 백화점 중 어디가 더 좋아요? 이유와 함께 이야기해 보세요.",
-      "en": "When shopping, do you prefer the market or the department store? Talk about your reasons."
+      "target": "장을 볼 때 시장과 백화점 중 어디가 더 좋아요? 이유와 함께 이야기해 보세요.",
+      "native": "When shopping, do you prefer the market or the department store? Talk about your reasons."
     }
   },
   {
     "level": 3,
     "topic": "news",
-    "title_ko": "새 도서관 소식",
-    "passage_ko": "오늘 아침에 뉴스를 봤어요. 도시에 새로운 도서관이 생겼다는 소식이 나왔어요. 도서관은 월요일부터 일요일까지 열고, 밤에도 이용할 수 있어요. 시장님은 '모든 사람이 책을 가까이할 수 있게 하고 싶다'고 말씀하셨어요. 저는 주말에 그 도서관에 가 보려고 해요. 읽고 싶은 책이 이미 여러 권 있어요.",
-    "passage_en": "This morning I watched the news. There was news that a new library has opened in the city. The library is open Monday through Sunday and can be used even at night. The mayor said she wants to make books accessible to everyone. I plan to go visit that library this weekend. There are already several books I want to read.",
+    "title_target": "새 도서관 소식",
+    "passage_target": "오늘 아침에 뉴스를 봤어요. 도시에 새로운 도서관이 생겼다는 소식이 나왔어요. 도서관은 월요일부터 일요일까지 열고, 밤에도 이용할 수 있어요. 시장님은 '모든 사람이 책을 가까이할 수 있게 하고 싶다'고 말씀하셨어요. 저는 주말에 그 도서관에 가 보려고 해요. 읽고 싶은 책이 이미 여러 권 있어요.",
+    "passage_native": "This morning I watched the news. There was news that a new library has opened in the city. The library is open Monday through Sunday and can be used even at night. The mayor said she wants to make books accessible to everyone. I plan to go visit that library this weekend. There are already several books I want to read.",
     "sentences": [
-      { "ko": "오늘 아침에 뉴스를 봤어요.", "en": "This morning I watched the news." },
-      { "ko": "도서관은 월요일부터 일요일까지 열고, 밤에도 이용할 수 있어요.", "en": "The library is open Monday through Sunday and can be used even at night." },
-      { "ko": "저는 주말에 그 도서관에 가 보려고 해요.", "en": "I plan to go visit that library this weekend." },
-      { "ko": "읽고 싶은 책이 이미 여러 권 있어요.", "en": "There are already several books I want to read." }
+      {
+        "target": "오늘 아침에 뉴스를 봤어요.",
+        "native": "This morning I watched the news."
+      },
+      {
+        "target": "도서관은 월요일부터 일요일까지 열고, 밤에도 이용할 수 있어요.",
+        "native": "The library is open Monday through Sunday and can be used even at night."
+      },
+      {
+        "target": "저는 주말에 그 도서관에 가 보려고 해요.",
+        "native": "I plan to go visit that library this weekend."
+      },
+      {
+        "target": "읽고 싶은 책이 이미 여러 권 있어요.",
+        "native": "There are already several books I want to read."
+      }
     ],
     "glossary": [
-      { "surface": "뉴스", "lemma": "뉴스", "pos": "noun", "meaning_en": "news" },
-      { "surface": "도시", "lemma": "도시", "pos": "noun", "meaning_en": "city" },
-      { "surface": "도서관", "lemma": "도서관", "pos": "noun", "meaning_en": "library" },
-      { "surface": "생겼다는", "lemma": "생기다", "pos": "verb", "meaning_en": "to be created/appear (past + -(다)는 modifier)" },
-      { "surface": "이용", "lemma": "이용", "pos": "noun", "meaning_en": "using, usage" },
-      { "surface": "수 있어요", "lemma": "할 수 있다", "pos": "expression", "meaning_en": "can, to be able to" },
-      { "surface": "시장님", "lemma": "시장님", "pos": "noun", "meaning_en": "the mayor (honorific)" },
-      { "surface": "말씀하셨어요", "lemma": "말씀하다", "pos": "verb", "meaning_en": "to say/speak (honorific, past, polite)" },
-      { "surface": "이미", "lemma": "이미", "pos": "adverb", "meaning_en": "already" },
-      { "surface": "여러", "lemma": "여러", "pos": "determiner", "meaning_en": "several, various" }
+      {
+        "surface": "뉴스",
+        "lemma": "뉴스",
+        "pos": "noun",
+        "meaning_native": "news"
+      },
+      {
+        "surface": "도시",
+        "lemma": "도시",
+        "pos": "noun",
+        "meaning_native": "city"
+      },
+      {
+        "surface": "도서관",
+        "lemma": "도서관",
+        "pos": "noun",
+        "meaning_native": "library"
+      },
+      {
+        "surface": "생겼다는",
+        "lemma": "생기다",
+        "pos": "verb",
+        "meaning_native": "to be created/appear (past + -(다)는 modifier)"
+      },
+      {
+        "surface": "이용",
+        "lemma": "이용",
+        "pos": "noun",
+        "meaning_native": "using, usage"
+      },
+      {
+        "surface": "수 있어요",
+        "lemma": "할 수 있다",
+        "pos": "expression",
+        "meaning_native": "can, to be able to"
+      },
+      {
+        "surface": "시장님",
+        "lemma": "시장님",
+        "pos": "noun",
+        "meaning_native": "the mayor (honorific)"
+      },
+      {
+        "surface": "말씀하셨어요",
+        "lemma": "말씀하다",
+        "pos": "verb",
+        "meaning_native": "to say/speak (honorific, past, polite)"
+      },
+      {
+        "surface": "이미",
+        "lemma": "이미",
+        "pos": "adverb",
+        "meaning_native": "already"
+      },
+      {
+        "surface": "여러",
+        "lemma": "여러",
+        "pos": "determiner",
+        "meaning_native": "several, various"
+      }
     ],
     "questions": [
       {
-        "q_ko": "도시에 무엇이 생겼어요?",
-        "q_en": "What has opened in the city?",
-        "choices": ["공원", "시장", "도서관", "영화관"],
+        "q_target": "도시에 무엇이 생겼어요?",
+        "q_native": "What has opened in the city?",
+        "choices": [
+          "공원",
+          "시장",
+          "도서관",
+          "영화관"
+        ],
         "answer_index": 2,
-        "explanation_en": "'도시에 새로운 도서관이 생겼다는 소식' — a new library has opened."
+        "explanation_native": "'도시에 새로운 도서관이 생겼다는 소식' — a new library has opened."
       },
       {
-        "q_ko": "도서관은 언제 열어요?",
-        "q_en": "When is the library open?",
-        "choices": ["월요일부터 금요일까지", "주말에만", "월요일부터 일요일까지, 밤에도", "아침에만"],
+        "q_target": "도서관은 언제 열어요?",
+        "q_native": "When is the library open?",
+        "choices": [
+          "월요일부터 금요일까지",
+          "주말에만",
+          "월요일부터 일요일까지, 밤에도",
+          "아침에만"
+        ],
         "answer_index": 2,
-        "explanation_en": "'월요일부터 일요일까지 열고, 밤에도 이용할 수 있어요' — open Mon–Sun, even at night."
+        "explanation_native": "'월요일부터 일요일까지 열고, 밤에도 이용할 수 있어요' — open Mon–Sun, even at night."
       },
       {
-        "q_ko": "저자는 주말에 무엇을 하려고 해요?",
-        "q_en": "What does the writer plan to do this weekend?",
-        "choices": ["책을 사러 가요", "도서관에 가 봐요", "뉴스를 봐요", "친구를 만나요"],
+        "q_target": "저자는 주말에 무엇을 하려고 해요?",
+        "q_native": "What does the writer plan to do this weekend?",
+        "choices": [
+          "책을 사러 가요",
+          "도서관에 가 봐요",
+          "뉴스를 봐요",
+          "친구를 만나요"
+        ],
         "answer_index": 1,
-        "explanation_en": "'주말에 그 도서관에 가 보려고 해요' — plans to visit that library."
+        "explanation_native": "'주말에 그 도서관에 가 보려고 해요' — plans to visit that library."
       }
     ],
     "writing_prompt": {
-      "ko": "최근에 들은 소식 하나를 소개해 주세요. 무슨 일이 있었나요? 그 소식에 대해 어떻게 생각해요?",
-      "en": "Introduce a piece of news you heard recently. What happened? What do you think about it?",
+      "target": "최근에 들은 소식 하나를 소개해 주세요. 무슨 일이 있었나요? 그 소식에 대해 어떻게 생각해요?",
+      "native": "Introduce a piece of news you heard recently. What happened? What do you think about it?",
       "target_grammar": "-(으)ㄴ/는 modifier, -(으)려고 하다, reported speech"
     },
     "speaking_prompt": {
-      "ko": "최근에 들은 기억에 남는 소식이 있나요? 그 소식에 대해 이야기해 보세요.",
-      "en": "Is there memorable news you heard recently? Talk about it."
+      "target": "최근에 들은 기억에 남는 소식이 있나요? 그 소식에 대해 이야기해 보세요.",
+      "native": "Is there memorable news you heard recently? Talk about it."
     }
   },
   {
     "level": 3,
     "topic": "hobbies",
-    "title_ko": "요리가 취미예요",
-    "passage_ko": "제 취미는 요리예요. 요리하면 스트레스가 풀려요. 요리하는 영상을 보고 새로운 음식을 배워요. 만드는 것도 좋지만 같이 먹는 사람이 좋아하면 더 기뻐요. 지난달에는 김치를 직접 담갔어요. 처음이라 맛이 완벽하지 않았지만 가족이 맛있다고 해줬어요. 다음에는 비빔밥을 만들어 볼 거예요.",
-    "passage_en": "My hobby is cooking. When I cook, my stress is released. I watch cooking videos and learn new dishes. Making food is nice, but it makes me even happier when the people eating with me like it. Last month I even made kimchi myself. It was my first time so it wasn't perfect, but my family said it was delicious. Next I'm going to try making bibimbap.",
+    "title_target": "요리가 취미예요",
+    "passage_target": "제 취미는 요리예요. 요리하면 스트레스가 풀려요. 요리하는 영상을 보고 새로운 음식을 배워요. 만드는 것도 좋지만 같이 먹는 사람이 좋아하면 더 기뻐요. 지난달에는 김치를 직접 담갔어요. 처음이라 맛이 완벽하지 않았지만 가족이 맛있다고 해줬어요. 다음에는 비빔밥을 만들어 볼 거예요.",
+    "passage_native": "My hobby is cooking. When I cook, my stress is released. I watch cooking videos and learn new dishes. Making food is nice, but it makes me even happier when the people eating with me like it. Last month I even made kimchi myself. It was my first time so it wasn't perfect, but my family said it was delicious. Next I'm going to try making bibimbap.",
     "sentences": [
-      { "ko": "제 취미는 요리예요.", "en": "My hobby is cooking." },
-      { "ko": "요리하면 스트레스가 풀려요.", "en": "When I cook, my stress is released." },
-      { "ko": "지난달에는 김치를 직접 담갔어요.", "en": "Last month I even made kimchi myself." },
-      { "ko": "처음이라 맛이 완벽하지 않았지만 가족이 맛있다고 해줬어요.", "en": "It was my first time so it wasn't perfect, but my family said it was delicious." }
+      {
+        "target": "제 취미는 요리예요.",
+        "native": "My hobby is cooking."
+      },
+      {
+        "target": "요리하면 스트레스가 풀려요.",
+        "native": "When I cook, my stress is released."
+      },
+      {
+        "target": "지난달에는 김치를 직접 담갔어요.",
+        "native": "Last month I even made kimchi myself."
+      },
+      {
+        "target": "처음이라 맛이 완벽하지 않았지만 가족이 맛있다고 해줬어요.",
+        "native": "It was my first time so it wasn't perfect, but my family said it was delicious."
+      }
     ],
     "glossary": [
-      { "surface": "취미", "lemma": "취미", "pos": "noun", "meaning_en": "hobby" },
-      { "surface": "스트레스", "lemma": "스트레스", "pos": "noun", "meaning_en": "stress" },
-      { "surface": "풀려요", "lemma": "풀리다", "pos": "verb", "meaning_en": "to be released/resolved (polite)" },
-      { "surface": "영상", "lemma": "영상", "pos": "noun", "meaning_en": "video, footage" },
-      { "surface": "배워요", "lemma": "배우다", "pos": "verb", "meaning_en": "to learn (polite)" },
-      { "surface": "기뻐요", "lemma": "기쁘다", "pos": "adjective", "meaning_en": "to be happy/glad (polite)" },
-      { "surface": "지난달", "lemma": "지난달", "pos": "noun", "meaning_en": "last month" },
-      { "surface": "직접", "lemma": "직접", "pos": "adverb", "meaning_en": "directly, in person" },
-      { "surface": "담갔어요", "lemma": "담그다", "pos": "verb", "meaning_en": "to make/pickle (kimchi, past polite)" },
-      { "surface": "처음", "lemma": "처음", "pos": "noun", "meaning_en": "first time" },
-      { "surface": "완벽하지", "lemma": "완벽하다", "pos": "adjective", "meaning_en": "to be perfect (negative form)" },
-      { "surface": "해줬어요", "lemma": "해주다", "pos": "verb", "meaning_en": "to do for someone (past, polite)" }
+      {
+        "surface": "취미",
+        "lemma": "취미",
+        "pos": "noun",
+        "meaning_native": "hobby"
+      },
+      {
+        "surface": "스트레스",
+        "lemma": "스트레스",
+        "pos": "noun",
+        "meaning_native": "stress"
+      },
+      {
+        "surface": "풀려요",
+        "lemma": "풀리다",
+        "pos": "verb",
+        "meaning_native": "to be released/resolved (polite)"
+      },
+      {
+        "surface": "영상",
+        "lemma": "영상",
+        "pos": "noun",
+        "meaning_native": "video, footage"
+      },
+      {
+        "surface": "배워요",
+        "lemma": "배우다",
+        "pos": "verb",
+        "meaning_native": "to learn (polite)"
+      },
+      {
+        "surface": "기뻐요",
+        "lemma": "기쁘다",
+        "pos": "adjective",
+        "meaning_native": "to be happy/glad (polite)"
+      },
+      {
+        "surface": "지난달",
+        "lemma": "지난달",
+        "pos": "noun",
+        "meaning_native": "last month"
+      },
+      {
+        "surface": "직접",
+        "lemma": "직접",
+        "pos": "adverb",
+        "meaning_native": "directly, in person"
+      },
+      {
+        "surface": "담갔어요",
+        "lemma": "담그다",
+        "pos": "verb",
+        "meaning_native": "to make/pickle (kimchi, past polite)"
+      },
+      {
+        "surface": "처음",
+        "lemma": "처음",
+        "pos": "noun",
+        "meaning_native": "first time"
+      },
+      {
+        "surface": "완벽하지",
+        "lemma": "완벽하다",
+        "pos": "adjective",
+        "meaning_native": "to be perfect (negative form)"
+      },
+      {
+        "surface": "해줬어요",
+        "lemma": "해주다",
+        "pos": "verb",
+        "meaning_native": "to do for someone (past, polite)"
+      }
     ],
     "questions": [
       {
-        "q_ko": "저자의 취미는 무엇이에요?",
-        "q_en": "What is the writer's hobby?",
-        "choices": ["운동", "영화", "요리", "음악"],
+        "q_target": "저자의 취미는 무엇이에요?",
+        "q_native": "What is the writer's hobby?",
+        "choices": [
+          "운동",
+          "영화",
+          "요리",
+          "음악"
+        ],
         "answer_index": 2,
-        "explanation_en": "'제 취미는 요리예요' — the hobby is cooking."
+        "explanation_native": "'제 취미는 요리예요' — the hobby is cooking."
       },
       {
-        "q_ko": "요리하면 무엇이 풀려요?",
-        "q_en": "What is released when the writer cooks?",
-        "choices": ["스트레스", "기분", "피로", "걱정"],
+        "q_target": "요리하면 무엇이 풀려요?",
+        "q_native": "What is released when the writer cooks?",
+        "choices": [
+          "스트레스",
+          "기분",
+          "피로",
+          "걱정"
+        ],
         "answer_index": 0,
-        "explanation_en": "'요리하면 스트레스가 풀려요' — stress is released."
+        "explanation_native": "'요리하면 스트레스가 풀려요' — stress is released."
       },
       {
-        "q_ko": "지난달에 무엇을 담갔어요?",
-        "q_en": "What did the writer make last month?",
-        "choices": ["비빔밥", "국수", "김치", "떡"],
+        "q_target": "지난달에 무엇을 담갔어요?",
+        "q_native": "What did the writer make last month?",
+        "choices": [
+          "비빔밥",
+          "국수",
+          "김치",
+          "떡"
+        ],
         "answer_index": 2,
-        "explanation_en": "'지난달에는 김치를 직접 담갔어요' — made kimchi."
+        "explanation_native": "'지난달에는 김치를 직접 담갔어요' — made kimchi."
       }
     ],
     "writing_prompt": {
-      "ko": "당신의 취미를 소개해 주세요. 언제 시작했고, 왜 좋아하는지 써 주세요.",
-      "en": "Introduce your hobby. Write when you started and why you like it.",
+      "target": "당신의 취미를 소개해 주세요. 언제 시작했고, 왜 좋아하는지 써 주세요.",
+      "native": "Introduce your hobby. Write when you started and why you like it.",
       "target_grammar": "-(으)면, -지만, -(으)ㄴ/는 modifier"
     },
     "speaking_prompt": {
-      "ko": "당신의 취미에 대해 이야기해 보세요. 왜 그 취미를 좋아하나요?",
-      "en": "Talk about your hobby. Why do you like it?"
+      "target": "당신의 취미에 대해 이야기해 보세요. 왜 그 취미를 좋아하나요?",
+      "native": "Talk about your hobby. Why do you like it?"
     }
   },
   {
     "level": 3,
     "topic": "work",
-    "title_ko": "한국 회사에서 일해요",
-    "passage_ko": "한국 회사에서 일한 지 이제 3년이 됐어요. 처음에는 한국어로 일하는 것이 어려웠어요. 그런데 매일 부서 사람들과 이야기하면서 많이 늘었어요. 보고서를 쓸 때는 아직도 도움이 필요해요. 회의할 때 어려운 표현을 잘 모르면 당황해요. 하지만 실수해도 동료들이 친절하게 알려줘요. 앞으로도 더 잘하고 싶어요.",
-    "passage_en": "It has now been three years since I started working at a Korean company. At first working in Korean was hard. But by talking with people in my department every day, I improved a lot. I still need help when writing reports. When I don't know difficult expressions in meetings, I get flustered. But even when I make mistakes, my colleagues kindly let me know. I want to do even better going forward.",
+    "title_target": "한국 회사에서 일해요",
+    "passage_target": "한국 회사에서 일한 지 이제 3년이 됐어요. 처음에는 한국어로 일하는 것이 어려웠어요. 그런데 매일 부서 사람들과 이야기하면서 많이 늘었어요. 보고서를 쓸 때는 아직도 도움이 필요해요. 회의할 때 어려운 표현을 잘 모르면 당황해요. 하지만 실수해도 동료들이 친절하게 알려줘요. 앞으로도 더 잘하고 싶어요.",
+    "passage_native": "It has now been three years since I started working at a Korean company. At first working in Korean was hard. But by talking with people in my department every day, I improved a lot. I still need help when writing reports. When I don't know difficult expressions in meetings, I get flustered. But even when I make mistakes, my colleagues kindly let me know. I want to do even better going forward.",
     "sentences": [
-      { "ko": "한국 회사에서 일한 지 이제 3년이 됐어요.", "en": "It's been three years since I started working at a Korean company." },
-      { "ko": "처음에는 한국어로 일하는 것이 어려웠어요.", "en": "At first working in Korean was hard." },
-      { "ko": "실수해도 동료들이 친절하게 알려줘요.", "en": "Even when I make mistakes, my colleagues kindly let me know." },
-      { "ko": "앞으로도 더 잘하고 싶어요.", "en": "I want to do even better going forward." }
+      {
+        "target": "한국 회사에서 일한 지 이제 3년이 됐어요.",
+        "native": "It's been three years since I started working at a Korean company."
+      },
+      {
+        "target": "처음에는 한국어로 일하는 것이 어려웠어요.",
+        "native": "At first working in Korean was hard."
+      },
+      {
+        "target": "실수해도 동료들이 친절하게 알려줘요.",
+        "native": "Even when I make mistakes, my colleagues kindly let me know."
+      },
+      {
+        "target": "앞으로도 더 잘하고 싶어요.",
+        "native": "I want to do even better going forward."
+      }
     ],
     "glossary": [
-      { "surface": "일한 지", "lemma": "일한 지", "pos": "expression", "meaning_en": "since (하) + 한 지 = since doing" },
-      { "surface": "어려웠어요", "lemma": "어렵다", "pos": "adjective", "meaning_en": "to be difficult (past, polite)" },
-      { "surface": "그런데", "lemma": "그런데", "pos": "conjunction", "meaning_en": "but, however" },
-      { "surface": "부서", "lemma": "부서", "pos": "noun", "meaning_en": "department, team" },
-      { "surface": "늘었어요", "lemma": "늘다", "pos": "verb", "meaning_en": "to increase, improve (past, polite)" },
-      { "surface": "보고서", "lemma": "보고서", "pos": "noun", "meaning_en": "report, document" },
-      { "surface": "도움", "lemma": "도움", "pos": "noun", "meaning_en": "help, assistance" },
-      { "surface": "회의", "lemma": "회의", "pos": "noun", "meaning_en": "meeting" },
-      { "surface": "당황해요", "lemma": "당황하다", "pos": "verb", "meaning_en": "to be flustered/embarrassed (polite)" },
-      { "surface": "실수해도", "lemma": "실수하다", "pos": "verb", "meaning_en": "to make a mistake (V+아/어도 = even if)" },
-      { "surface": "알려줘요", "lemma": "알려주다", "pos": "verb", "meaning_en": "to let someone know (polite)" },
-      { "surface": "앞으로", "lemma": "앞으로", "pos": "adverb", "meaning_en": "in the future, from now on" }
+      {
+        "surface": "일한 지",
+        "lemma": "일한 지",
+        "pos": "expression",
+        "meaning_native": "since (하) + 한 지 = since doing"
+      },
+      {
+        "surface": "어려웠어요",
+        "lemma": "어렵다",
+        "pos": "adjective",
+        "meaning_native": "to be difficult (past, polite)"
+      },
+      {
+        "surface": "그런데",
+        "lemma": "그런데",
+        "pos": "conjunction",
+        "meaning_native": "but, however"
+      },
+      {
+        "surface": "부서",
+        "lemma": "부서",
+        "pos": "noun",
+        "meaning_native": "department, team"
+      },
+      {
+        "surface": "늘었어요",
+        "lemma": "늘다",
+        "pos": "verb",
+        "meaning_native": "to increase, improve (past, polite)"
+      },
+      {
+        "surface": "보고서",
+        "lemma": "보고서",
+        "pos": "noun",
+        "meaning_native": "report, document"
+      },
+      {
+        "surface": "도움",
+        "lemma": "도움",
+        "pos": "noun",
+        "meaning_native": "help, assistance"
+      },
+      {
+        "surface": "회의",
+        "lemma": "회의",
+        "pos": "noun",
+        "meaning_native": "meeting"
+      },
+      {
+        "surface": "당황해요",
+        "lemma": "당황하다",
+        "pos": "verb",
+        "meaning_native": "to be flustered/embarrassed (polite)"
+      },
+      {
+        "surface": "실수해도",
+        "lemma": "실수하다",
+        "pos": "verb",
+        "meaning_native": "to make a mistake (V+아/어도 = even if)"
+      },
+      {
+        "surface": "알려줘요",
+        "lemma": "알려주다",
+        "pos": "verb",
+        "meaning_native": "to let someone know (polite)"
+      },
+      {
+        "surface": "앞으로",
+        "lemma": "앞으로",
+        "pos": "adverb",
+        "meaning_native": "in the future, from now on"
+      }
     ],
     "questions": [
       {
-        "q_ko": "저자는 한국 회사에서 얼마나 일했어요?",
-        "q_en": "How long has the writer worked at the Korean company?",
-        "choices": ["1년", "3년", "5년", "6개월"],
+        "q_target": "저자는 한국 회사에서 얼마나 일했어요?",
+        "q_native": "How long has the writer worked at the Korean company?",
+        "choices": [
+          "1년",
+          "3년",
+          "5년",
+          "6개월"
+        ],
         "answer_index": 1,
-        "explanation_en": "'일한 지 이제 3년이 됐어요' — it's been three years."
+        "explanation_native": "'일한 지 이제 3년이 됐어요' — it's been three years."
       },
       {
-        "q_ko": "처음에는 무엇이 어려웠어요?",
-        "q_en": "What was difficult at first?",
-        "choices": ["출근하는 것", "보고서를 쓰는 것", "한국어로 일하는 것", "회의를 여는 것"],
+        "q_target": "처음에는 무엇이 어려웠어요?",
+        "q_native": "What was difficult at first?",
+        "choices": [
+          "출근하는 것",
+          "보고서를 쓰는 것",
+          "한국어로 일하는 것",
+          "회의를 여는 것"
+        ],
         "answer_index": 2,
-        "explanation_en": "'처음에는 한국어로 일하는 것이 어려웠어요' — working in Korean was hard."
+        "explanation_native": "'처음에는 한국어로 일하는 것이 어려웠어요' — working in Korean was hard."
       },
       {
-        "q_ko": "실수하면 동료들은 어떻게 해요?",
-        "q_en": "When the writer makes a mistake, what do colleagues do?",
-        "choices": ["화내요", "무시해요", "친절하게 알려줘요", "웃어요"],
+        "q_target": "실수하면 동료들은 어떻게 해요?",
+        "q_native": "When the writer makes a mistake, what do colleagues do?",
+        "choices": [
+          "화내요",
+          "무시해요",
+          "친절하게 알려줘요",
+          "웃어요"
+        ],
         "answer_index": 2,
-        "explanation_en": "'실수해도 동료들이 친절하게 알려줘요' — they kindly let him know."
+        "explanation_native": "'실수해도 동료들이 친절하게 알려줘요' — they kindly let him know."
       }
     ],
     "writing_prompt": {
-      "ko": "어려운 일을 극복한 경험을 써 주세요. 무엇이 어려웠고, 어떻게 해결했나요?",
-      "en": "Write about overcoming something difficult. What was hard, and how did you solve it?",
+      "target": "어려운 일을 극복한 경험을 써 주세요. 무엇이 어려웠고, 어떻게 해결했나요?",
+      "native": "Write about overcoming something difficult. What was hard, and how did you solve it?",
       "target_grammar": "-(으)ㄴ 지, -는데, -아/어도, -(으)ㄹ 때"
     },
     "speaking_prompt": {
-      "ko": "일이나 공부에서 어려웠던 일과 그것을 극복한 방법을 이야기해 보세요.",
-      "en": "Talk about something difficult at work or study and how you overcame it."
+      "target": "일이나 공부에서 어려웠던 일과 그것을 극복한 방법을 이야기해 보세요.",
+      "native": "Talk about something difficult at work or study and how you overcame it."
     }
   },
   {
     "level": 3,
     "topic": "family",
-    "title_ko": "우리 가족 이야기",
-    "passage_ko": "우리 가족은 아버지, 어머니, 저, 이렇게 세 사람이에요. 아버지는 은퇴하셔서 매일 정원을 가꾸세요. 어머니는 수영을 배우시고 계세요. 저는 자주 집에 가서 부모님을 뵈요. 같이 저녁을 먹으면 기분이 좋아져요. 부모님이 건강하시니까 걱정이 없어요. 가족과 시간을 보내는 것이 제게 가장 중요한 일이에요.",
-    "passage_en": "Our family is made up of my father, my mother, and me — three people. My father has retired and tends the garden every day. My mother is learning to swim. I often go home and see my parents. When we eat dinner together, I feel good. Since my parents are healthy, I have nothing to worry about. Spending time with family is the most important thing to me.",
+    "title_target": "우리 가족 이야기",
+    "passage_target": "우리 가족은 아버지, 어머니, 저, 이렇게 세 사람이에요. 아버지는 은퇴하셔서 매일 정원을 가꾸세요. 어머니는 수영을 배우시고 계세요. 저는 자주 집에 가서 부모님을 뵈요. 같이 저녁을 먹으면 기분이 좋아져요. 부모님이 건강하시니까 걱정이 없어요. 가족과 시간을 보내는 것이 제게 가장 중요한 일이에요.",
+    "passage_native": "Our family is made up of my father, my mother, and me — three people. My father has retired and tends the garden every day. My mother is learning to swim. I often go home and see my parents. When we eat dinner together, I feel good. Since my parents are healthy, I have nothing to worry about. Spending time with family is the most important thing to me.",
     "sentences": [
-      { "ko": "우리 가족은 아버지, 어머니, 저, 이렇게 세 사람이에요.", "en": "Our family is my father, my mother, and me — three people." },
-      { "ko": "아버지는 은퇴하셔서 매일 정원을 가꾸세요.", "en": "My father retired and tends the garden every day." },
-      { "ko": "어머니는 수영을 배우시고 계세요.", "en": "My mother is learning to swim." },
-      { "ko": "가족과 시간을 보내는 것이 제게 가장 중요한 일이에요.", "en": "Spending time with family is the most important thing to me." }
+      {
+        "target": "우리 가족은 아버지, 어머니, 저, 이렇게 세 사람이에요.",
+        "native": "Our family is my father, my mother, and me — three people."
+      },
+      {
+        "target": "아버지는 은퇴하셔서 매일 정원을 가꾸세요.",
+        "native": "My father retired and tends the garden every day."
+      },
+      {
+        "target": "어머니는 수영을 배우시고 계세요.",
+        "native": "My mother is learning to swim."
+      },
+      {
+        "target": "가족과 시간을 보내는 것이 제게 가장 중요한 일이에요.",
+        "native": "Spending time with family is the most important thing to me."
+      }
     ],
     "glossary": [
-      { "surface": "이렇게", "lemma": "이렇게", "pos": "adverb", "meaning_en": "in this way, like this" },
-      { "surface": "은퇴하셔서", "lemma": "은퇴하다", "pos": "verb", "meaning_en": "to retire (honorific + because)" },
-      { "surface": "정원", "lemma": "정원", "pos": "noun", "meaning_en": "garden" },
-      { "surface": "가꾸세요", "lemma": "가꾸다", "pos": "verb", "meaning_en": "to tend, cultivate (honorific, polite)" },
-      { "surface": "수영", "lemma": "수영", "pos": "noun", "meaning_en": "swimming" },
-      { "surface": "배우시고", "lemma": "배우다", "pos": "verb", "meaning_en": "to learn (honorific + and)" },
-      { "surface": "부모님", "lemma": "부모님", "pos": "noun", "meaning_en": "parents (honorific)" },
-      { "surface": "뵈요", "lemma": "뵈다", "pos": "verb", "meaning_en": "to see/meet respectfully (polite)" },
-      { "surface": "저녁", "lemma": "저녁", "pos": "noun", "meaning_en": "evening, dinner" },
-      { "surface": "건강하시니까", "lemma": "건강하다", "pos": "adjective", "meaning_en": "to be healthy (honorific + because)" },
-      { "surface": "걱정", "lemma": "걱정", "pos": "noun", "meaning_en": "worry, concern" },
-      { "surface": "보내는", "lemma": "보내다", "pos": "verb", "meaning_en": "to spend (time; -(으)는 modifier)" },
-      { "surface": "중요한", "lemma": "중요하다", "pos": "adjective", "meaning_en": "to be important (attributive)" }
+      {
+        "surface": "이렇게",
+        "lemma": "이렇게",
+        "pos": "adverb",
+        "meaning_native": "in this way, like this"
+      },
+      {
+        "surface": "은퇴하셔서",
+        "lemma": "은퇴하다",
+        "pos": "verb",
+        "meaning_native": "to retire (honorific + because)"
+      },
+      {
+        "surface": "정원",
+        "lemma": "정원",
+        "pos": "noun",
+        "meaning_native": "garden"
+      },
+      {
+        "surface": "가꾸세요",
+        "lemma": "가꾸다",
+        "pos": "verb",
+        "meaning_native": "to tend, cultivate (honorific, polite)"
+      },
+      {
+        "surface": "수영",
+        "lemma": "수영",
+        "pos": "noun",
+        "meaning_native": "swimming"
+      },
+      {
+        "surface": "배우시고",
+        "lemma": "배우다",
+        "pos": "verb",
+        "meaning_native": "to learn (honorific + and)"
+      },
+      {
+        "surface": "부모님",
+        "lemma": "부모님",
+        "pos": "noun",
+        "meaning_native": "parents (honorific)"
+      },
+      {
+        "surface": "뵈요",
+        "lemma": "뵈다",
+        "pos": "verb",
+        "meaning_native": "to see/meet respectfully (polite)"
+      },
+      {
+        "surface": "저녁",
+        "lemma": "저녁",
+        "pos": "noun",
+        "meaning_native": "evening, dinner"
+      },
+      {
+        "surface": "건강하시니까",
+        "lemma": "건강하다",
+        "pos": "adjective",
+        "meaning_native": "to be healthy (honorific + because)"
+      },
+      {
+        "surface": "걱정",
+        "lemma": "걱정",
+        "pos": "noun",
+        "meaning_native": "worry, concern"
+      },
+      {
+        "surface": "보내는",
+        "lemma": "보내다",
+        "pos": "verb",
+        "meaning_native": "to spend (time; -(으)는 modifier)"
+      },
+      {
+        "surface": "중요한",
+        "lemma": "중요하다",
+        "pos": "adjective",
+        "meaning_native": "to be important (attributive)"
+      }
     ],
     "questions": [
       {
-        "q_ko": "우리 가족은 몇 명이에요?",
-        "q_en": "How many people are in the family?",
-        "choices": ["두 명", "세 명", "네 명", "다섯 명"],
+        "q_target": "우리 가족은 몇 명이에요?",
+        "q_native": "How many people are in the family?",
+        "choices": [
+          "두 명",
+          "세 명",
+          "네 명",
+          "다섯 명"
+        ],
         "answer_index": 1,
-        "explanation_en": "'아버지, 어머니, 저, 이렇게 세 사람이에요' — three people."
+        "explanation_native": "'아버지, 어머니, 저, 이렇게 세 사람이에요' — three people."
       },
       {
-        "q_ko": "어머니는 지금 무엇을 하세요?",
-        "q_en": "What is the mother doing now?",
-        "choices": ["정원을 가꾸세요", "수영을 배우시고 계세요", "은퇴하셨어요", "일을 하세요"],
+        "q_target": "어머니는 지금 무엇을 하세요?",
+        "q_native": "What is the mother doing now?",
+        "choices": [
+          "정원을 가꾸세요",
+          "수영을 배우시고 계세요",
+          "은퇴하셨어요",
+          "일을 하세요"
+        ],
         "answer_index": 1,
-        "explanation_en": "'어머니는 수영을 배우시고 계세요' — she is learning to swim."
+        "explanation_native": "'어머니는 수영을 배우시고 계세요' — she is learning to swim."
       },
       {
-        "q_ko": "저자에게 가장 중요한 일은 무엇이에요?",
-        "q_en": "What is the most important thing to the writer?",
-        "choices": ["일", "여행", "가족과 시간을 보내는 것", "돈"],
+        "q_target": "저자에게 가장 중요한 일은 무엇이에요?",
+        "q_native": "What is the most important thing to the writer?",
+        "choices": [
+          "일",
+          "여행",
+          "가족과 시간을 보내는 것",
+          "돈"
+        ],
         "answer_index": 2,
-        "explanation_en": "'가족과 시간을 보내는 것이 제게 가장 중요한 일이에요' — spending time with family."
+        "explanation_native": "'가족과 시간을 보내는 것이 제게 가장 중요한 일이에요' — spending time with family."
       }
     ],
     "writing_prompt": {
-      "ko": "가족이나 가까운 사람 한 명을 소개해 주세요. 어떤 사람인지, 무엇을 좋아하는지 써 주세요.",
-      "en": "Introduce a family member or someone close to you. Write what kind of person they are and what they like.",
+      "target": "가족이나 가까운 사람 한 명을 소개해 주세요. 어떤 사람인지, 무엇을 좋아하는지 써 주세요.",
+      "native": "Introduce a family member or someone close to you. Write what kind of person they are and what they like.",
       "target_grammar": "-(으)시 honorific, -(으)니까, 시고 있다"
     },
     "speaking_prompt": {
-      "ko": "가족 중에서 가장 자주 보는 사람은 누구인가요? 그 사람에 대해 이야기해 보세요.",
-      "en": "Who in your family do you see most often? Talk about that person."
+      "target": "가족 중에서 가장 자주 보는 사람은 누구인가요? 그 사람에 대해 이야기해 보세요.",
+      "native": "Who in your family do you see most often? Talk about that person."
     }
   }
 ]

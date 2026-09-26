@@ -229,7 +229,7 @@ function Read({
 
   const allAnswered = pack.questions.length > 0 && pack.questions.every((_, i) => qAnswers[i] !== undefined);
 
-  const passageText = pack.passage_ko;
+  const passageText = pack.passage_target;
   const pieces: { text: string; surface?: string }[] = useMemo(() => {
     const parts: { text: string; surface?: string }[] = [];
     let rest = passageText;
@@ -255,12 +255,12 @@ function Read({
     <>
       <div className="row">
         <h3 className="grow">Reading</h3>
-        <SpeakButton text={pack.passage_ko} rate={rate} voiceUri={voiceUri} label="Read the passage" />
+        <SpeakButton text={pack.passage_target} rate={rate} voiceUri={voiceUri} label="Read the passage" />
         <button className="small" onClick={() => setShowEn((v) => !v)}>
           {showEn ? 'Hide English' : 'Show English'}
         </button>
       </div>
-      {showEn && <p className="muted small card">{pack.passage_en}</p>}
+      {showEn && <p className="muted small card">{pack.passage_native}</p>}
 
       <div className="card">
         <p className="passage">
@@ -282,8 +282,8 @@ function Read({
         const answered = qAnswers[qi] !== undefined;
         return (
           <div className="card q-card" key={qi}>
-            <p className="ko">{q.q_ko}</p>
-            <p className="muted small">{q.q_en}</p>
+            <p className="target-text">{q.q_target}</p>
+            <p className="muted small">{q.q_native}</p>
             {q.choices.map((c, ci) => {
               let cls = 'choice';
               if (reveal[qi]) {
@@ -296,7 +296,7 @@ function Read({
                 </button>
               );
             })}
-            {reveal[qi] && <p className="small muted">{q.explanation_en}</p>}
+            {reveal[qi] && <p className="small muted">{q.explanation_native}</p>}
           </div>
         );
       })}
@@ -356,11 +356,11 @@ function Write({
         <div className="row">
           <span className="tag">model sentence</span>
           <span className="grow" />
-          <SpeakButton text={pack.writing_prompt.ko} rate={rate} voiceUri={voiceUri} label="Hear the model" />
+          <SpeakButton text={pack.writing_prompt.target} rate={rate} voiceUri={voiceUri} label="Hear the model" />
         </div>
-        <p className="ko grow">{pack.writing_prompt.ko}</p>
+        <p className="target-text grow">{pack.writing_prompt.target}</p>
         <p className="muted">
-          {pack.writing_prompt.en} — try the same pattern with your own details (family, hobbies, plans…).
+          {pack.writing_prompt.native} — try the same pattern with your own details (family, hobbies, plans…).
         </p>
         {pack.writing_prompt.target_grammar && <span className="tag small-label">{pack.writing_prompt.target_grammar}</span>}
       </div>
@@ -446,7 +446,7 @@ function Listen({
         <div className="card" key={i}>
           <div className="row">
             <span className="small muted">{i + 1}.</span>
-            <SpeakToggle text={s.ko} rate={rate} voiceUri={voiceUri} />
+            <SpeakToggle text={s.target} rate={rate} voiceUri={voiceUri} />
             {result && (
               <span className={`tag ${result.perSentence[i].percent >= 90 ? '' : 'small-label'}`}>
                 {result.perSentence[i].percent}%
@@ -524,7 +524,7 @@ function ReadAloud({
         <ReadAloudSentence
           key={i}
           index={i}
-          target={s.ko}
+          target={s.target}
           sessionId={sessionId}
           rate={rate}
           voiceUri={voiceUri}
@@ -592,7 +592,7 @@ function ReadAloudSentence({
     <div className="card">
       <div className="row">
         <span className="small muted grow">{index + 1}.</span>
-        <span className="ko">{target}</span>
+        <span className="target-text">{target}</span>
         <SpeakButton text={target} rate={rate} voiceUri={voiceUri} label="Hear the sentence" />
       </div>
       <div className="row">
@@ -752,10 +752,10 @@ function FreeResponse({
       <h3>Free response</h3>
       <div className="card">
         <div className="row">
-          <p className="ko grow">{pack.speaking_prompt.ko}</p>
-          <SpeakButton text={pack.speaking_prompt.ko} rate={rate} voiceUri={voiceUri} label="Hear the prompt" />
+          <p className="target-text grow">{pack.speaking_prompt.target}</p>
+          <SpeakButton text={pack.speaking_prompt.target} rate={rate} voiceUri={voiceUri} label="Hear the prompt" />
         </div>
-        <p className="muted">{pack.speaking_prompt.en}</p>
+        <p className="muted">{pack.speaking_prompt.native}</p>
       </div>
       {showPrivacy && (
         <div className="card">
@@ -880,7 +880,7 @@ function WrapUp({
     <>
       <h3>Session complete!</h3>
       <div className="card center">
-        <p className="ko" style={{ fontSize: '1.8rem' }}>
+        <p className="target-text" style={{ fontSize: '1.8rem' }}>
           🎉 {result.streak}-day streak
         </p>
         <p className="muted">Keep it going tomorrow.</p>

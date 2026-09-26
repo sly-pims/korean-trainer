@@ -32,7 +32,7 @@ ${topicBlock}${knownBlock}
 Return ONLY a JSON object matching this schema:
 {
   "words": [
-    {"lemma": "string", "pos": "noun | verb | adjective | adverb | particle | other", "meaning_en": "string", "example_ko": "string", "example_en": "string"}
+    {"lemma": "string", "pos": "noun | verb | adjective | adverb | particle | other", "meaning_native": "string", "example_target": "string", "example_native": "string"}
   ]
 }
 

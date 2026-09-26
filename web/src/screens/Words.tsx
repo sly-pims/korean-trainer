@@ -112,7 +112,7 @@ function BrowseCard({ refreshKey }: { refreshKey: number }) {
     if (!words) return [];
     const q = query.trim().toLowerCase();
     return words.filter((w) => {
-      if (q && !w.lemma.toLowerCase().includes(q) && !w.meaning_en.toLowerCase().includes(q) && !(w.surface_example ?? '').toLowerCase().includes(q)) {
+      if (q && !w.lemma.toLowerCase().includes(q) && !w.meaning_native.toLowerCase().includes(q) && !(w.surface_example ?? '').toLowerCase().includes(q)) {
         return false;
       }
       if (dueFilter !== 'all') {
@@ -197,16 +197,16 @@ function WordRowItem({
     <div className="row list-item">
       <div className="grow" onClick={onToggle}>
         <div className="row">
-          <span className="ko grow">{w.lemma}</span>
+          <span className="target-text grow">{w.lemma}</span>
         </div>
         <div className="small">
-          <span className="muted">{posLabel(w.pos)}</span> · {w.meaning_en}
+          <span className="muted">{posLabel(w.pos)}</span> · {w.meaning_native}
         </div>
         {open ? (
           <div className="small muted">
             <p>
-              example: <span lang="ko">{w.example_ko || w.surface_example}</span>
-              {w.example_en ? ` — ${w.example_en}` : ''}
+              example: <span lang="ko">{w.example_target || w.surface_example}</span>
+              {w.example_native ? ` — ${w.example_native}` : ''}
             </p>
             <p>
               source: {SOURCE_LABEL[w.source ?? 'reading'] ?? w.source} · level {w.level}
@@ -253,8 +253,8 @@ function AddWordForm({
       await api.addWord({
         lemma: lemma.trim(),
         surface: lemma.trim(),
-        meaning_en: meaning.trim(),
-        example_ko: example.trim() || undefined,
+        meaning_native: meaning.trim(),
+        example_target: example.trim() || undefined,
         level,
         source: 'manual',
       });
@@ -337,12 +337,12 @@ function DiscoverCard({ onChanged }: { onChanged: () => void }) {
       await api.addWord({
         lemma: s.lemma,
         surface: s.lemma,
-        meaning_en: s.meaning_en,
+        meaning_native: s.meaning_native,
         pos: s.pos,
         level,
         source: 'suggested',
-        example_ko: s.example_ko,
-        example_en: s.example_en,
+        example_target: s.example_target,
+        example_native: s.example_native,
       });
       setAdded((m) => ({ ...m, [s.lemma]: true }));
       setSaved((n) => n + 1);
@@ -410,12 +410,12 @@ function DiscoverCard({ onChanged }: { onChanged: () => void }) {
                   <div className="row list-item" key={s.lemma}>
                     <div className="grow">
                       <div className="row">
-                        <span className="ko grow">{s.lemma}</span>
+                        <span className="target-text grow">{s.lemma}</span>
                         <span className="small muted">{posLabel(s.pos)}</span>
                       </div>
-                      <div className="small muted">{s.meaning_en}</div>
+                      <div className="small muted">{s.meaning_native}</div>
                       <div className="small muted">
-                        <span lang="ko">{s.example_ko}</span> — {s.example_en}
+                        <span lang="ko">{s.example_target}</span> — {s.example_native}
                       </div>
                     </div>
                     <button className="small" disabled={added[s.lemma]} onClick={() => addOne(s)}>

@@ -8,9 +8,9 @@ describe('§8.4 word suggestions schema', () => {
         {
           lemma: '주말',
           pos: 'noun',
-          meaning_en: 'weekend',
-          example_ko: '주말에 친구를 만났어요.',
-          example_en: 'I met a friend on the weekend.',
+          meaning_native: 'weekend',
+          example_target: '주말에 친구를 만났어요.',
+          example_native: 'I met a friend on the weekend.',
         },
       ],
     };
@@ -22,9 +22,9 @@ describe('§8.4 word suggestions schema', () => {
     const words = Array.from({ length: 10 }, (_, i) => ({
       lemma: `단어${i}`,
       pos: 'noun',
-      meaning_en: `word ${i}`,
-      example_ko: `예문${i}`,
-      example_en: `example ${i}`,
+      meaning_native: `word ${i}`,
+      example_target: `예문${i}`,
+      example_native: `example ${i}`,
     }));
     expect(WordSuggestionsSchema.safeParse({ words }).success).toBe(true);
     const tooMany = WordSuggestionsSchema.safeParse({ words: [...words, words[0]] });
@@ -37,9 +37,9 @@ describe('§8.4 word suggestions schema', () => {
         {
           lemma: '숫자',
           pos: 'nonexistent',
-          meaning_en: 'number',
-          example_ko: '숫자',
-          example_en: 'number',
+          meaning_native: 'number',
+          example_target: '숫자',
+          example_native: 'number',
         },
       ],
     };

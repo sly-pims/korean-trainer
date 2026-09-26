@@ -41,10 +41,10 @@ export function Practice() {
       <div className="card">
         <div className="row">
           <h3 className="grow">Random lesson</h3>
-          <SpeakButton text={pack.passage_ko} rate={rate} voiceUri={voiceUri} label="Play passage" />
+          <SpeakButton text={pack.passage_target} rate={rate} voiceUri={voiceUri} label="Play passage" />
         </div>
         <p className="passage">
-          {splitPassage(pack.passage_ko, pack.glossary.map((g) => g.surface)).map((piece, i) =>
+          {splitPassage(pack.passage_target, pack.glossary.map((g) => g.surface)).map((piece, i) =>
             piece.surface ? (
               <span
                 key={i}
@@ -64,7 +64,7 @@ export function Practice() {
         {selected && (
           <GlossCard entry={selected} rate={rate} voiceUri={voiceUri} onTap={() => setSelected(null)} />
         )}
-        <p className="small muted">{pack.passage_en}</p>
+        <p className="small muted">{pack.passage_native}</p>
       </div>
 
       <ReadAloudPractice pack={pack} rate={rate} voiceUri={voiceUri} />
@@ -92,7 +92,7 @@ function splitPassage(text: string, surfaces: string[]): { text: string; surface
 }
 
 function ReadAloudPractice({ pack, rate, voiceUri }: { pack: import('../types').ContentPack; rate: number; voiceUri: string }) {
-  const target = pack.sentences[0]?.ko ?? pack.speaking_prompt.ko;
+  const target = pack.sentences[0]?.target ?? pack.speaking_prompt.target;
   const rec = useMediaRecorder();
   const [typed, setTyped] = useState('');
   const [result, setResult] = useState<{ percent: number; segments: { type: 'equal' | 'delete' | 'insert'; text: string }[] } | null>(null);
@@ -130,7 +130,7 @@ function ReadAloudPractice({ pack, rate, voiceUri }: { pack: import('../types').
     <div className="card">
       <h3>Read-aloud drill</h3>
       <div className="row">
-        <span className="ko grow">{target}</span>
+        <span className="target-text grow">{target}</span>
         <SpeakToggle text={target} rate={rate} voiceUri={voiceUri} />
       </div>
       <div className="row">
@@ -273,8 +273,8 @@ function FreeResponsePractice({ pack, rate, voiceUri }: { pack: import('../types
     <div className="card">
       <h3>Free-response drill</h3>
       <div className="row">
-        <p className="ko grow">{pack.speaking_prompt.ko}</p>
-        <SpeakButton text={pack.speaking_prompt.ko} rate={rate} voiceUri={voiceUri} label="Hear prompt" />
+        <p className="target-text grow">{pack.speaking_prompt.target}</p>
+        <SpeakButton text={pack.speaking_prompt.target} rate={rate} voiceUri={voiceUri} label="Hear prompt" />
       </div>
       {feedback ? (
         <>

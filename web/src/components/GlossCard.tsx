@@ -19,7 +19,7 @@ export function GlossCard({ entry, rate, voiceUri, onTap }: Props) {
         <span className="tag">{entry.pos}</span>
         <span className="muted small">{entry.lemma}</span>
       </div>
-      <p className="muted">{entry.meaning_en}</p>
+      <p className="muted">{entry.meaning_native}</p>
       {onTap && (
         <button className="small" onClick={onTap}>
           Close

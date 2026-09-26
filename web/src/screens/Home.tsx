@@ -58,7 +58,7 @@ export function Home() {
           <p>
             <b>Level</b>
           </p>
-          <p className="ko">{humanizeLevel(data.settings.level)}</p>
+          <p className="target-text">{humanizeLevel(data.settings.level)}</p>
           <p className="small muted">~{timeEstimate(data.settings.level)} min per day</p>
         </div>
       </div>
@@ -90,7 +90,7 @@ export function Home() {
 
 function Spotlight({ session }: { session: SessionWithPack }) {
   const done = session.session.status === 'done';
-  const title = session.pack.title_ko || `Level ${session.pack.level}`;
+  const title = session.pack.title_target || `Level ${session.pack.level}`;
   return (
     <div className="card">
       <div className="row">
@@ -98,7 +98,7 @@ function Spotlight({ session }: { session: SessionWithPack }) {
         {done && session.session.read_score !== null && <span className="tag">read {session.session.read_score}%</span>}
       </div>
       <h2>Today’s lesson</h2>
-      <p className="ko">{title}</p>
+      <p className="target-text">{title}</p>
       <p className="small muted">
         Level {session.pack.level} · {session.pack.sentences.length} sentences · {session.pack.questions.length} questions
       </p>

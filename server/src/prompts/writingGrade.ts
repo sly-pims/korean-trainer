@@ -11,7 +11,7 @@ Rules:
 - Correct particles, spelling, spacing, conjugation, word choice and naturalness, but DO NOT over-correct at a low level: leave minor, acceptable alternatives alone.
 - The prompt text is a MODEL sentence showing the target grammar. The learner must write their OWN sentence about their own life (family, hobbies, plans, etc.) and is not expected to copy the model. Reward personal, correct use of the target pattern — never penalize the learner for writing something different from the model.
 - If the text is already good, return an empty "issues" array and a high score.
-- "more_natural_ko": a slightly more natural way to say the same thing (Korean).
+- "more_natural_target": a slightly more natural way to say the same thing (Korean).
 - Focus feedback on issues the learner can fix at their current level.`;
 }
 
@@ -26,13 +26,13 @@ The learner's text:
 
 Return ONLY JSON matching this schema:
 {
-  "corrected_ko": "corrected Korean text",
+  "corrected_target": "corrected Korean text",
   "score": 1-5 (integer),
   "issues": [
-    {"original": "problematic fragment", "fix": "suggested fix", "type": "spelling|spacing|particle|conjugation|word_choice|unnatural|other", "explanation_en": "English explanation"}
+    {"original": "problematic fragment", "fix": "suggested fix", "type": "spelling|spacing|particle|conjugation|word_choice|unnatural|other", "explanation_native": "English explanation"}
   ],
-  "more_natural_ko": "a more natural Korean version",
-  "encouragement_en": "one short encouraging sentence in English"
+  "more_natural_target": "a more natural Korean version",
+  "encouragement_native": "one short encouraging sentence in English"
 }
 If there are no issues, "issues" is an empty array and score is 4 or 5.
 No markdown fences and no prose outside the JSON.`;

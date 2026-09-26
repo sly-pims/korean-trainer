@@ -148,12 +148,12 @@ export const api = {
   addWord: (input: {
     lemma: string;
     surface: string;
-    meaning_en: string;
+    meaning_native: string;
     pos?: string;
     level?: number;
     source?: 'manual' | 'suggested';
-    example_ko?: string;
-    example_en?: string;
+    example_target?: string;
+    example_native?: string;
   }) => request<{ word: WordRow; isNew: boolean }>('/api/words', { method: 'POST', body: JSON.stringify(input) }),
   suggestWords: (opts: { level?: number; topic?: string; count?: number }) =>
     request<{ suggestions: import('./types').WordSuggestion[] }>('/api/words/suggest', {

@@ -75,9 +75,9 @@ describe('seed bank validation (§9)', () => {
           if (!parsed.success) continue;
           const pack = parsed.data;
           for (const g of pack.glossary) {
-            if (!pack.passage_ko.includes(g.surface)) {
+            if (!pack.passage_target.includes(g.surface)) {
               failures++;
-              console.warn(`surface not in passage: "${g.surface}" in "${pack.title_ko}"`);
+              console.warn(`surface not in passage: "${g.surface}" in "${pack.title_target}"`);
             }
           }
         }
@@ -91,9 +91,9 @@ describe('seed bank validation (§9)', () => {
           if (!parsed.success) continue;
           const pack = parsed.data;
           for (const s of pack.sentences) {
-            if (!pack.passage_ko.includes(s.ko)) {
+            if (!pack.passage_target.includes(s.target)) {
               failures++;
-              console.warn(`sentence not in passage: "${s.ko}" in "${pack.title_ko}"`);
+              console.warn(`sentence not in passage: "${s.target}" in "${pack.title_target}"`);
             }
           }
         }

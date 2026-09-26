@@ -4,7 +4,7 @@ import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { DatabaseSync } from 'node:sqlite';
 import { z } from 'zod';
 import { Ctx } from './ctx.js';
-import { copyFor } from './config.js';
+import { copyFor, langFor } from './config.js';
 import { addDays } from './dates.js';
 import { mimeToExt } from './services/audio.js';
 import { compareReadAloud, compareStrings } from './services/diff.js';
@@ -16,7 +16,7 @@ import { WordSuggestionsSchema } from './schema/content.js';
 type PReq<TBody = unknown> = FastifyRequest<{ Params: { id: string }; Body: TBody }>;
 type Pack = ReturnType<Ctx['content']['packForSession']>;
 interface SpeakingPackLike {
-  speaking_prompt: { ko: string; en: string };
+  speaking_prompt: { target: string; native: string };
   level: number;
 }
 
@@ -182,7 +182,7 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
     const pack = content.packForSession(sessionId) as Pack;
     const targets = pack.sentences.slice(0, 3);
     const perSentence = parsed.data.transcripts.slice(0, 3).map((typed, i) => {
-      const target = targets[i]?.ko ?? '';
+      const target = targets[i]?.target ?? '';
       const diff = compareStrings(target, typed);
       return { target, typed, ...diff };
     });
@@ -203,7 +203,7 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
         .object({ sentence_index: z.number().int().min(0).max(9), transcript: z.string().max(500) })
         .safeParse(req.body ?? {});
       if (!parsed.success) return reply.code(400).send({ error: parsed.error.message });
-      const target = pack.sentences[parsed.data.sentence_index]?.ko ?? '';
+      const target = pack.sentences[parsed.data.sentence_index]?.target ?? '';
       const diff = compareReadAloud(target, parsed.data.transcript);
       const attemptId = review.createReadAloudAttempt(sessionId, target, parsed.data.transcript, diff.percent);
       return reply.send({
@@ -211,7 +211,7 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
         ...diff,
         transcript: parsed.data.transcript,
         attempt_id: attemptId,
-        note_en: 'A mismatch may be a recognizer error, not only a pronunciation error.',
+        note_native: 'A mismatch may be a recognizer error, not only a pronunciation error.',
       });
     }
     // Raw audio: transcribe server-side (reliable on Android, unlike the Web Speech API).
@@ -221,7 +221,7 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
     }
     const buf = req.body as Buffer | undefined;
     if (!buf || buf.length === 0) return reply.code(400).send({ error: 'empty recording' });
-    const target = pack.sentences[index]?.ko ?? '';
+    const target = pack.sentences[index]?.target ?? '';
     const ext = mimeToExt(ct || 'audio/webm');
     let transcript: string;
     try {
@@ -237,7 +237,7 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
       ...diff,
       transcript,
       attempt_id: attemptId,
-      note_en: 'A mismatch may be a recognizer error, not only a pronunciation error.',
+      note_native: 'A mismatch may be a recognizer error, not only a pronunciation error.',
     };
   });
 
@@ -294,16 +294,16 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
     const rows = q
       ? db
           .prepare(
-            `SELECT w.id, w.lemma, w.surface_example, w.meaning_en, w.pos, w.level, w.source, w.example_ko, w.example_en,
+            `SELECT w.id, w.lemma, w.surface_example, w.meaning_native, w.pos, w.level, w.source, w.example_target, w.example_native,
                     c.ease, c.interval_days, c.due_date, c.reps, c.lapses
              FROM words w LEFT JOIN srs_cards c ON c.word_id = w.id
-             WHERE w.lemma LIKE ? OR w.meaning_en LIKE ? OR w.surface_example LIKE ?
+             WHERE w.lemma LIKE ? OR w.meaning_native LIKE ? OR w.surface_example LIKE ?
              ORDER BY w.first_seen_at DESC, w.id DESC LIMIT 200`,
           )
           .all(`%${q}%`, `%${q}%`, `%${q}%`)
       : db
           .prepare(
-            `SELECT w.id, w.lemma, w.surface_example, w.meaning_en, w.pos, w.level, w.source, w.example_ko, w.example_en,
+            `SELECT w.id, w.lemma, w.surface_example, w.meaning_native, w.pos, w.level, w.source, w.example_target, w.example_native,
                     c.ease, c.interval_days, c.due_date, c.reps, c.lapses
              FROM words w LEFT JOIN srs_cards c ON c.word_id = w.id
              ORDER BY w.first_seen_at DESC, w.id DESC LIMIT 200`,
@@ -316,13 +316,13 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
     const parsed = z
       .object({
         lemma: z.string().min(1),
-        meaning_en: z.string().min(1),
+        meaning_native: z.string().min(1),
         surface_example: z.string().optional(),
         pos: z.string().optional(),
         level: z.number().int().min(1).max(6).optional(),
         source: z.enum(['manual', 'suggested']).optional(),
-        example_ko: z.string().optional(),
-        example_en: z.string().optional(),
+        example_target: z.string().optional(),
+        example_native: z.string().optional(),
       })
       .safeParse(req.body ?? {});
     if (!parsed.success) return reply.code(400).send({ error: parsed.error.message });
@@ -404,15 +404,24 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
       level_history: del('level_history'),
     };
     db.prepare('UPDATE settings SET level=1, streak=0, last_session_date=NULL WHERE id=1').run();
-    db.prepare('UPDATE passages SET used=0, intended_date=NULL').run();
+    // Scoped to the caller's language: another language's passages belong to a
+    // different enrollment and must survive this reset.
+    db.prepare('UPDATE passages SET used=0, intended_date=NULL WHERE target_lang=?').run(
+      content.primaryLang,
+    );
     return { ok: true, deleted };
   });
 
   // ---------- Speaking practice (standalone screen) ----------
+  // A random pack, but only ever from the caller's own language: one database
+  // holds every supported language's passages.
+  const randomPack = (targetLang: string) =>
+    db
+      .prepare('SELECT payload_json FROM passages WHERE target_lang=? ORDER BY RANDOM() LIMIT 1')
+      .get(targetLang) as { payload_json: string } | undefined;
+
   app.get('/api/practice/read', async () => {
-    const p = db.prepare('SELECT payload_json FROM passages ORDER BY RANDOM() LIMIT 1').get() as
-      | { payload_json: string }
-      | undefined;
+    const p = randomPack(content.primaryLang);
     if (!p) return { pack: null };
     return { pack: JSON.parse(p.payload_json) };
   });
@@ -426,15 +435,14 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
   });
 
   app.post('/api/practice/free-response', async (req: FastifyRequest, reply) => {
+    const targetLang = content.primaryLang;
     const settings = readSettings(db, cfg);
-    const p = db.prepare('SELECT payload_json FROM passages ORDER BY RANDOM() LIMIT 1').get() as
-      | { payload_json: string }
-      | undefined;
+    const p = randomPack(targetLang);
     const pack: SpeakingPackLike = p
       ? (JSON.parse(p.payload_json) as SpeakingPackLike)
       : {
           level: settings.level,
-          speaking_prompt: { ko: '지난주에 무엇을 했나요?', en: 'What did you do last week?' },
+          speaking_prompt: langFor(cfg, targetLang).fallbacks.speakingPrompt,
         };
     return handleFreeResponse(req, reply, ctx, null, pack);
   });

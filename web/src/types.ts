@@ -2,28 +2,28 @@ export interface GlossaryEntry {
   surface: string;
   lemma: string;
   pos: string;
-  meaning_en: string;
+  meaning_native: string;
 }
 
 export interface Question {
-  q_ko: string;
-  q_en: string;
+  q_target: string;
+  q_native: string;
   choices: string[];
   answer_index: number;
-  explanation_en: string;
+  explanation_native: string;
 }
 
 export interface ContentPack {
   level: number;
   topic: string;
-  title_ko: string;
-  passage_ko: string;
-  passage_en: string;
-  sentences: { ko: string; en: string }[];
+  title_target: string;
+  passage_target: string;
+  passage_native: string;
+  sentences: { target: string; native: string }[];
   glossary: GlossaryEntry[];
   questions: Question[];
-  writing_prompt: { ko: string; en: string; target_grammar: string };
-  speaking_prompt: { ko: string; en: string };
+  writing_prompt: { target: string; native: string; target_grammar: string };
+  speaking_prompt: { target: string; native: string };
 }
 
 export interface SessionRow {
@@ -72,7 +72,7 @@ export interface SrsCardRow {
   lapses: number;
   lemma: string;
   surface_example: string;
-  meaning_en: string;
+  meaning_native: string;
   pos: string;
   level: number;
 }
@@ -83,56 +83,56 @@ export interface WordRow {
   id: number;
   lemma: string;
   surface_example: string;
-  meaning_en: string;
+  meaning_native: string;
   pos: string;
   level: number;
   first_seen_at: string;
   source_passage_id: number | null;
   source?: 'reading' | 'manual' | 'suggested' | null;
-  example_ko?: string | null;
-  example_en?: string | null;
+  example_target?: string | null;
+  example_native?: string | null;
   card?: SrsCardRow | null;
 }
 
 export interface WordSuggestion {
   lemma: string;
   pos: 'noun' | 'verb' | 'adjective' | 'adverb' | 'particle' | 'other';
-  meaning_en: string;
-  example_ko: string;
-  example_en: string;
+  meaning_native: string;
+  example_target: string;
+  example_native: string;
 }
 
 export interface WritingFeedback {
-  corrected_ko: string;
+  corrected_target: string;
   score: number;
   issues: {
     original: string;
     fix: string;
     type: string;
-    explanation_en: string;
+    explanation_native: string;
   }[];
-  more_natural_ko: string;
-  encouragement_en: string;
+  more_natural_target: string;
+  encouragement_native: string;
 }
 
 export interface SpeakingFeedback {
-  transcript_ko: string;
-  corrected_ko: string;
+  transcript_target: string;
+  corrected_target: string;
   score: number;
   issues: {
     original: string;
     fix: string;
     type: string;
-    explanation_en: string;
+    explanation_native: string;
   }[];
-  more_natural_ko: string;
+  more_natural_target: string;
   pronunciation_notes: {
     word: string;
-    note_en: string;
+    note_native: string;
     confidence: 'low' | 'medium' | 'high';
   }[];
-  fluency_note_en: string;
-  encouragement_en: string;
+  fluency_note_native: string;
+  encouragement_native: string;
 }
 
 export interface ListeningResult {
@@ -184,7 +184,7 @@ export interface SessionHistoryRow {
   id: number;
   date: string;
   topic: string;
-  title_ko: string | null;
+  title_target: string | null;
   read_score: number | null;
   write_score: number | null;
   listen_score: number | null;
@@ -195,18 +195,18 @@ export interface SessionHistoryRow {
 
 export interface ReadAnswerRow {
   index: number;
-  q_ko: string;
-  q_en: string;
+  q_target: string;
+  q_native: string;
   choices: string[];
   chosen_index: number | null;
   answer_index: number;
   correct: boolean;
-  explanation_en: string;
+  explanation_native: string;
 }
 
 export interface WritingEntryRow {
   id: number;
-  prompt: { ko: string; en: string; target_grammar?: string; level?: number };
+  prompt: { target: string; native: string; target_grammar?: string; level?: number };
   user_text: string;
   feedback: WritingFeedback | null;
 }
@@ -214,7 +214,7 @@ export interface WritingEntryRow {
 export interface DictationEntryRow {
   id: number;
   sentence_index: number;
-  target_ko: string;
+  target_text: string;
   typed_text: string;
   score: number;
   percent: number;

@@ -76,7 +76,7 @@ export class ContentService {
    * Every passage read is language-scoped; this only exists until enrollments
    * (phase 7) make the caller's language explicit.
    */
-  private get primaryLang(): string {
+  get primaryLang(): string {
     return [...this.langs.keys()][0] ?? 'ko';
   }
 
@@ -273,13 +273,13 @@ export class ContentService {
     } else {
       const res = this.db
         .prepare(
-          `INSERT INTO words (lemma, surface_example, meaning_en, pos, level, first_seen_at, source_passage_id, source, example_ko, example_en)
+          `INSERT INTO words (lemma, surface_example, meaning_native, pos, level, first_seen_at, source_passage_id, source, example_target, example_native)
            VALUES (?,?,?,?,?,?,?,'reading',NULL,NULL)`,
         )
         .run(
           entry.lemma,
           surface,
-          entry.meaning_en,
+          entry.meaning_native,
           entry.pos,
           pack.level,
           today,
@@ -304,12 +304,12 @@ export class ContentService {
   addWordManually(input: {
     lemma: string;
     surface_example?: string;
-    meaning_en: string;
+    meaning_native: string;
     pos?: string;
     level?: number;
     source?: 'manual' | 'suggested';
-    example_ko?: string;
-    example_en?: string;
+    example_target?: string;
+    example_native?: string;
   }): Record<string, unknown> {
     const settings = this.db.prepare('SELECT level FROM settings WHERE id=1').get() as {
       level: number;
@@ -323,19 +323,19 @@ export class ContentService {
     }
     const res = this.db
       .prepare(
-        `INSERT INTO words (lemma, surface_example, meaning_en, pos, level, first_seen_at, source, example_ko, example_en)
+        `INSERT INTO words (lemma, surface_example, meaning_native, pos, level, first_seen_at, source, example_target, example_native)
          VALUES (?,?,?,?,?,?,?,?,?)`,
       )
       .run(
         input.lemma,
         input.surface_example ?? input.lemma,
-        input.meaning_en,
+        input.meaning_native,
         input.pos ?? 'noun',
         level,
         this.today(),
         input.source ?? 'manual',
-        input.example_ko ?? null,
-        input.example_en ?? null,
+        input.example_target ?? null,
+        input.example_native ?? null,
       );
     const wordId = Number(res.lastInsertRowid);
     this.db
@@ -358,7 +358,7 @@ export class ContentService {
     const today = this.today();
     return this.db
       .prepare(
-        `SELECT w.id as word_id, w.lemma, w.surface_example, w.meaning_en, w.pos, w.level,
+        `SELECT w.id as word_id, w.lemma, w.surface_example, w.meaning_native, w.pos, w.level,
                 c.ease, c.interval_days, c.due_date, c.reps, c.lapses
          FROM srs_cards c JOIN words w ON w.id = c.word_id
          WHERE c.due_date <= ?
@@ -416,7 +416,7 @@ export class ContentService {
   ): void {
     this.db.prepare('DELETE FROM dictation_entries WHERE session_id=?').run(sessionId);
     const ins = this.db.prepare(
-      'INSERT INTO dictation_entries (session_id, sentence_index, target_ko, typed_text, score, created_at) VALUES (?,?,?,?,?,?)',
+      'INSERT INTO dictation_entries (session_id, sentence_index, target_text, typed_text, score, created_at) VALUES (?,?,?,?,?,?)',
     );
     for (const e of entries) {
       ins.run(sessionId, e.index, e.target, e.typed, e.score, new Date().toISOString());
@@ -437,13 +437,13 @@ export class ContentService {
       .all() as Array<Record<string, unknown>>;
     return rows.map((r) => {
       const { payload_json, ...rest } = r;
-      let title_ko: string | null = null;
+      let title_target: string | null = null;
       try {
-        title_ko = (JSON.parse(payload_json as string) as { title_ko?: unknown }).title_ko as string ?? null;
+        title_target = (JSON.parse(payload_json as string) as { title_target?: unknown }).title_target as string ?? null;
       } catch {
         /* keep null */
       }
-      return { ...rest, title_ko };
+      return { ...rest, title_target };
     });
   }
 
@@ -459,13 +459,13 @@ export class ContentService {
       const chosen = answers[i] ?? null;
       return {
         index: i,
-        q_ko: q.q_ko,
-        q_en: q.q_en,
+        q_target: q.q_target,
+        q_native: q.q_native,
         choices: q.choices,
         chosen_index: chosen,
         answer_index: q.answer_index,
         correct: chosen !== null && chosen === q.answer_index,
-        explanation_en: q.explanation_en,
+        explanation_native: q.explanation_native,
       };
     });
     const writing = (
@@ -480,10 +480,10 @@ export class ContentService {
     }));
     const dictation = (
       this.db
-        .prepare('SELECT id, sentence_index, target_ko, typed_text, score FROM dictation_entries WHERE session_id=? ORDER BY sentence_index, id')
+        .prepare('SELECT id, sentence_index, target_text, typed_text, score FROM dictation_entries WHERE session_id=? ORDER BY sentence_index, id')
         .all(sessionId) as Array<Record<string, unknown>>
     ).map((d) => {
-      const diff = compareStrings(d.target_ko as string, d.typed_text as string);
+      const diff = compareStrings(d.target_text as string, d.typed_text as string);
       return { ...d, segments: diff.segments, percent: diff.percent };
     });
     const attempts = this.db
