@@ -23,6 +23,8 @@
   },
   "learnerProfile": "speaks, writes and reads French at about CEFR A2; reads at roughly a young child's level. NOT an absolute beginner. Content must be worth their time and build reading confidence.",
   "styleGuidance": "Natural, everyday French. Default to the familiar vous register. Only use tutoiement or formal/administrative register at levels 5-6.",
+  "pronunciationGuidance": "Sound rules French learners commonly miss: nasal vowels (voyelles nasales), liaison between words that normally end in a consonant, silent final consonants, the distinction between /u/ and /ou/, and /e/ endings that are often dropped in speech. Explain in English.",
+  "exampleGuidance": "Keep examples short — under about 12 words, or 2 short clauses.",
   "levelGuide": {
     "1": { "passage": "3-5 short sentences", "grammar": "Present tense, basic articles and prepositions, everyday nouns/verbs" },
     "2": { "passage": "5-7 sentences", "grammar": "Passé composé, common connectors (et, mais, parce que), frequent adverbs" },

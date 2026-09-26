@@ -1,94 +1,88 @@
 import { ContentPackSchema } from '../schema/content.js';
-import type { LanguageProfile } from '../lang.js';
+import type { PromptContext } from './context.js';
+import { inNative, levelGuide, levelName, nativeOf } from './context.js';
 
-export interface LevelsGuide {
-  [level: number]: { passage: string; grammar: string };
-}
+// §8.1 Daily content pack.
 
-// Fallback guide, used when no language profile is supplied. Mirrors the
-// language-specific profiles in config/languages.*.json.
-export const LEVEL_GUIDE: LevelsGuide = {
-  1: { passage: '3-5 short sentences', grammar: 'Present tense, basic particles, everyday nouns/verbs' },
-  2: { passage: '5-7 sentences', grammar: 'Past tense, -고, -아/어서, common connectors' },
-  3: { passage: '7-10 sentences', grammar: '-(으)ㄴ/는 modifiers, -(으)면, -지만, daily-life topics' },
-  4: { passage: '10-14 sentences', grammar: 'Reported speech, -는데, passive/causative basics' },
-  5: { passage: '14-20 sentences', grammar: 'Abstract topics, news-style register' },
-  6: { passage: '20+ sentences', grammar: 'Idioms, formal writing, opinion pieces' },
-};
-
-export const TOPIC_LIST = [
-  'family',
-  'food',
-  'travel',
-  'work',
-  'weather',
-  'hobbies',
-  'health',
-  'shopping',
-  'news',
-];
-
+/**
+ * The JSON shape handed to the model.
+ *
+ * The nested pair keys are `target`/`native` because the model cannot know which
+ * codes they are: the same template has to produce a Korean pack with an English
+ * gloss and a French pack with a Korean one.
+ */
 const SCHEMA_DESCRIPTION = `{
   "level": <number 1-6>,
   "topic": "string",
   "title_target": "string",
   "passage_target": "string",
   "passage_native": "string",
-  "sentences": [{"ko": "string", "en": "string"}],
+  "sentences": [{"target": "string", "native": "string"}],
   "glossary": [{"surface": "string", "lemma": "string", "pos": "verb|noun|adjective|adverb|particle|expression|conjunction|determiner|numeral|counter", "meaning_native": "string"}],
   "questions": [{"q_target": "string", "q_native": "string", "choices": ["4 strings"], "answer_index": 0, "explanation_native": "string"}],
-  "writing_prompt": {"ko": "string", "en": "string", "target_grammar": "string"},
-  "speaking_prompt": {"ko": "string", "en": "string"}
+  "writing_prompt": {"target": "string", "native": "string", "target_grammar": "string"},
+  "speaking_prompt": {"target": "string", "native": "string"}
 }`;
 
-export function contentPackSystem(level: number, profile?: LanguageProfile): string {
-  const guide = (profile?.levelGuide ?? LEVEL_GUIDE)[level] ?? (profile?.levelGuide ?? LEVEL_GUIDE)['1'];
-  const languageName = profile?.name ?? 'Korean';
-  const learnerProfile =
-    profile?.learnerProfile ??
-    'speaks, writes and reads Korean at about TOPIK 1-2; reads at roughly a young child\'s level. NOT an absolute beginner. Content must be worth their time and build reading confidence.';
-  const style =
-    profile?.styleGuidance ??
-    'Natural, everyday Korean. Default to polite 해요체 (해요 ending). Only use other registers at levels 5-6.';
-  return `You are a ${languageName}-language tutor creating one daily practice pack for a learner.
+/** The target language, by its own name, for use inside an instruction. */
+function target(ctx: PromptContext): string {
+  return ctx.profile.name;
+}
 
-Learner profile: ${learnerProfile}
+export function contentPackSystem(ctx: PromptContext, level: number): string {
+  const guide = levelGuide(ctx, level);
+  const native = nativeOf(ctx);
+  const topicList = ctx.profile.topics.join(', ');
+  return `You are a ${target(ctx)}-language tutor creating one daily practice pack for a learner.
 
-Difficulty level for this pack: ${level} of 6.
+The learner is studying ${target(ctx)}. Write every "_target" field in ${target(ctx)}, and every "_native" field in ${native.name}.
+
+Learner profile: ${ctx.profile.learnerProfile}
+
+Difficulty level for this pack: ${levelName(ctx, level)} (level ${level} of 6).
 - Passage length: ${guide.passage}
 - Grammar and vocabulary: ${guide.grammar}
 
 Rules:
-- ${style}
-- The passage must be interesting, concrete and natural — everyday life topics adapted to the target level.
-- EVERY word in the passage that could be unfamiliar at this level must appear in "glossary". The "surface" must match the text exactly (same spelling) so tap-to-translate works.
+- ${ctx.profile.styleGuidance}
+- The passage must be interesting, concrete and natural — everyday life topics adapted to the target level. Draw the topic from: ${topicList}.
+- EVERY word in the passage that could be unfamiliar at this level must appear in "glossary". The "surface" must match the text exactly (same spelling and spacing) so tap-to-translate works.
 - Exactly 3 questions, each with exactly 4 choices and exactly one correct answer. Questions check real understanding of the passage.
-- "sentences": 3-5 short sentences FROM the passage, each under about 20 syllables, suitable for dictation and reading aloud. Their "ko" must appear verbatim inside "passage_target".
-- "speaking_prompt": a simple open question or scenario related to the passage that a learner can answer in 20-40 seconds (e.g. "What did you do last weekend?").
-- "writing_prompt.target_grammar": name the grammar point to practice (e.g. "past tense -았/었어요").
-- Value accuracy: correct ${languageName}, correct particles, natural word order. If unsure, choose simpler phrasing.`;
+- "sentences": 3-5 short sentences FROM the passage, each short enough to dictate and read aloud, in the order they appear. Every "sentences[].target" must appear verbatim inside "passage_target".
+- "speaking_prompt": a simple open question or scenario related to the passage that a learner can answer in 20-40 seconds.
+- "writing_prompt.target_grammar": name the grammar point to practise, in ${native.name}.
+- Every "_native" value must be in ${native.name} — never in ${target(ctx)}, and never in any other language.
+- Value accuracy: correct ${target(ctx)}, correct particles and agreement, natural word order. If unsure, choose simpler phrasing.`;
 }
 
-export function contentPackPrompt(level: number): string {
+export function contentPackPrompt(ctx: PromptContext, level: number): string {
   return `
 Return ONLY a JSON object matching this schema:
 ${SCHEMA_DESCRIPTION}
+
+Every "_target" value must be in ${target(ctx)}. Every "_native" value must be in ${nativeOf(ctx).name}.
 
 Output must be the JSON object and nothing else (no markdown fences, no comments).`;
 }
 
-export function contentPackWithTopicPrompt(level: number, topic: string, recentTopics: string[]): string {
-  const topicBlock = topic && topic !== 'any'
-    ? `\nTopic for this pack: ${topic}`
-    : '';
+export function contentPackWithTopicPrompt(
+  ctx: PromptContext,
+  level: number,
+  topic: string,
+  recentTopics: string[],
+): string {
+  const topicBlock =
+    topic && topic !== 'any' ? `\nTopic for this pack: ${topic}` : `\nTopic for this pack: any of ${ctx.profile.topics.join(', ')}`;
   const avoid = recentTopics.length
     ? `\nAvoid repeating these recently-used topics: ${recentTopics.join(', ')}`
     : '';
   return `
-Difficulty: level ${level} of 6.${topicBlock}${avoid}
+Difficulty: ${levelName(ctx, level)} (level ${level} of 6).${topicBlock}${avoid}
 
 Return ONLY a JSON object matching this schema:
 ${SCHEMA_DESCRIPTION}
+
+Every "_target" value must be in ${target(ctx)}. Every "_native" value must be in ${nativeOf(ctx).name}.
 
 Output must be the JSON object and nothing else (no markdown fences, no comments).`;
 }
@@ -96,3 +90,6 @@ Output must be the JSON object and nothing else (no markdown fences, no comments
 export function validateContentPack(pack: unknown) {
   return ContentPackSchema.safeParse(pack);
 }
+
+/** Re-exported so callers that only need the shared phrasing can reach it. */
+export { inNative };

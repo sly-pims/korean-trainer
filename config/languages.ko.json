@@ -25,6 +25,8 @@
   },
   "learnerProfile": "speaks, writes and reads Korean at about TOPIK 1-2; reads at roughly a young child's level. NOT an absolute beginner. Content must be worth their time and build reading confidence.",
   "styleGuidance": "Natural, everyday Korean. Default to polite 해요체 (해요 ending). Only use other registers at levels 5-6.",
+  "pronunciationGuidance": "Sound rules Korean learners commonly miss: linking of final consonants (liaison between syllables), nasalization, tensification (경음화), neutralization of final stops, and intonation. Explain in English; do not use a romanisation scheme the learner has not been taught.",
+  "exampleGuidance": "Keep examples short — under about 15 Korean syllables, or 2-3 short clauses.",
   "levelGuide": {
     "1": { "passage": "3-5 short sentences", "grammar": "Present tense, basic particles, everyday nouns/verbs" },
     "2": { "passage": "5-7 sentences", "grammar": "Past tense, -고, -아/어서, common connectors" },

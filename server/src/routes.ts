@@ -225,7 +225,9 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
     const ext = mimeToExt(ct || 'audio/webm');
     let transcript: string;
     try {
-      transcript = await review.transcribeAudio(buf, ext);
+      // The session's own language: a French passage must not be transcribed
+      // with a Korean prompt.
+      transcript = await review.transcribeAudio(buf, ext, content.sessionLang(sessionId));
     } catch (e) {
       req.log.warn({ err: e }, 'read-aloud transcription failed');
       return reply.code(502).send({ error: e instanceof Error ? e.message : 'transcription failed' });
@@ -346,11 +348,13 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
     if (!ctx.callManager) return reply.code(503).send({ error: 'LLM not configured' });
     const settings = db.prepare('SELECT level FROM settings WHERE id=1').get() as { level: number };
     try {
+      const promptCtx = { profile: content.profileFor() };
       const suggestions = await ctx.callManager.generateJSON({
-        system: wordSuggestSystem(parsed.data.level ?? settings.level),
+        system: wordSuggestSystem(promptCtx, parsed.data.level ?? settings.level),
         prompt: wordSuggestPrompt(
-          parsed.data.topic ?? null,
+          promptCtx,
           parsed.data.count ?? 5,
+          parsed.data.topic ?? null,
           (db.prepare('SELECT lemma FROM words').all() as { lemma: string }[]).map((r) => r.lemma),
         ),
         schema: WordSuggestionsSchema,

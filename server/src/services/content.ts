@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { addDays, nowIso, todayString } from '../dates.js';
-import type { Langs } from '../lang.js';
+import type { LanguageProfile, Langs } from '../lang.js';
 import { DailyCapReachedError } from '../llm/errors.js';
 import { CallManager } from '../llm/callManager.js';
 import { validateContentPack } from '../prompts/contentPack.js';
@@ -78,6 +78,19 @@ export class ContentService {
    */
   get primaryLang(): string {
     return [...this.langs.keys()][0] ?? 'ko';
+  }
+
+  /**
+   * The profile for a target language, or a hard failure.
+   *
+   * Silently substituting another language here is how a French learner ends up
+   * being taught from a Korean prompt, so an unconfigured language stops the
+   * request instead.
+   */
+  profileFor(targetLang: string = this.primaryLang): LanguageProfile {
+    const profile = this.langs.get(targetLang);
+    if (!profile) throw new Error(`no language profile configured for "${targetLang}"`);
+    return profile;
   }
 
   // ---- Seed bank (§9) ----
@@ -205,6 +218,19 @@ export class ContentService {
     const s = this.db.prepare('SELECT * FROM sessions WHERE id=?').get(sessionId) as unknown as SessionRow;
     const p = this.db.prepare('SELECT * FROM passages WHERE id=?').get(s.passage_id) as unknown as PassageRow;
     return JSON.parse(p.payload_json);
+  }
+
+  /** The language a session's passage is in, for prompt and voice resolution. */
+  sessionLang(sessionId: number): string {
+    const s = this.db.prepare('SELECT passage_id FROM sessions WHERE id=?').get(sessionId) as
+      | { passage_id: number }
+      | undefined;
+    if (!s) throw new Error(`no session ${sessionId}`);
+    const p = this.db.prepare('SELECT target_lang FROM passages WHERE id=?').get(s.passage_id) as
+      | { target_lang: string }
+      | undefined;
+    if (!p) throw new Error(`no passage for session ${sessionId}`);
+    return p.target_lang;
   }
 
   // ---- §6.2 level suggestion ----
@@ -633,17 +659,17 @@ export class ContentService {
     const { contentPackSystem, contentPackWithTopicPrompt } = await import(
       '../prompts/contentPack.js'
     );
-    const profile = this.langs.get(targetLang);
-    const topicList = profile?.topics ?? [];
+    const ctx = { profile: this.profileFor(targetLang) };
+    const topicList = ctx.profile.topics;
     const recent = recentTopics ?? this.recentTopics(6, targetLang);
     const pool =
       requestedTopic && requestedTopic !== 'any'
         ? [requestedTopic]
         : topicList.filter((t) => !recent.includes(t));
-    const topic = pool.length ? pool[Math.floor(Math.random() * pool.length)] : 'daily life';
+    const topic = pool.length ? pool[Math.floor(Math.random() * pool.length)] : topicList[0] ?? 'daily life';
     const pack = await this.callManager.generateJSON({
-      system: contentPackSystem(level, profile),
-      prompt: contentPackWithTopicPrompt(level, topic, recent),
+      system: contentPackSystem(ctx, level),
+      prompt: contentPackWithTopicPrompt(ctx, level, topic, recent),
       schema: ContentPackSchema,
     });
     return { pack: filterGlossaryByPassage(pack), source: 'llm' };

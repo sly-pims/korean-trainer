@@ -3,8 +3,11 @@ import path from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { CallManager } from '../llm/callManager.js';
 import { DailyCapReachedError } from '../llm/errors.js';
+import type { LanguageProfile, Langs } from '../lang.js';
+import type { PromptContext } from '../prompts/context.js';
 import { writingGradePrompt, writingGradeSystem } from '../prompts/writingGrade.js';
 import { speakingFeedbackPrompt, speakingFeedbackSystem } from '../prompts/speakingFeedback.js';
+import { isUsableTranscript, transcribePrompt, transcribeSystem } from '../prompts/transcribe.js';
 import { ContentPack, SpeakingFeedbackSchema, WritingFeedbackSchema } from '../schema/content.js';
 import { convertToWav16k } from './audio.js';
 
@@ -47,7 +50,27 @@ export class ReviewService {
     private callManager: CallManager | null,
     private recordingsDir: string,
     private ffmpegPath: string,
+    private langs: Langs,
+    private defaultTargetLang: string,
   ) {}
+
+  /**
+   * The profile for a target language, or a hard failure.
+   *
+   * Falling back to some other language's profile here would put a French
+   * learner's text in front of a Korean prompt, which is the exact leak this
+   * whole phase exists to close. An unconfigured language must stop the request.
+   */
+  private profileFor(targetLang?: string): LanguageProfile {
+    const code = targetLang ?? this.defaultTargetLang;
+    const profile = this.langs.get(code);
+    if (!profile) throw new Error(`no language profile configured for "${code}"`);
+    return profile;
+  }
+
+  private promptCtx(targetLang?: string): PromptContext {
+    return { profile: this.profileFor(targetLang) };
+  }
 
   // ---- Writing (§8.2) ----
 
@@ -72,7 +95,7 @@ export class ReviewService {
   }
 
   /** Returns true if the entry is now graded. */
-  async gradeWritingEntry(id: number): Promise<boolean> {
+  async gradeWritingEntry(id: number, targetLang?: string): Promise<boolean> {
     const entry = this.getWritingEntry(id);
     if (!entry) return false;
     if (entry.feedback_json) return true;
@@ -83,9 +106,10 @@ export class ReviewService {
     };
     const text = entry.user_text;
     if (!this.callManager) return false;
+    const ctx = this.promptCtx(targetLang);
     const feedback = await this.callManager.generateJSON({
-      system: writingGradeSystem(prompt.level ?? 1),
-      prompt: writingGradePrompt(prompt.level ?? 1, prompt.target, prompt.native, text),
+      system: writingGradeSystem(ctx, prompt.level ?? 1),
+      prompt: writingGradePrompt(ctx, prompt.level ?? 1, prompt.target, prompt.native, text),
       schema: WritingFeedbackSchema,
     });
     this.db
@@ -143,7 +167,7 @@ export class ReviewService {
   }
 
   /** Returns true if the attempt now has feedback. */
-  async gradeSpeakingAttempt(id: number): Promise<boolean> {
+  async gradeSpeakingAttempt(id: number, targetLang?: string): Promise<boolean> {
     const attempt = this.getSpeakingAttempt(id);
     if (!attempt || attempt.mode !== 'free_speech') return false;
     if (attempt.feedback_json) return true;
@@ -160,9 +184,10 @@ export class ReviewService {
     const ext = path.extname(audioPath).slice(1) || 'webm';
     const wav = await convertToWav16k(fs.readFileSync(audioPath), ext, this.ffmpegPath);
     if (!this.callManager) return false;
+    const ctx = this.promptCtx(targetLang);
     const feedback = await this.callManager.generateJSONFromAudio({
-      system: speakingFeedbackSystem(prompt.level ?? 1),
-      prompt: speakingFeedbackPrompt(prompt.level ?? 1, prompt.target, prompt.native),
+      system: speakingFeedbackSystem(ctx, prompt.level ?? 1),
+      prompt: speakingFeedbackPrompt(ctx, prompt.level ?? 1, prompt.target, prompt.native),
       schema: SpeakingFeedbackSchema,
       audio: wav,
       mimeType: 'audio/wav',
@@ -177,28 +202,23 @@ export class ReviewService {
     return true;
   }
 
-/**
+  /**
    * Transcribe a recording server-side (used by the read-aloud drills so the
    * phone doesn't depend on the flaky Android Web Speech API).
-   * Returns the verbatim Korean transcription ('' if no speech was heard).
-   * The target sentence is deliberately NOT included in the prompt: Gemini
-   * anchors to it and echoes it back for silent audio, faking a 100% match.
+   * Returns the verbatim transcription ('' if no speech was heard).
    */
-  async transcribeAudio(audio: Buffer, ext: string): Promise<string> {
+  async transcribeAudio(audio: Buffer, ext: string, targetLang?: string): Promise<string> {
     if (!this.callManager) throw new Error('LLM is not configured, cannot transcribe audio.');
+    const profile = this.profileFor(targetLang);
     const wav = await convertToWav16k(audio, ext, this.ffmpegPath);
     const raw = await this.callManager.generateTextFromAudio({
-      system:
-        'You are a meticulous Korean speech transcriber. Transcribe exactly what is spoken, verbatim, including errors and hesitations. If there is no human speech in the audio, reply with the single word EMPTY.',
-      prompt: 'Transcribe the spoken Korean audio verbatim.',
+      system: transcribeSystem(profile),
+      prompt: transcribePrompt(profile),
       audio: wav,
       mimeType: 'audio/wav',
     });
     const t = raw.replace(/\s+/g, ' ').trim();
-    // Plain-text mode can return prose like "The audio is silent." — without
-    // any Hangul there is no transcription to grade.
-    if (!t || /^EMPTY$/i.test(t) || !/[\uac00-\ud7af]/.test(t)) return '';
-    return t;
+    return isUsableTranscript(t, profile) ? t : '';
   }
 
   // ---- Retry queue (§4.2 #5, #6) ----

@@ -38,6 +38,13 @@ export const languageProfileSchema = z
     /** Described into the generation prompt verbatim. */
     learnerProfile: z.string().min(1),
     styleGuidance: z.string().min(1),
+    /**
+     * Sound rules a learner of this language commonly misses, described into the
+     * speaking-feedback prompt. Must not name another language's phonology.
+     */
+    pronunciationGuidance: z.string().min(1),
+    /** How long a generated example sentence should be, in this language's terms. */
+    exampleGuidance: z.string().min(1),
     topics: z.array(z.string().min(1)).min(1),
     /** Used when the database holds no passage for this language yet. */
     fallbacks: z.object({
@@ -173,3 +180,68 @@ export function copyKeys(value: unknown, prefix = ''): string[] {
 
 export type Langs = Map<string, LanguageProfile>;
 export type Copies = Map<string, Copy>;
+
+// ---------------------------------------------------------------------------
+// The native side of the pair
+// ---------------------------------------------------------------------------
+
+/**
+ * The language the learner's own-language text is written in.
+ *
+ * A `*_target` field is the language being learned, which the language profile
+ * describes. A `*_native` field is the learner's own language, which belongs to
+ * their *enrollment*, not to the profile — one Korean profile is used by
+ * learners whose native language is English, Japanese or anything else. Prompt
+ * builders therefore need both, and take the native side as this pair.
+ */
+export interface NativeLang {
+  /** BCP-47-ish code, matching a `config/copy/<code>.json` set. */
+  code: string;
+  /** English name, used when telling the model which language to answer in. */
+  name: string;
+}
+
+/** Until enrollments exist, every learner is assumed to read English. */
+export const DEFAULT_NATIVE: NativeLang = { code: 'en', name: 'English' };
+
+// ---------------------------------------------------------------------------
+// Script detection
+// ---------------------------------------------------------------------------
+
+const scriptCache = new Map<string, RegExp>();
+
+function scriptRegExp(pattern: string): RegExp {
+  let re = scriptCache.get(pattern);
+  if (!re) {
+    re = new RegExp(pattern, 'u');
+    scriptCache.set(pattern, re);
+  }
+  return re;
+}
+
+/**
+ * Whether `text` contains at least one character from the target language's
+ * script.
+ *
+ * Used to tell "the model returned a transcript" from "the model returned prose
+ * about the audio". For a non-Latin target this is decisive. For a Latin-script
+ * target the pattern is necessarily permissive — French and English share an
+ * alphabet — so this only rules out text in a *different* script, not text in
+ * the wrong Latin-based language. `isSilenceReply` is the other half of the
+ * guard.
+ */
+export function hasTargetScript(text: string, profile: LanguageProfile): boolean {
+  return scriptRegExp(profile.scriptPattern).test(text);
+}
+
+/**
+ * Whether a plain-text model reply means "no speech was heard" rather than a
+ * transcript. Markers are matched case-insensitively, ignoring surrounding
+ * punctuation and whitespace.
+ */
+export function isSilenceReply(text: string, profile: LanguageProfile): boolean {
+  const trimmed = text.replace(/\s+/g, ' ').trim().replace(/[.!?]+$/, '').trim();
+  if (!trimmed) return true;
+  const upper = trimmed.toUpperCase();
+  return profile.silenceMarkers.some((marker) => marker.toUpperCase() === upper);
+}

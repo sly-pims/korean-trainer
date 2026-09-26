@@ -59,7 +59,14 @@ export async function buildApp(opts: BuildOptions): Promise<{ app: FastifyInstan
 
   const auth = new Auth(config.sessionSecret, config.authPassword, config.cookieSecure);
   const content = new ContentService(db, getTz, callManager, config.langs, REPO_ROOT);
-  const review = new ReviewService(db, callManager, recordingsDir, config.ffmpegPath);
+  const review = new ReviewService(
+    db,
+    callManager,
+    recordingsDir,
+    config.ffmpegPath,
+    config.langs,
+    primaryLang,
+  );
 
   // ffmpeg health check (§8.3): needed to convert recordings before Gemini grading.
   checkFfmpeg(config.ffmpegPath).catch((err) => {
