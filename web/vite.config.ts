@@ -8,20 +8,11 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['icon.svg'],
-      manifest: {
-        name: '한국어 Korean Daily Trainer',
-        short_name: '한국어',
-        description: 'Daily reading, vocab, writing, listening and speaking practice for Korean learners.',
-        theme_color: '#0b57d0',
-        background_color: '#f7f7f8',
-        display: 'standalone',
-        orientation: 'portrait',
-        start_url: '/',
-        icons: [
-          { src: '/icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
-          { src: '/icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'maskable' },
-        ],
-      },
+      // The server owns /manifest.webmanifest so the installed-app name and
+      // language follow the viewer's enrollment. index.html links to it
+      // directly; emitting a build-time file here would collide with that route
+      // in @fastify/static.
+      manifest: false,
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
         navigateFallback: '/index.html',

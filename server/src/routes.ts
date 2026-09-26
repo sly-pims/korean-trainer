@@ -4,6 +4,7 @@ import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { DatabaseSync } from 'node:sqlite';
 import { z } from 'zod';
 import { Ctx } from './ctx.js';
+import { copyFor } from './config.js';
 import { addDays } from './dates.js';
 import { mimeToExt } from './services/audio.js';
 import { compareReadAloud, compareStrings } from './services/diff.js';
@@ -23,6 +24,28 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
   const { db, cfg, auth, content, review } = ctx;
 
   app.get('/api/health', async () => ({ ok: true, tz: effectiveTz(db, cfg) }));
+
+  // Deployment-level meta. Unauthenticated on purpose: the login page and the
+  // PWA manifest both need it before anyone has a session, so this cannot depend
+  // on an enrollment. Enrollment-aware data lives on /api/account (phase 7).
+  app.get('/api/meta', async () => {
+    const defaultUiLang = cfg.defaultUiLang;
+    return {
+      defaultUiLang,
+      supportedTargetLangs: cfg.supportedTargetLangs,
+      supportedUiLangs: cfg.supportedUiLangs,
+      targetLangs: [...cfg.langs.values()].map((p) => ({
+        code: p.code,
+        name: p.name,
+        endonym: p.endonym,
+        htmlLang: p.htmlLang,
+      })),
+      uiLangs: [...cfg.copies.keys()],
+      appName: copyFor(cfg, defaultUiLang).appName,
+      appTagline: copyFor(cfg, defaultUiLang).appTagline,
+      copy: cfg.copies.get(defaultUiLang),
+    };
+  });
 
   // ---------- Auth (§10) ----------
   app.post('/api/login', async (req: FastifyRequest<{ Body: { password?: string } }>, reply) => {

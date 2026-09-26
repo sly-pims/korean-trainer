@@ -1,0 +1,36 @@
+{
+  "appName": "Language Trainer",
+  "appTagline": "Daily reading, writing and speaking practice",
+
+  "login": {
+    "title": "Language Trainer",
+    "tagline": "Sign in to continue",
+    "username": "Username",
+    "password": "Password",
+    "submit": "Sign in",
+    "error": "Sign-in failed"
+  },
+
+  "nav": {
+    "home": "Home",
+    "practice": "Practice",
+    "words": "Words",
+    "progress": "Progress",
+    "history": "History",
+    "settings": "Settings"
+  },
+
+  "common": {
+    "loading": "Loading…",
+    "save": "Save",
+    "saved": "Saved",
+    "cancel": "Cancel",
+    "close": "Close",
+    "retry": "Retry",
+    "back": "Back",
+    "next": "Next",
+    "done": "Done",
+    "none": "None",
+    "error": "Something went wrong"
+  }
+}

@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS settings (
 
 CREATE TABLE IF NOT EXISTS passages (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
+  target_lang TEXT NOT NULL,
   level INTEGER NOT NULL,
   topic TEXT NOT NULL,
   payload_json TEXT NOT NULL,
@@ -117,31 +118,83 @@ CREATE TABLE IF NOT EXISTS level_history (
 
 CREATE INDEX IF NOT EXISTS idx_passages_source_used ON passages(source, used);
 CREATE INDEX IF NOT EXISTS idx_passages_intended_date ON passages(intended_date, used);
+CREATE INDEX IF NOT EXISTS idx_passages_lang ON passages(target_lang, source);
 CREATE INDEX IF NOT EXISTS idx_srs_due ON srs_cards(due_date);
 CREATE INDEX IF NOT EXISTS idx_words_lemma ON words(lemma);
 CREATE INDEX IF NOT EXISTS idx_writing_feedback ON writing_entries(feedback_json);
 CREATE INDEX IF NOT EXISTS idx_speaking_feedback ON speaking_attempts(feedback_json);
 `;
 
-export function openDb(dbPath: string): DatabaseSync {
+/**
+ * Column-level migrations for databases created by an older build.
+ *
+ * Runs BEFORE SCHEMA_SQL: SCHEMA_SQL creates indexes, and an index over a
+ * column that only this migration adds would throw on a pre-existing table.
+ * Every step is self-detecting and guarded on the table existing, so a fresh
+ * database (where SCHEMA_SQL does the creating) is a no-op.
+ */
+function migrate(db: DatabaseSync, defaultVoice: string): void {
+  const columns = (table: string): string[] =>
+    (db.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[])
+      .map((c) => c.name);
+
+  const tables = new Set(
+    (db.prepare("SELECT name FROM sqlite_master WHERE type='table'").all() as { name: string }[]).map(
+      (t) => t.name,
+    ),
+  );
+
+  // One database now holds every supported language's passages. Rows written
+  // before that change were all Korean.
+  if (tables.has('passages')) {
+    if (!columns('passages').includes('target_lang')) {
+      db.exec('ALTER TABLE passages ADD COLUMN target_lang TEXT');
+      db.exec("UPDATE passages SET target_lang='ko' WHERE target_lang IS NULL");
+    }
+  }
+
+  if (tables.has('words')) {
+    const cols = columns('words');
+    if (!cols.includes('source')) db.exec("ALTER TABLE words ADD COLUMN source TEXT NOT NULL DEFAULT 'reading'");
+    if (!cols.includes('example_ko')) db.exec('ALTER TABLE words ADD COLUMN example_ko TEXT');
+    if (!cols.includes('example_en')) db.exec('ALTER TABLE words ADD COLUMN example_en TEXT');
+  }
+
+  if (tables.has('sessions') && !columns('sessions').includes('read_answers_json')) {
+    db.exec('ALTER TABLE sessions ADD COLUMN read_answers_json TEXT');
+  }
+
+  // settings still carries the single-row CHECK(id=1) shape at this phase; only
+  // the hardcoded voice literal is replaced by the configured default.
+  if (tables.has('settings')) {
+    db.prepare(
+      `UPDATE settings SET
+         tts_voice=COALESCE(NULLIF(tts_voice,''), ?),
+         tts_rate=COALESCE(NULLIF(tts_rate,0), 1),
+         keep_recordings_days=COALESCE(NULLIF(keep_recordings_days,0), 14),
+         level=COALESCE(NULLIF(level,0), 1)
+       WHERE id=1`,
+    ).run(defaultVoice);
+  }
+}
+
+export function openDb(dbPath: string, defaultVoice = 'ko-KR-SunHiNeural'): DatabaseSync {
   fs.mkdirSync(path.dirname(dbPath), { recursive: true });
   const db = new DatabaseSync(dbPath);
   db.exec('PRAGMA journal_mode = WAL;');
   db.exec('PRAGMA foreign_keys = ON;');
   db.exec('PRAGMA busy_timeout = 5000;');
+  migrate(db, defaultVoice);
   db.exec(SCHEMA_SQL);
-  const wordsCols = db.prepare('PRAGMA table_info(words)').all() as { name: string }[];
-  const hasWordCol = (name: string) => wordsCols.some((c) => c.name === name);
-  if (!hasWordCol('source')) db.exec("ALTER TABLE words ADD COLUMN source TEXT NOT NULL DEFAULT 'reading'");
-  if (!hasWordCol('example_ko')) db.exec('ALTER TABLE words ADD COLUMN example_ko TEXT');
-  if (!hasWordCol('example_en')) db.exec('ALTER TABLE words ADD COLUMN example_en TEXT');
-  const sessionsCols = db.prepare('PRAGMA table_info(sessions)').all() as { name: string }[];
-  const hasSessionCol = (name: string) => sessionsCols.some((c) => c.name === name);
-  if (!hasSessionCol('read_answers_json')) db.exec('ALTER TABLE sessions ADD COLUMN read_answers_json TEXT');
   db.prepare('INSERT OR IGNORE INTO settings (id) VALUES (1)').run();
   db.prepare(
-    "UPDATE settings SET tts_voice=COALESCE(NULLIF(tts_voice,''), 'ko-KR-SunHiNeural'), tts_rate=COALESCE(NULLIF(tts_rate,0), 1), keep_recordings_days=COALESCE(NULLIF(keep_recordings_days,0), 14), level=COALESCE(NULLIF(level,0), 1) WHERE id=1",
-  ).run();
+    `UPDATE settings SET
+       tts_voice=COALESCE(NULLIF(tts_voice,''), ?),
+       tts_rate=COALESCE(NULLIF(tts_rate,0), 1),
+       keep_recordings_days=COALESCE(NULLIF(keep_recordings_days,0), 14),
+       level=COALESCE(NULLIF(level,0), 1)
+     WHERE id=1`,
+  ).run(defaultVoice);
   return db;
 }
 

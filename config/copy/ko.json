@@ -1,0 +1,36 @@
+{
+  "appName": "언어 학습기",
+  "appTagline": "매일 읽기, 쓰기, 말하기 연습",
+
+  "login": {
+    "title": "언어 학습기",
+    "tagline": "계속하려면 로그인하세요",
+    "username": "아이디",
+    "password": "비밀번호",
+    "submit": "로그인",
+    "error": "로그인에 실패했습니다"
+  },
+
+  "nav": {
+    "home": "홈",
+    "practice": "연습",
+    "words": "단어",
+    "progress": "진도",
+    "history": "기록",
+    "settings": "설정"
+  },
+
+  "common": {
+    "loading": "불러오는 중…",
+    "save": "저장",
+    "saved": "저장됨",
+    "cancel": "취소",
+    "close": "닫기",
+    "retry": "다시 시도",
+    "back": "뒤로",
+    "next": "다음",
+    "done": "완료",
+    "none": "없음",
+    "error": "문제가 발생했습니다"
+  }
+}

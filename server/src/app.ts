@@ -4,7 +4,7 @@ import Fastify, { FastifyInstance } from 'fastify';
 import fs from 'node:fs';
 import path from 'node:path';
 import { Auth } from './auth.js';
-import { Config } from './config.js';
+import { Config, copyFor, REPO_ROOT } from './config.js';
 import { Ctx } from './ctx.js';
 import { openDb } from './db.js';
 import { CallManager } from './llm/callManager.js';
@@ -27,7 +27,9 @@ export async function buildApp(opts: BuildOptions): Promise<{ app: FastifyInstan
   const recordingsDir = path.join(config.dataDir, 'recordings');
   fs.mkdirSync(recordingsDir, { recursive: true });
 
-  const db = openDb(config.dbPath);
+  const primaryLang = config.supportedTargetLangs[0];
+  const primaryProfile = config.langs.get(primaryLang)!;
+  const db = openDb(config.dbPath, primaryProfile.defaultVoice);
   const seedTz = db.prepare('SELECT timezone FROM settings WHERE id=1').get() as
     | { timezone: string | null }
     | undefined;
@@ -56,7 +58,7 @@ export async function buildApp(opts: BuildOptions): Promise<{ app: FastifyInstan
   }
 
   const auth = new Auth(config.sessionSecret, config.authPassword, config.cookieSecure);
-  const content = new ContentService(db, getTz, callManager, config.seedPath);
+  const content = new ContentService(db, getTz, callManager, config.langs, REPO_ROOT);
   const review = new ReviewService(db, callManager, recordingsDir, config.ffmpegPath);
 
   // ffmpeg health check (§8.3): needed to convert recordings before Gemini grading.
@@ -68,11 +70,11 @@ export async function buildApp(opts: BuildOptions): Promise<{ app: FastifyInstan
 
   const ctx: Ctx = { db, cfg: config, auth, content, review, callManager };
 
-  // Seed content bank (§9): validate and import any new entries.
+  // Seed content bank (§9): validate and import any new entries, per language.
   try {
     const result = content.loadSeed();
     console.log(
-      `[seed] ${result.total} packs: ${result.imported} imported, ${result.existing} existing, ${result.failed} failed`,
+      `[seed] ${result.total} packs across ${config.supportedTargetLangs.join(', ')}: ${result.imported} imported, ${result.existing} existing, ${result.failed} failed`,
     );
     for (const err of result.errors) console.warn(`[seed] ${err}`);
   } catch (err) {
@@ -97,16 +99,50 @@ export async function buildApp(opts: BuildOptions): Promise<{ app: FastifyInstan
     (_req, body, done) => done(null, body),
   );
 
-  // Auth middleware (§10): signed cookie on everything except login + health.
+  // Auth middleware (§10): signed cookie on everything except login, health,
+  // and the two unauthenticated meta endpoints. The login page needs UI copy
+  // and the manifest needs the app name, but neither has a session yet, so
+  // they get deployment-level defaults instead of enrollment-level data.
   app.addHook('preHandler', async (req, reply) => {
     const url = req.raw.url ?? '';
-    if (url.startsWith('/api/login') || url.startsWith('/api/health')) return;
+    if (
+      url.startsWith('/api/login') ||
+      url.startsWith('/api/health') ||
+      url.startsWith('/api/meta') ||
+      url.startsWith('/manifest.webmanifest')
+    ) {
+      return;
+    }
     if (url.startsWith('/api/')) {
       const token = req.cookies?.[auth.cookieName];
       if (!auth.verifyToken(token)) {
         return reply.code(401).send({ error: 'unauthorized' });
       }
     }
+  });
+
+  // Registered before @fastify/static so it wins over the built manifest file.
+  // Phase 7 makes this enrollment-aware: the token will carry uiLang/targetLang
+  // so an installed PWA is named in the learner's own languages.
+  app.get('/manifest.webmanifest', async (_req, reply) => {
+    const copy = copyFor(config, config.defaultUiLang);
+    return reply
+      .header('content-type', 'application/manifest+json')
+      .send({
+        name: copy.appName,
+        short_name: copy.appName,
+        description: copy.appTagline,
+        start_url: '/',
+        display: 'standalone',
+        orientation: 'portrait',
+        background_color: '#f7f7f8',
+        theme_color: '#0b57d0',
+        lang: primaryProfile.htmlLang,
+        icons: [
+          { src: '/icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
+          { src: '/icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'maskable' },
+        ],
+      });
   });
 
   await registerRoutes(app, ctx);

@@ -1,6 +1,8 @@
 import fs from 'node:fs';
+import path from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { addDays, nowIso, todayString } from '../dates.js';
+import type { Langs } from '../lang.js';
 import { DailyCapReachedError } from '../llm/errors.js';
 import { CallManager } from '../llm/callManager.js';
 import { validateContentPack } from '../prompts/contentPack.js';
@@ -65,42 +67,77 @@ export class ContentService {
     private db: DatabaseSync,
     private getTz: () => string,
     private callManager: CallManager | null = null,
-    private seedPath = 'seed/passages.json',
+    private langs: Langs = new Map(),
+    private repoRoot: string = '',
   ) {}
+
+  /**
+   * The language used when a caller has not yet told us which one it wants.
+   * Every passage read is language-scoped; this only exists until enrollments
+   * (phase 7) make the caller's language explicit.
+   */
+  private get primaryLang(): string {
+    return [...this.langs.keys()][0] ?? 'ko';
+  }
 
   // ---- Seed bank (§9) ----
 
+  /**
+   * Import every supported language's seed bank. Passages are a shared content
+   * pool, so the dedup key is (target_lang, payload) — a French pack must not
+   * be considered a duplicate of a Korean one with an identical body.
+   */
   loadSeed(): SeedLoadResult {
-    const raw = fs.readFileSync(this.seedPath, 'utf8');
-    const arr: unknown[] = JSON.parse(raw);
-    const result: SeedLoadResult = { total: arr.length, imported: 0, existing: 0, failed: 0, errors: [] };
-    const exists = this.db.prepare('SELECT 1 FROM passages WHERE source=? AND payload_json=?');
-    const insert = this.db.prepare(
-      'INSERT INTO passages (level, topic, payload_json, source, used, created_at) VALUES (?,?,?,?,0,?)',
+    const result: SeedLoadResult = {
+      total: 0,
+      imported: 0,
+      existing: 0,
+      failed: 0,
+      errors: [],
+    };
+    const exists = this.db.prepare(
+      'SELECT 1 FROM passages WHERE source=? AND target_lang=? AND payload_json=?',
     );
-    const checkExisting = this.db.prepare("SELECT COUNT(*) AS c FROM passages WHERE source = 'seed'");
-    const before = (checkExisting.get() as { c: number }).c;
-    void before;
+    const insert = this.db.prepare(
+      'INSERT INTO passages (target_lang, level, topic, payload_json, source, used, created_at) VALUES (?,?,?,?,?,0,?)',
+    );
     const tx = this.db.prepare('BEGIN');
     const commit = this.db.prepare('COMMIT');
     tx.run();
-    for (const entry of arr) {
-      const parsed = validateContentPack(entry);
-      if (!parsed.success) {
-        result.failed++;
-        result.errors.push(`invalid pack: ${parsed.error.message}`);
-        continue;
+    try {
+      for (const [targetLang, profile] of this.langs) {
+        const file = path.resolve(this.repoRoot, profile.seedFile);
+        let arr: unknown[];
+        try {
+          arr = JSON.parse(fs.readFileSync(file, 'utf8')) as unknown[];
+        } catch (err) {
+          result.failed++;
+          result.errors.push(
+            `cannot read seed bank for ${targetLang} (${profile.seedFile}): ${err instanceof Error ? err.message : String(err)}`,
+          );
+          continue;
+        }
+        for (const entry of arr) {
+          result.total++;
+          const parsed = validateContentPack(entry);
+          if (!parsed.success) {
+            result.failed++;
+            result.errors.push(`invalid ${targetLang} pack: ${parsed.error.message}`);
+            continue;
+          }
+          const pack = filterGlossaryByPassage(parsed.data);
+          const payload = JSON.stringify(pack);
+          if (exists.get('seed', targetLang, payload)) {
+            result.existing++;
+            continue;
+          }
+          insert.run(targetLang, pack.level, pack.topic, payload, 'seed', nowIso());
+          result.imported++;
+        }
       }
-      const pack = filterGlossaryByPassage(parsed.data);
-      const payload = JSON.stringify(pack);
-      if (exists.get('seed', payload)) {
-        result.existing++;
-        continue;
-      }
-      insert.run(pack.level, pack.topic, payload, 'seed', nowIso());
-      result.imported++;
+    } finally {
+      commit.run();
     }
-    commit.run();
     return result;
   }
 
@@ -120,23 +157,29 @@ export class ContentService {
   }
 
   /** Start (idempotent) today's session: pick a passage, mark it used. */
-  startTodaySession(): SessionWithPack {
+  startTodaySession(targetLang = this.primaryLang): SessionWithPack {
     const existing = this.getTodaySession();
     if (existing) return existing;
 
     const today = this.today();
     let p = this.db
-      .prepare('SELECT * FROM passages WHERE used=0 AND intended_date=? ORDER BY id LIMIT 1')
-      .get(today) as unknown as PassageRow | undefined;
+      .prepare(
+        'SELECT * FROM passages WHERE target_lang=? AND used=0 AND intended_date=? ORDER BY id LIMIT 1',
+      )
+      .get(targetLang, today) as unknown as PassageRow | undefined;
     if (!p) {
       p = this.db
-        .prepare('SELECT * FROM passages WHERE used=0 ORDER BY created_at, id LIMIT 1')
-        .get() as unknown as PassageRow | undefined;
+        .prepare('SELECT * FROM passages WHERE target_lang=? AND used=0 ORDER BY created_at, id LIMIT 1')
+        .get(targetLang) as unknown as PassageRow | undefined;
     }
     if (!p) {
-      // Recycle the seed bank so the app never shows an empty day.
-      this.db.prepare('UPDATE passages SET used=0').run();
-      p = this.db.prepare('SELECT * FROM passages ORDER BY id LIMIT 1').get() as unknown as PassageRow;
+      // Recycle this language's seed bank so the app never shows an empty day.
+      // Scoped to target_lang: recycling must not free up another language's
+      // passages, which a different enrollment may be relying on.
+      this.db.prepare('UPDATE passages SET used=0 WHERE target_lang=?').run(targetLang);
+      p = this.db
+        .prepare('SELECT * FROM passages WHERE target_lang=? ORDER BY id LIMIT 1')
+        .get(targetLang) as unknown as PassageRow;
     }
 
     this.db.prepare('UPDATE passages SET used=1 WHERE id=?').run(p.id);
@@ -562,10 +605,12 @@ export class ContentService {
 
   // ---- LLM pack generation (M2) ----
 
-  recentTopics(limit = 6): string[] {
+  recentTopics(limit = 6, targetLang = this.primaryLang): string[] {
     const rows = this.db
-      .prepare('SELECT DISTINCT topic FROM passages ORDER BY MAX(created_at) DESC')
-      .all() as Array<{ topic: string }>;
+      .prepare(
+        'SELECT topic, MAX(created_at) AS newest FROM passages WHERE target_lang = ? GROUP BY topic ORDER BY newest DESC',
+      )
+      .all(targetLang) as Array<{ topic: string }>;
     return rows.map((r) => r.topic).slice(0, limit);
   }
 
@@ -575,19 +620,29 @@ export class ContentService {
   }
 
   /** §8.1 content-pack generation via the LLM; falls back to a seed pack. */
-  async generatePack(level: number, requestedTopic?: string, recentTopics?: string[]): Promise<{
+  async generatePack(
+    level: number,
+    requestedTopic?: string,
+    recentTopics?: string[],
+    targetLang = this.primaryLang,
+  ): Promise<{
     pack: import('../schema/content.js').ContentPack;
     source: 'llm';
   }> {
     if (!this.callManager) throw new Error('No LLM provider configured');
-    const { contentPackSystem, contentPackWithTopicPrompt, TOPIC_LIST } = await import(
+    const { contentPackSystem, contentPackWithTopicPrompt } = await import(
       '../prompts/contentPack.js'
     );
-    const recent = recentTopics ?? this.recentTopics();
-    const pool = requestedTopic && requestedTopic !== 'any' ? [requestedTopic] : TOPIC_LIST.filter((t) => !recent.includes(t));
+    const profile = this.langs.get(targetLang);
+    const topicList = profile?.topics ?? [];
+    const recent = recentTopics ?? this.recentTopics(6, targetLang);
+    const pool =
+      requestedTopic && requestedTopic !== 'any'
+        ? [requestedTopic]
+        : topicList.filter((t) => !recent.includes(t));
     const topic = pool.length ? pool[Math.floor(Math.random() * pool.length)] : 'daily life';
     const pack = await this.callManager.generateJSON({
-      system: contentPackSystem(level),
+      system: contentPackSystem(level, profile),
       prompt: contentPackWithTopicPrompt(level, topic, recent),
       schema: ContentPackSchema,
     });
@@ -595,23 +650,25 @@ export class ContentService {
   }
 
   /** Generate tomorrow's pack in the background; never duplicate; never fail loudly. */
-  async prefetchTomorrow(): Promise<void> {
+  async prefetchTomorrow(targetLang = this.primaryLang): Promise<void> {
     if (!this.callManager) return;
     try {
       const tomorrow = addDays(this.today(), 1);
       const existing = this.db
-        .prepare("SELECT id FROM passages WHERE source='llm' AND used=0 AND intended_date=?")
-        .get(tomorrow);
+        .prepare(
+          "SELECT id FROM passages WHERE target_lang=? AND source='llm' AND used=0 AND intended_date=?",
+        )
+        .get(targetLang, tomorrow);
       if (existing) return;
       const settings = this.db.prepare('SELECT level FROM settings WHERE id=1').get() as {
         level: number;
       };
-      const { pack } = await this.generatePack(settings.level);
+      const { pack } = await this.generatePack(settings.level, undefined, undefined, targetLang);
       this.db
         .prepare(
-          'INSERT INTO passages (level, topic, payload_json, source, used, intended_date, created_at) VALUES (?,?,?,?,0,?,?)',
+          'INSERT INTO passages (target_lang, level, topic, payload_json, source, used, intended_date, created_at) VALUES (?,?,?,?,?,0,?,?)',
         )
-        .run(pack.level, pack.topic, JSON.stringify(pack), 'llm', tomorrow, nowIso());
+        .run(targetLang, pack.level, pack.topic, JSON.stringify(pack), 'llm', tomorrow, nowIso());
     } catch (err) {
       if (err instanceof DailyCapReachedError) {
         console.warn('[content] prefetch skipped (daily cap)');

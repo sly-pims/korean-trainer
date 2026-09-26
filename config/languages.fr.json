@@ -1,0 +1,37 @@
+{
+  "code": "fr",
+  "name": "French",
+  "endonym": "Français",
+  "locale": "fr-FR",
+  "htmlLang": "fr",
+  "defaultVoice": "fr-FR-DeniseNeural",
+  "voices": [
+    "fr-FR-DeniseNeural",
+    "fr-FR-HenriNeural",
+    "fr-FR-FabienneNeural",
+    "fr-FR-MauriceNeural"
+  ],
+  "seedFile": "seed/passages.fr.json",
+  "levelScaleName": "CEFR",
+  "levels": {
+    "1": { "name": "CEFR A1", "note": "Beginner: familiar everyday phrases" },
+    "2": { "name": "CEFR A2", "note": "Elementary: routine exchanges" },
+    "3": { "name": "CEFR B1", "note": "Intermediate: everyday topics with detail" },
+    "4": { "name": "CEFR B2", "note": "Upper intermediate: news and general topics" },
+    "5": { "name": "CEFR C1", "note": "Advanced: abstract and professional topics" },
+    "6": { "name": "CEFR C2", "note": "Mastery: idiom, nuance and register" }
+  },
+  "learnerProfile": "speaks, writes and reads French at about CEFR A2; reads at roughly a young child's level. NOT an absolute beginner. Content must be worth their time and build reading confidence.",
+  "styleGuidance": "Natural, everyday French. Default to the familiar vous register. Only use tutoiement or formal/administrative register at levels 5-6.",
+  "levelGuide": {
+    "1": { "passage": "3-5 short sentences", "grammar": "Present tense, basic articles and prepositions, everyday nouns/verbs" },
+    "2": { "passage": "5-7 sentences", "grammar": "Passé composé, common connectors (et, mais, parce que), frequent adverbs" },
+    "3": { "passage": "7-10 sentences", "grammar": "Imparfait vs passé composé, relative pronouns (qui, que, dont), si + présent" },
+    "4": { "passage": "10-14 sentences", "grammar": "Subjunctive after some verbs, indirect speech, reported questions" },
+    "5": { "passage": "14-20 sentences", "grammar": "Abstract topics, formal and journalistic register, connectives of cause and consequence" },
+    "6": { "passage": "20+ sentences", "grammar": "Idioms, literary register, opinion pieces, nuanced connectors" }
+  },
+  "topics": ["family", "food", "travel", "work", "weather", "hobbies", "health", "shopping", "news"],
+  "scriptPattern": "[A-Za-zÀ-ÖØ-öø-ÿŒœ]",
+  "silenceMarkers": ["EMPTY"]
+}

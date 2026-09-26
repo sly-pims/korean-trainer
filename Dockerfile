@@ -5,6 +5,7 @@ COPY package.json package-lock.json ./
 COPY server server
 COPY web web
 COPY seed seed
+COPY config config
 RUN npm ci --no-audit --no-fund
 RUN npm run build
 
@@ -29,6 +30,7 @@ RUN npm ci --omit=dev --no-audit --no-fund
 COPY --from=build /app/server/dist ./server/dist
 COPY --from=build /app/web/dist ./web/dist
 COPY --from=build /app/seed ./seed
+COPY --from=build /app/config ./config
 
 EXPOSE 8787
 CMD ["node", "server/dist/index.js"]

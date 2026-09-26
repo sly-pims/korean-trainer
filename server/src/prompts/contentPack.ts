@@ -1,10 +1,12 @@
 import { ContentPackSchema } from '../schema/content.js';
+import type { LanguageProfile } from '../lang.js';
 
 export interface LevelsGuide {
   [level: number]: { passage: string; grammar: string };
 }
 
-// §6.2 level guide, used inside the generation prompt.
+// Fallback guide, used when no language profile is supplied. Mirrors the
+// language-specific profiles in config/languages.*.json.
 export const LEVEL_GUIDE: LevelsGuide = {
   1: { passage: '3-5 short sentences', grammar: 'Present tense, basic particles, everyday nouns/verbs' },
   2: { passage: '5-7 sentences', grammar: 'Past tense, -고, -아/어서, common connectors' },
@@ -39,25 +41,32 @@ const SCHEMA_DESCRIPTION = `{
   "speaking_prompt": {"ko": "string", "en": "string"}
 }`;
 
-export function contentPackSystem(level: number): string {
-  const guide = LEVEL_GUIDE[level] ?? LEVEL_GUIDE[1];
-  return `You are a Korean-language tutor creating one daily practice pack for a learner.
+export function contentPackSystem(level: number, profile?: LanguageProfile): string {
+  const guide = (profile?.levelGuide ?? LEVEL_GUIDE)[level] ?? (profile?.levelGuide ?? LEVEL_GUIDE)['1'];
+  const languageName = profile?.name ?? 'Korean';
+  const learnerProfile =
+    profile?.learnerProfile ??
+    'speaks, writes and reads Korean at about TOPIK 1-2; reads at roughly a young child\'s level. NOT an absolute beginner. Content must be worth their time and build reading confidence.';
+  const style =
+    profile?.styleGuidance ??
+    'Natural, everyday Korean. Default to polite 해요체 (해요 ending). Only use other registers at levels 5-6.';
+  return `You are a ${languageName}-language tutor creating one daily practice pack for a learner.
 
-Learner profile: speaks, writes and reads Korean at about TOPIK 1-2; reads at roughly a young child's level. NOT an absolute beginner. Content must be worth their time and build reading confidence.
+Learner profile: ${learnerProfile}
 
 Difficulty level for this pack: ${level} of 6.
 - Passage length: ${guide.passage}
 - Grammar and vocabulary: ${guide.grammar}
 
 Rules:
-- Natural, everyday Korean. Default to polite 해요체 (해요 ending). Only use other registers at levels 5-6.
+- ${style}
 - The passage must be interesting, concrete and natural — everyday life topics adapted to the target level.
 - EVERY word in the passage that could be unfamiliar at this level must appear in "glossary". The "surface" must match the text exactly (same spelling) so tap-to-translate works.
 - Exactly 3 questions, each with exactly 4 choices and exactly one correct answer. Questions check real understanding of the passage.
 - "sentences": 3-5 short sentences FROM the passage, each under about 20 syllables, suitable for dictation and reading aloud. Their "ko" must appear verbatim inside "passage_ko".
 - "speaking_prompt": a simple open question or scenario related to the passage that a learner can answer in 20-40 seconds (e.g. "What did you do last weekend?").
 - "writing_prompt.target_grammar": name the grammar point to practice (e.g. "past tense -았/었어요").
-- Value accuracy: correct Korean, correct particles, natural word order. If unsure, choose simpler phrasing.`;
+- Value accuracy: correct ${languageName}, correct particles, natural word order. If unsure, choose simpler phrasing.`;
 }
 
 export function contentPackPrompt(level: number): string {

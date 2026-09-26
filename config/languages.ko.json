@@ -1,0 +1,39 @@
+{
+  "code": "ko",
+  "name": "Korean",
+  "endonym": "한국어",
+  "locale": "ko-KR",
+  "htmlLang": "ko",
+  "defaultVoice": "ko-KR-SunHiNeural",
+  "voices": [
+    "ko-KR-SunHiNeural",
+    "ko-KR-InJoonNeural",
+    "ko-KR-HyunsuNeural",
+    "ko-KR-JiMinNeural",
+    "ko-KR-SeoHyeonNeural",
+    "ko-KR-YuJinNeural"
+  ],
+  "seedFile": "seed/passages.ko.json",
+  "levelScaleName": "TOPIK",
+  "levels": {
+    "1": { "name": "TOPIK 1", "note": "Everyday basics" },
+    "2": { "name": "TOPIK 2", "note": "Everyday conversations" },
+    "3": { "name": "TOPIK 3", "note": "Daily life with some nuance" },
+    "4": { "name": "TOPIK 4", "note": "News and general topics" },
+    "5": { "name": "TOPIK 5", "note": "Abstract and professional topics" },
+    "6": { "name": "TOPIK 6", "note": "Idiomatic and advanced" }
+  },
+  "learnerProfile": "speaks, writes and reads Korean at about TOPIK 1-2; reads at roughly a young child's level. NOT an absolute beginner. Content must be worth their time and build reading confidence.",
+  "styleGuidance": "Natural, everyday Korean. Default to polite 해요체 (해요 ending). Only use other registers at levels 5-6.",
+  "levelGuide": {
+    "1": { "passage": "3-5 short sentences", "grammar": "Present tense, basic particles, everyday nouns/verbs" },
+    "2": { "passage": "5-7 sentences", "grammar": "Past tense, -고, -아/어서, common connectors" },
+    "3": { "passage": "7-10 sentences", "grammar": "-(으)ㄴ/는 modifiers, -(으)면, -지만, daily-life topics" },
+    "4": { "passage": "10-14 sentences", "grammar": "Reported speech, -는데, passive/causative basics" },
+    "5": { "passage": "14-20 sentences", "grammar": "Abstract topics, news-style register" },
+    "6": { "passage": "20+ sentences", "grammar": "Idioms, formal writing, opinion pieces" }
+  },
+  "topics": ["family", "food", "travel", "work", "weather", "hobbies", "health", "shopping", "news"],
+  "scriptPattern": "[\\uac00-\\ud7af]",
+  "silenceMarkers": ["EMPTY"]
+}
