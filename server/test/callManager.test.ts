@@ -8,9 +8,12 @@ import { FakeProvider } from './helpers/fakeProvider.js';
 const schema = z.object({ ok: z.boolean() });
 const noSleep = () => new Promise<void>((r) => r());
 const zeroBackoff = () => 0;
+// A stand-in for the active language's default voice. These tests are about
+// call accounting, not speech, so it deliberately names no language.
+const TEST_VOICE = 'test-voice';
 
 function makeManager(provider: FakeProvider, cap = 100, dbPath = ':memory:') {
-  const db = openDb(dbPath);
+  const db = openDb(dbPath, TEST_VOICE);
   const mgr = new CallManager(provider, db, cap, () => 'Pacific/Auckland', {
     sleep: noSleep,
     backoff: zeroBackoff,

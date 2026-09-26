@@ -245,3 +245,40 @@ export function isSilenceReply(text: string, profile: LanguageProfile): boolean 
   const upper = trimmed.toUpperCase();
   return profile.silenceMarkers.some((marker) => marker.toUpperCase() === upper);
 }
+
+// ---------------------------------------------------------------------------
+// Speech synthesis
+// ---------------------------------------------------------------------------
+
+/** A voice that is not in a language profile's allowlist. */
+export class UnknownVoiceError extends Error {
+  constructor(
+    readonly profile: LanguageProfile,
+    readonly voice: string,
+  ) {
+    super(
+      `"${voice}" is not a ${profile.name} voice (available: ${profile.voices.join(', ')})`,
+    );
+    this.name = 'UnknownVoiceError';
+  }
+}
+
+/**
+ * Resolve a requested TTS voice against a language profile's allowlist, falling
+ * back to that language's default when nothing was asked for.
+ *
+ * A voice belonging to another language is an **error**, not something to
+ * quietly substitute. TTS only ever speaks target-language text, so the two ends
+ * have to agree: substituting the default would let a French learner be handed
+ * Korean audio with a 200 and no indication anything was wrong, which is the
+ * same cross-language leak the prompts are checked for.
+ *
+ * `languageProfileSchema` already enforces that `defaultVoice` is in `voices`,
+ * so the fallback branch is always a voice the profile endorses.
+ */
+export function resolveVoice(profile: LanguageProfile, requested?: string | null): string {
+  const want = (requested ?? '').trim();
+  if (!want) return profile.defaultVoice;
+  if (!profile.voices.includes(want)) throw new UnknownVoiceError(profile, want);
+  return want;
+}

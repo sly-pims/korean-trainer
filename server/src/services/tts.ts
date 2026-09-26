@@ -1,43 +1,45 @@
-// Neural Korean TTS via Edge (free, no API key). Streams MP3 from a short-lived
+// Neural TTS via Edge (free, no API key). Streams MP3 from a short-lived
 // WebSocket session. A fresh instance per request keeps it concurrency-safe.
 
 import { MsEdgeTTS, OUTPUT_FORMAT } from 'msedge-tts';
 import type { Readable } from 'node:stream';
+import { resolveVoice } from '../lang.js';
+import type { LanguageProfile } from '../lang.js';
 
-export const DEFAULT_VOICE = 'ko-KR-SunHiNeural';
 const MAX_TEXT = 400;
-
-// Only these are passed to Edge; anything else falls back to the default.
-const KNOWN_VOICES = new Set([
-  'ko-KR-SunHiNeural',
-  'ko-KR-InJoonNeural',
-  'ko-KR-HyunsuNeural',
-  'ko-KR-JiMinNeural',
-  'ko-KR-SeoHyeonNeural',
-  'ko-KR-YuJinNeural',
-]);
 
 export interface TtsParams {
   text: string;
-  voice?: string;
+  /** The language being spoken. Supplies the voice allowlist and the locale. */
+  profile: LanguageProfile;
+  /** A voice from `profile.voices`. Omit for the profile's default. */
+  voice?: string | null;
   /** Signed offset from normal, e.g. -25 (slower) .. +50 (faster). */
   rate?: number;
 }
 
-export function validVoice(voice: string | undefined): boolean {
-  return KNOWN_VOICES.has(voice ?? '');
-}
-
-export async function synthesize({ text, voice = DEFAULT_VOICE, rate = 0 }: TtsParams): Promise<Readable> {
+export async function synthesize({
+  text,
+  profile,
+  voice,
+  rate = 0,
+}: TtsParams): Promise<Readable> {
   if (!text.trim() || text.length > MAX_TEXT) throw new Error('bad tts text');
-  const voiceName = validVoice(voice) ? (voice as string) : DEFAULT_VOICE;
-  const locale = voiceName.slice(0, 5);
+  // Throws UnknownVoiceError for a voice from another language; the route turns
+  // that into a 400 rather than quietly speaking with the wrong voice.
+  const voiceName = resolveVoice(profile, voice);
   const offset = Math.max(-50, Math.min(100, Math.round(rate)));
   const rateStr = offset === 0 ? '0%' : `${offset > 0 ? '+' : ''}${offset}%`;
 
   const attempt = async (): Promise<Readable> => {
     const tts = new MsEdgeTTS();
-    await tts.setMetadata(voiceName, OUTPUT_FORMAT.AUDIO_24KHZ_96KBITRATE_MONO_MP3, { voiceLocale: locale });
+    // The locale comes from the profile. It used to be sliced off the front of
+    // the voice name, which happens to work only because Edge names every voice
+    // `<locale>-<Name>Neural` — a convention of that list, not a guarantee, and
+    // one the profile is already authoritative about.
+    await tts.setMetadata(voiceName, OUTPUT_FORMAT.AUDIO_24KHZ_96KBITRATE_MONO_MP3, {
+      voiceLocale: profile.locale,
+    });
     const { audioStream } = tts.toStream(text, { rate: rateStr });
     audioStream.once('error', () => tts.close());
     return audioStream;

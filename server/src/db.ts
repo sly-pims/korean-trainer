@@ -274,7 +274,13 @@ function migrate(db: DatabaseSync, defaultVoice: string): void {
   }
 }
 
-export function openDb(dbPath: string, defaultVoice = 'ko-KR-SunHiNeural'): DatabaseSync {
+/**
+ * @param defaultVoice The active target language's default TTS voice, from its
+ *   `config/languages.<code>.json`. Required rather than defaulted: a default
+ *   here would be a hardcoded voice in a module that has no way to know the
+ *   language, which is how a French deployment ends up speaking Korean.
+ */
+export function openDb(dbPath: string, defaultVoice: string): DatabaseSync {
   fs.mkdirSync(path.dirname(dbPath), { recursive: true });
   const db = new DatabaseSync(dbPath);
   db.exec('PRAGMA journal_mode = WAL;');

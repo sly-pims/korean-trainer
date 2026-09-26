@@ -9,6 +9,8 @@ import { addDays } from './dates.js';
 import { mimeToExt } from './services/audio.js';
 import { compareReadAloud, compareStrings } from './services/diff.js';
 import * as tts from './services/tts.js';
+import { UnknownVoiceError, resolveVoice } from './lang.js';
+import type { LanguageProfile } from './lang.js';
 import { DailyCapReachedError } from './llm/errors.js';
 import { wordSuggestSystem, wordSuggestPrompt } from './prompts/wordSuggest.js';
 import { WordSuggestionsSchema } from './schema/content.js';
@@ -22,6 +24,17 @@ interface SpeakingPackLike {
 
 export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<void> {
   const { db, cfg, auth, content, review } = ctx;
+
+  /**
+   * The language the learner is currently being taught.
+   *
+   * Pre-enrollment this is the deployment's primary target language, because
+   * there is nothing else to resolve it from. Phase 7 replaces it with the
+   * enrollment's `target_lang`; every caller below is written to keep working
+   * unchanged when that happens, which is why it is a function rather than a
+   * value captured at boot.
+   */
+  const activeProfile = () => content.profileFor();
 
   app.get('/api/health', async () => ({ ok: true, tz: effectiveTz(db, cfg) }));
 
@@ -74,12 +87,23 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
     timezone: z.string().min(2).max(64).optional(),
   });
 
-  app.get('/api/settings', async () => readSettings(db, cfg));
+  app.get('/api/settings', async () => readSettings(db, cfg, activeProfile()));
 
   app.put('/api/settings', async (req: FastifyRequest<{ Body: unknown }>, reply) => {
     const parsed = settingsSchema.safeParse(req.body ?? {});
     if (!parsed.success) return reply.code(400).send({ error: parsed.error.message });
     const s = parsed.data;
+    // Reject a voice from another language rather than storing it: /api/tts
+    // refuses it, so persisting it would only leave the settings screen showing
+    // a selection the server will not honour.
+    if (s.tts_voice) {
+      try {
+        resolveVoice(activeProfile(), s.tts_voice);
+      } catch (err) {
+        if (err instanceof UnknownVoiceError) return reply.code(400).send({ error: err.message });
+        throw err;
+      }
+    }
     const sets: string[] = [];
     const params: (string | number | null)[] = [];
     if (s.level !== undefined) { sets.push('level=?'); params.push(s.level); }
@@ -92,7 +116,7 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
       params.push(1);
       db.prepare(`UPDATE settings SET ${sets.join(',')} WHERE id=?`).run(...params);
     }
-    return readSettings(db, cfg);
+    return readSettings(db, cfg, activeProfile());
   });
 
   // ---------- Home ----------
@@ -105,7 +129,7 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
     return {
       tz: effectiveTz(db, cfg),
       todaySession: content.getTodaySession(),
-      settings: readSettings(db, cfg),
+      settings: readSettings(db, cfg, activeProfile()),
       tomorrowPackReady: tomorrowReady,
     };
   });
@@ -386,7 +410,7 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
       )
       .all() as Array<Record<string, unknown>>;
     return {
-      settings: readSettings(db, cfg),
+      settings: readSettings(db, cfg, activeProfile()),
       sessions,
       streakCalendar: (db.prepare("SELECT date FROM sessions WHERE status='done' ORDER BY date").all() as Array<{ date: string }>).map((r) => r.date),
       history: content.history(),
@@ -440,7 +464,7 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
 
   app.post('/api/practice/free-response', async (req: FastifyRequest, reply) => {
     const targetLang = content.primaryLang;
-    const settings = readSettings(db, cfg);
+    const settings = readSettings(db, cfg, activeProfile());
     const p = randomPack(targetLang);
     const pack: SpeakingPackLike = p
       ? (JSON.parse(p.payload_json) as SpeakingPackLike)
@@ -452,17 +476,27 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
   });
 
   // ---------- Neural TTS (listen buttons) ----------
+  // The voice must belong to the active target language: TTS only ever speaks
+  // target-language text, so the voice and the text have to be the same
+  // language. `activeProfile()` becomes enrollment-derived in phase 7.
   app.get('/api/tts', async (req: FastifyRequest<{ Querystring: { text?: string; voice?: string; rate?: string } }>, reply) => {
     const text = (req.query.text ?? '').trim();
     if (!text) return reply.code(400).send({ error: 'text is required' });
     if (text.length > 400) return reply.code(400).send({ error: 'text too long' });
     const rate = Number(req.query.rate ?? 0) || 0;
     try {
-      const stream = await tts.synthesize({ text, voice: req.query.voice, rate });
+      const stream = await tts.synthesize({
+        text,
+        profile: activeProfile(),
+        voice: req.query.voice,
+        rate,
+      });
       reply.header('content-type', 'audio/mpeg');
       reply.header('cache-control', 'public, max-age=3600');
       return reply.send(stream);
     } catch (err) {
+      // A voice from another language is the caller's mistake, not an outage.
+      if (err instanceof UnknownVoiceError) return reply.code(400).send({ error: err.message });
       console.error('[tts] synthesis failed:', err instanceof Error ? err.message : err);
       return reply.code(502).send({ error: 'TTS unavailable' });
     }
@@ -501,22 +535,31 @@ function effectiveTz(db: DatabaseSync, cfg: Ctx['cfg']): string {
   return s?.timezone || cfg.tz;
 }
 
-interface SettingsRow {
-  level: number;
-  tts_rate: number;
-  tts_voice: string;
-  show_romanization: number;
-  keep_recordings_days: number;
-  streak: number;
-  last_session_date: string | null;
+/**
+ * The stored voice, or the active language's default.
+ *
+ * The stored value can be stale in two ways: an older build wrote a hardcoded
+ * Korean voice here, and a deployment's language list can change under a saved
+ * setting. Both are repaired the same way — fall back to the profile default
+ * rather than hand the client a voice /api/tts would then reject. This is
+ * deliberately more forgiving than `resolveVoice`, which throws: a read should
+ * never 500 because of a setting written by an earlier build.
+ */
+function storedVoice(profile: LanguageProfile, stored: string | null): string {
+  try {
+    return resolveVoice(profile, stored);
+  } catch (err) {
+    if (err instanceof UnknownVoiceError) return profile.defaultVoice;
+    throw err;
+  }
 }
 
-export function readSettings(db: DatabaseSync, cfg: Ctx['cfg']) {
+export function readSettings(db: DatabaseSync, cfg: Ctx['cfg'], profile: LanguageProfile) {
   const s = db.prepare('SELECT * FROM settings WHERE id=1').get() as Record<string, unknown>;
   return {
     level: Number(s.level) || 1,
     tts_rate: Number(s.tts_rate) || 1,
-    tts_voice: (s.tts_voice as string | null) || 'ko-KR-SunHiNeural',
+    tts_voice: storedVoice(profile, s.tts_voice as string | null),
     show_romanization: Boolean(s.show_romanization),
     keep_recordings_days: Number(s.keep_recordings_days) || 14,
     streak: Number(s.streak) || 0,
