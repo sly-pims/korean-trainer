@@ -1,9 +1,14 @@
 node_modules/
 dist/
 data/
+data-*/
 .env
+.env.*
+!.env.example
+!.env.*.example
 *.log
 .DS_Store
 coverage/
 web/public/sw.js
 web/public/manifest.webmanifest
+backups/
