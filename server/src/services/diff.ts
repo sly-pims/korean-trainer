@@ -6,12 +6,13 @@ export interface DiffOp {
 }
 
 // NFC-normalize and drop spaces/punctuation/symbols before comparing.
-// Keeps Hangul syllables, jamo, letters, and digits.
+// Keeps letters (of any script) and digits.
 export function normalizeForCompare(s: string): string {
   return s.normalize('NFC').replace(/[\s\p{P}\p{S}]+/gu, '');
 }
 
-// Tokenize a string into array elements (characters; for Hangul these are syllables).
+// Tokenize a string into array elements (characters; for Korean and French
+// alike these are letters or syllables, not words).
 export function splitTokens(s: string): string[] {
   return [...s.normalize('NFC')];
 }
