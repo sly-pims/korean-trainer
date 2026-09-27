@@ -4,6 +4,7 @@ import { api, formatDuration } from '../api';
 import { DiffView } from '../components/DiffView';
 import { WritingEvaluation } from '../components/Feedback';
 import { SpeakButton, SpeakToggle } from '../components/SpeakButton';
+import { useCopy } from '../copy';
 import type {
   SessionDetail,
   SessionHistoryRow,
@@ -13,6 +14,7 @@ import type {
 // ---------------- List ----------------
 
 export function History() {
+  const { t, serverError } = useCopy();
   const nav = useNavigate();
   const [rows, setRows] = useState<SessionHistoryRow[] | null>(null);
   const [err, setErr] = useState('');
@@ -23,7 +25,7 @@ export function History() {
         const { sessions } = await api.sessions();
         setRows(sessions);
       } catch (e) {
-        setErr(e instanceof Error ? e.message : 'could not load history');
+        setErr(serverError(e));
       }
     })();
   }, []);
@@ -33,13 +35,13 @@ export function History() {
 
   return (
     <>
-      <h2>History</h2>
+      <h2>{t('history.title')}</h2>
       <p className="small muted">
-        Every completed day, reopened read-only exactly as it happened — your answers, corrections and scores.
+        {t('history.intro')}
       </p>
       {rows.length === 0 && (
         <div className="card">
-          <p className="muted">No completed sessions yet. Finish a daily session and it will show up here.</p>
+          <p className="muted">{t('history.empty')}</p>
         </div>
       )}
       {rows.map((s) => (
@@ -91,6 +93,7 @@ export function History() {
 // ---------------- Replay ----------------
 
 export function HistoryReplay() {
+  const { t, serverError } = useCopy();
   const { id } = useParams();
   const sessionId = Number(id);
   const nav = useNavigate();
@@ -106,7 +109,7 @@ export function HistoryReplay() {
         setDetail(res.detail);
         setSettings(s);
       } catch (e) {
-        setErr(e instanceof Error ? e.message : 'could not load replay');
+        setErr(serverError(e));
       }
     })();
   }, [sessionId]);
@@ -150,11 +153,11 @@ export function HistoryReplay() {
         </div>
       </div>
 
-      <h3>Reading</h3>
+      <h3>{t('history.reading')}</h3>
       <div className="card">
         <div className="row">
-          <span className="small muted grow">passage</span>
-          <SpeakButton text={d2.pack.passage_target} {...speech} label="Play passage" />
+          <span className="small muted grow">{t('common.passage')}</span>
+          <SpeakButton text={d2.pack.passage_target} {...speech} label="speak.playPassage" />
         </div>
         <p className="target-text">{d2.pack.passage_target}</p>
         <p className="muted small">{d2.pack.passage_native}</p>
@@ -187,22 +190,22 @@ export function HistoryReplay() {
         </div>
       ))}
 
-      <h3>Writing</h3>
+      <h3>{t('history.writing')}</h3>
       {d2.writing.length === 0 && (
         <div className="card">
-          <p className="muted">Nothing written this day.</p>
+          <p className="muted">{t('history.nothingWritten')}</p>
         </div>
       )}
       {d2.writing.map((w) => (
         <div className="card" key={w.id}>
-          <p className="small muted">prompt</p>
+          <p className="small muted">{t('common.prompt')}</p>
           <p className="target-text">{w.prompt.target}</p>
           <p className="muted small">{w.prompt.native}</p>
-          <p className="small muted">your sentence</p>
+          <p className="small muted">{t('history.yourSentence')}</p>
           <p className="target-text">{w.user_text}</p>
           {w.feedback ? (
             <>
-              <p className="small muted">feedback</p>
+              <p className="small muted">{t('common.feedback')}</p>
               <WritingEvaluation feedback={w.feedback} {...speech} />
             </>
           ) : (
@@ -215,10 +218,10 @@ export function HistoryReplay() {
         </div>
       ))}
 
-      <h3>Dictation</h3>
+      <h3>{t('history.dictation')}</h3>
       {d2.dictation.length === 0 && (
         <div className="card">
-          <p className="muted">No dictation recorded this day.</p>
+          <p className="muted">{t('history.noDictation')}</p>
         </div>
       )}
       {d2.dictation.map((di) => (
@@ -229,18 +232,18 @@ export function HistoryReplay() {
             </span>
             <span className="tag">{di.percent}%</span>
           </div>
-          <p className="small muted">target</p>
+          <p className="small muted">{t('common.target')}</p>
           <p className="target-text">{di.target_text}</p>
-          <p className="small muted">you typed</p>
+          <p className="small muted">{t('history.youTyped')}</p>
           <p className="target-text">{di.typed_text}</p>
           <DiffView segments={di.segments} />
         </div>
       ))}
 
-      <h3>Speaking</h3>
+      <h3>{t('history.speaking')}</h3>
       {d2.speaking.length === 0 && (
         <div className="card">
-          <p className="muted">Nothing spoken this day.</p>
+          <p className="muted">{t('history.nothingSpoken')}</p>
         </div>
       )}
       {d2.speaking.map((a) => (
@@ -253,15 +256,15 @@ export function HistoryReplay() {
           </div>
           {a.mode === 'read_aloud' ? (
             <>
-              <p className="small muted">target</p>
+              <p className="small muted">{t('common.target')}</p>
               <p className="target-text">{a.target}</p>
-              <p className="small muted">you said</p>
+              <p className="small muted">{t('history.youSaid')}</p>
               <p className="target-text">{a.transcript ?? '—'}</p>
               {a.segments && <DiffView segments={a.segments} />}
             </>
           ) : (
             <>
-              <p className="small muted">prompt</p>
+              <p className="small muted">{t('common.prompt')}</p>
               <p className="target-text">{a.target ?? ''}</p>
               <p className="muted small">
                 Your transcript and evaluation for this attempt weren't

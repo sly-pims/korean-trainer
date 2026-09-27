@@ -2,18 +2,28 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api, formatDuration, humanizeLevel, timeEstimate } from '../api';
 import type { ProgressData } from '../types';
+import { useCopy } from '../copy';
+import type { CopyKey } from '../copy';
 
-const SKILLS = [
-  { key: 'read_score', label: 'Reading', color: 'read', hint: 'comprehension check' },
-  { key: 'write_score', label: 'Writing', color: 'write', hint: 'your free-written note' },
-  { key: 'listen_score', label: 'Listening', color: 'listen', hint: 'dictation' },
-  { key: 'speak_score', label: 'Speaking', color: 'speak', hint: 'read-aloud & speaking' },
-  { key: 'vocab_score', label: 'Vocab', color: 'vocab', hint: 'word review' },
-] as const;
+type ScoreKey =
+  | 'read_score'
+  | 'write_score'
+  | 'listen_score'
+  | 'speak_score'
+  | 'vocab_score';
+
+const SKILLS: { key: ScoreKey; label: CopyKey; color: string; hint: CopyKey }[] = [
+  { key: 'read_score', label: 'progress.skill.reading', color: 'read', hint: 'progress.skill.readingHint' },
+  { key: 'write_score', label: 'progress.skill.writing', color: 'write', hint: 'progress.skill.writingHint' },
+  { key: 'listen_score', label: 'progress.skill.listening', color: 'listen', hint: 'progress.skill.listeningHint' },
+  { key: 'speak_score', label: 'progress.skill.speaking', color: 'speak', hint: 'progress.skill.speakingHint' },
+  { key: 'vocab_score', label: 'progress.skill.vocab', color: 'vocab', hint: 'progress.skill.vocabHint' },
+];
 
 export function Progress() {
   const navto = useNavigate();
   const [data, setData] = useState<ProgressData | null>(null);
+  const { t, serverError } = useCopy();
   const [err, setErr] = useState('');
 
   useEffect(() => {
@@ -21,7 +31,7 @@ export function Progress() {
       try {
         setData(await api.progress());
       } catch (e) {
-        setErr(e instanceof Error ? e.message : 'could not load progress');
+        setErr(serverError(e));
       }
     })();
   }, []);
@@ -34,31 +44,29 @@ export function Progress() {
 
   return (
     <>
-      <h2>Progress</h2>
+      <h2>{t('progress.title')}</h2>
       <div className="card progress-header">
         <div className="header-stat header-level">
           <div className="level-name">{humanizeLevel(settings.level, settings.lang.levels)}</div>
-          <div className="stat-label">Level</div>
+          <div className="stat-label">{t('common.level')}</div>
           <div className="small muted">~{timeEstimate(settings.level)} min/day</div>
         </div>
         <div className="header-stat">
           <div className="big-num">{sessions.length}</div>
-          <div className="stat-label">sessions done</div>
+          <div className="stat-label">{t('progress.sessionsDone')}</div>
         </div>
         <div className="header-stat header-streak">
           <div className="big-num">{settings.streak}</div>
-          <div className="stat-label">day streak</div>
+          <div className="stat-label">{t('progress.dayStreak')}</div>
         </div>
       </div>
 
       <StreakCalendar days={streakCalendar} lastDate={settings.last_session_date} />
 
-      <h3>Recent sessions</h3>
-      <p className="small muted">
-        Each row is one day's session. Scores are <b>% correct</b>; <b>—</b> means that skill was skipped.
-      </p>
+      <h3>{t('progress.recentSessions')}</h3>
+      <p className="small muted">{t('progress.tableNote')}</p>
       <div className="card">
-        {sessions.length === 0 && <p className="muted">No sessions yet. Finished your first one today?</p>}
+        {sessions.length === 0 && <p className="muted">{t('progress.noSessions')}</p>}
         {sessions.map((s, i) => (
           <div
             className="session-row"
@@ -73,13 +81,13 @@ onKeyDown={(e) => {
             <div className="row">hol
               <span className="session-date grow">
                 {formatDate(s.date)}
-                {s.date === todayIso && <em className="today-tag">today</em>}
+                {s.date === todayIso && <em className="today-tag">{t('common.today')}</em>}
               </span>
               {s.duration_s !== null && <span className="small muted">{formatDuration(s.duration_s)}</span>}
             </div>
             <div className="row wrap score-row">
               {SKILLS.map((k) => (
-                <ScoreChip key={k.key} label={k.label} value={s[k.key] as number | null} color={k.color} />
+                <ScoreChip key={k.key} label={t(k.label)} value={s[k.key] as number | null} color={k.color} />
               ))}
             </div>
           </div>
@@ -89,15 +97,15 @@ onKeyDown={(e) => {
         <div className="row wrap">
           {SKILLS.map((k) => (
             <span key={k.key} className="small muted legend-item">
-              <span className={`dot ${k.color}`} /> {k.label} = {k.hint}
+              <span className={`dot ${k.color}`} /> {t(k.label)} = {t(k.hint)}
             </span>
           ))}
         </div>
       </div>
 
-      <h3>Level history</h3>
+      <h3>{t('progress.levelHistory')}</h3>
       <div className="card">
-        {history.length === 0 && <p className="muted">Level changes will appear here.</p>}
+        {history.length === 0 && <p className="muted">{t('progress.noLevelChanges')}</p>}
         {history.map((h, i) => (
           <div className="list-item" key={i}>
             <span className="grow small">{formatDate(h.change_date)}</span>
@@ -128,6 +136,7 @@ function formatDate(iso: string): string {
 }
 
 function StreakCalendar({ days, lastDate }: { days: string[]; lastDate: string | null }) {
+  const { t } = useCopy();
   const last = lastDate ? new Date(`${lastDate}T00:00:00`) : new Date();
   const start = new Date(last);
   start.setDate(start.getDate() - 41); // ~6 weeks back
@@ -136,7 +145,11 @@ function StreakCalendar({ days, lastDate }: { days: string[]; lastDate: string |
     const iso = toIso(d);
     cells.push({ date: new Date(d), active: days.includes(iso), today: iso === toIso(new Date()) });
   }
-  const weekLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+  // Weekday initials from the runtime locale rather than a hardcoded
+  // S M T W T F S, which is only right in English.
+  const weekLabels = Array.from({ length: 7 }, (_, i) =>
+    new Date(2024, 0, 7 + i).toLocaleDateString(undefined, { weekday: 'narrow' }),
+  );
   return (
     <div className="card">
       <div className="cal-grid cal-heads">
@@ -153,7 +166,7 @@ function StreakCalendar({ days, lastDate }: { days: string[]; lastDate: string |
           />
         ))}
       </div>
-      <p className="small muted">Every lit day is a completed session.</p>
+      <p className="small muted">{t('progress.everyLitDay')}</p>
     </div>
   );
 }

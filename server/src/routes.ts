@@ -14,6 +14,7 @@ import type { LanguageProfile } from './lang.js';
 import { DailyCapReachedError } from './llm/errors.js';
 import { wordSuggestSystem, wordSuggestPrompt } from './prompts/wordSuggest.js';
 import { WordSuggestionsSchema } from './schema/content.js';
+import { errorBody } from './errors.js';
 
 type PReq<TBody = unknown> = FastifyRequest<{ Params: { id: string }; Body: TBody }>;
 type Pack = ReturnType<Ctx['content']['packForSession']>;
@@ -64,7 +65,7 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
   app.post('/api/login', async (req: FastifyRequest<{ Body: { password?: string } }>, reply) => {
     const parsed = z.object({ password: z.string() }).safeParse(req.body ?? {});
     if (!parsed.success || !auth.checkPassword(parsed.data.password)) {
-      return reply.code(401).send({ error: 'invalid password' });
+      return reply.code(401).send(errorBody('invalid_password', 'invalid password'));
     }
     reply.setCookie(auth.cookieName, auth.createToken(), auth.cookieOptions());
     return { ok: true };
@@ -91,7 +92,7 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
 
   app.put('/api/settings', async (req: FastifyRequest<{ Body: unknown }>, reply) => {
     const parsed = settingsSchema.safeParse(req.body ?? {});
-    if (!parsed.success) return reply.code(400).send({ error: parsed.error.message });
+    if (!parsed.success) return reply.code(400).send(errorBody('validation_failed', parsed.error.message));
     const s = parsed.data;
     // Reject a voice from another language rather than storing it: /api/tts
     // refuses it, so persisting it would only leave the settings screen showing
@@ -100,7 +101,7 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
       try {
         resolveVoice(activeProfile(), s.tts_voice);
       } catch (err) {
-        if (err instanceof UnknownVoiceError) return reply.code(400).send({ error: err.message });
+        if (err instanceof UnknownVoiceError) return reply.code(400).send(errorBody('unknown_voice', err.message));
         throw err;
       }
     }
@@ -141,14 +142,14 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
 
   app.post('/api/session/:id/step', async (req: PReq<{ step?: string }>, reply) => {
     const parsed = z.object({ step: z.string().min(1).max(40) }).safeParse(req.body ?? {});
-    if (!parsed.success) return reply.code(400).send({ error: parsed.error.message });
+    if (!parsed.success) return reply.code(400).send(errorBody('validation_failed', parsed.error.message));
     content.setStep(Number(req.params.id), parsed.data.step);
     return { ok: true };
   });
 
   app.post('/api/session/:id/word-tap', async (req: PReq<{ surface?: string }>, reply) => {
     const parsed = z.object({ surface: z.string().min(1) }).safeParse(req.body ?? {});
-    if (!parsed.success) return reply.code(400).send({ error: parsed.error.message });
+    if (!parsed.success) return reply.code(400).send(errorBody('validation_failed', parsed.error.message));
     return content.addWord(Number(req.params.id), parsed.data.surface);
   });
 
@@ -158,7 +159,7 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
     const parsed = z
       .object({ word_id: z.number().int(), rating: z.enum(['again', 'hard', 'good', 'easy']) })
       .safeParse(req.body ?? {});
-    if (!parsed.success) return reply.code(400).send({ error: parsed.error.message });
+    if (!parsed.success) return reply.code(400).send(errorBody('validation_failed', parsed.error.message));
     return content.reviewCard(parsed.data.word_id, parsed.data.rating);
   });
 
@@ -166,14 +167,14 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
     const parsed = z
       .object({ answers: z.array(z.number().int().min(0).max(3)).length(3) })
       .safeParse(req.body ?? {});
-    if (!parsed.success) return reply.code(400).send({ error: parsed.error.message });
+    if (!parsed.success) return reply.code(400).send(errorBody('validation_failed', parsed.error.message));
     return content.gradeQuestions(Number(req.params.id), parsed.data.answers);
   });
 
   // ---------- Writing (M3) ----------
   app.post('/api/session/:id/writing', async (req: PReq<{ text?: string }>, reply) => {
     const parsed = z.object({ text: z.string().min(1).max(4000) }).safeParse(req.body ?? {});
-    if (!parsed.success) return reply.code(400).send({ error: parsed.error.message });
+    if (!parsed.success) return reply.code(400).send(errorBody('validation_failed', parsed.error.message));
     const sessionId = Number(req.params.id);
     const pack = content.packForSession(sessionId) as Pack;
     const entryId = review.createWritingEntry(sessionId, pack, parsed.data.text);
@@ -201,7 +202,7 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
     const parsed = z
       .object({ transcripts: z.array(z.string().max(500)).min(1).max(10) })
       .safeParse(req.body ?? {});
-    if (!parsed.success) return reply.code(400).send({ error: parsed.error.message });
+    if (!parsed.success) return reply.code(400).send(errorBody('validation_failed', parsed.error.message));
     const sessionId = Number(req.params.id);
     const pack = content.packForSession(sessionId) as Pack;
     const targets = pack.sentences.slice(0, 3);
@@ -226,7 +227,7 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
       const parsed = z
         .object({ sentence_index: z.number().int().min(0).max(9), transcript: z.string().max(500) })
         .safeParse(req.body ?? {});
-      if (!parsed.success) return reply.code(400).send({ error: parsed.error.message });
+      if (!parsed.success) return reply.code(400).send(errorBody('validation_failed', parsed.error.message));
       const target = pack.sentences[parsed.data.sentence_index]?.target ?? '';
       const diff = compareReadAloud(target, parsed.data.transcript);
       const attemptId = review.createReadAloudAttempt(sessionId, target, parsed.data.transcript, diff.percent);
@@ -241,10 +242,10 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
     // Raw audio: transcribe server-side (reliable on Android, unlike the Web Speech API).
     const index = Number(req.headers['x-sentence-index'] ?? -1);
     if (!Number.isInteger(index) || index < 0 || index > 9) {
-      return reply.code(400).send({ error: 'missing or invalid x-sentence-index header' });
+      return reply.code(400).send(errorBody('sentence_index_required', 'missing or invalid x-sentence-index header'));
     }
     const buf = req.body as Buffer | undefined;
-    if (!buf || buf.length === 0) return reply.code(400).send({ error: 'empty recording' });
+    if (!buf || buf.length === 0) return reply.code(400).send(errorBody('empty_recording', 'empty recording'));
     const target = pack.sentences[index]?.target ?? '';
     const ext = mimeToExt(ct || 'audio/webm');
     let transcript: string;
@@ -254,7 +255,7 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
       transcript = await review.transcribeAudio(buf, ext, content.sessionLang(sessionId));
     } catch (e) {
       req.log.warn({ err: e }, 'read-aloud transcription failed');
-      return reply.code(502).send({ error: e instanceof Error ? e.message : 'transcription failed' });
+      return reply.code(502).send(errorBody('transcription_failed', e instanceof Error ? e.message : 'transcription failed'));
     }
     const diff = compareReadAloud(target, transcript);
     const attemptId = review.createReadAloudAttempt(sessionId, target, transcript, diff.percent);
@@ -284,14 +285,14 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
   // Web Speech API is unreliable, e.g. Android for the practice read-aloud drill).
   app.post('/api/transcribe', async (req: FastifyRequest, reply) => {
     const buf = req.body as Buffer | undefined;
-    if (!buf || buf.length === 0) return reply.code(400).send({ error: 'empty recording' });
+    if (!buf || buf.length === 0) return reply.code(400).send(errorBody('empty_recording', 'empty recording'));
     const mime = (req.headers['content-type'] ?? 'audio/webm').toLowerCase();
     let transcript: string;
     try {
       transcript = await review.transcribeAudio(buf, mimeToExt(mime));
     } catch (e) {
       req.log.warn({ err: e }, 'transcription failed');
-      return reply.code(502).send({ error: e instanceof Error ? e.message : 'transcription failed' });
+      return reply.code(502).send(errorBody('transcription_failed', e instanceof Error ? e.message : 'transcription failed'));
     }
     return { transcript };
   });
@@ -299,7 +300,7 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
   // ---------- Completion / wrap-up (M6) ----------
   app.post('/api/session/:id/complete', async (req: PReq<{ duration_s?: number }>, reply) => {
     const parsed = z.object({ duration_s: z.number().int().min(0).default(0) }).safeParse(req.body ?? {});
-    if (!parsed.success) return reply.code(400).send({ error: parsed.error.message });
+    if (!parsed.success) return reply.code(400).send(errorBody('validation_failed', parsed.error.message));
     const result = content.completeSession(Number(req.params.id), parsed.data.duration_s);
     if (ctx.callManager) content.prefetchTomorrow().catch((e) => console.warn('[session] prefetch failed:', e));
     cleanupRecordings(db, cfg);
@@ -308,7 +309,7 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
 
   app.post('/api/level', async (req: FastifyRequest<{ Body: { action?: string } }>, reply) => {
     const parsed = z.object({ action: z.enum(['up', 'down']) }).safeParse(req.body ?? {});
-    if (!parsed.success) return reply.code(400).send({ error: parsed.error.message });
+    if (!parsed.success) return reply.code(400).send(errorBody('validation_failed', parsed.error.message));
     return content.applyLevelChange(parsed.data.action);
   });
 
@@ -351,7 +352,7 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
         example_native: z.string().optional(),
       })
       .safeParse(req.body ?? {});
-    if (!parsed.success) return reply.code(400).send({ error: parsed.error.message });
+    if (!parsed.success) return reply.code(400).send(errorBody('validation_failed', parsed.error.message));
     return content.addWordManually(parsed.data);
   });
 
@@ -368,8 +369,8 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
         count: z.number().int().min(1).max(10).optional(),
       })
       .safeParse(req.body ?? {});
-    if (!parsed.success) return reply.code(400).send({ error: parsed.error.message });
-    if (!ctx.callManager) return reply.code(503).send({ error: 'LLM not configured' });
+    if (!parsed.success) return reply.code(400).send(errorBody('validation_failed', parsed.error.message));
+    if (!ctx.callManager) return reply.code(503).send(errorBody('llm_not_configured', 'LLM not configured'));
     const settings = db.prepare('SELECT level FROM settings WHERE id=1').get() as { level: number };
     try {
       const promptCtx = { profile: content.profileFor() };
@@ -388,7 +389,8 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
       );
       return { suggestions: suggestions.words.filter((w) => !known.has(w.lemma.toLowerCase())) };
     } catch (err) {
-      if (err instanceof DailyCapReachedError) return reply.code(429).send({ error: err.message });
+      if (err instanceof DailyCapReachedError)
+        return reply.code(429).send(errorBody('daily_cap_reached', err.message));
       throw err;
     }
   });
@@ -398,7 +400,7 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
 
   app.get('/api/sessions/:id/detail', async (req: PReq, reply) => {
     const detail = content.sessionDetail(Number(req.params.id));
-    if (!detail) return reply.code(404).send({ error: 'no completed session found' });
+    if (!detail) return reply.code(404).send(errorBody('no_completed_session', 'no completed session found'));
     return { detail };
   });
 
@@ -420,7 +422,7 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
   // Wipe all learning-derived state and start over (keeps settings like TTS).
   app.delete('/api/progress', async (req: FastifyRequest, reply) => {
     const parsed = z.object({ confirm: z.literal('reset') }).safeParse(req.body ?? {});
-    if (!parsed.success) return reply.code(400).send({ error: 'must send {"confirm":"reset"}' });
+    if (!parsed.success) return reply.code(400).send(errorBody('reset_confirm_required', 'must send {"confirm":"reset"}'));
     const del = (t: string) => Number(db.prepare(`DELETE FROM ${t}`).run().changes ?? 0);
     const deleted = {
       writing_entries: del('writing_entries'),
@@ -456,7 +458,7 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
 
   app.post('/api/practice/read-aloud', async (req: FastifyRequest<{ Body: { target?: string; transcript?: string } }>, reply) => {
     const parsed = z.object({ target: z.string().min(1), transcript: z.string().max(500) }).safeParse(req.body ?? {});
-    if (!parsed.success) return reply.code(400).send({ error: parsed.error.message });
+    if (!parsed.success) return reply.code(400).send(errorBody('validation_failed', parsed.error.message));
     const diff = compareReadAloud(parsed.data.target, parsed.data.transcript);
     review.createReadAloudAttempt(null, parsed.data.target, parsed.data.transcript, diff.percent);
     return { target: parsed.data.target, ...diff };
@@ -481,8 +483,8 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
   // language. `activeProfile()` becomes enrollment-derived in phase 7.
   app.get('/api/tts', async (req: FastifyRequest<{ Querystring: { text?: string; voice?: string; rate?: string } }>, reply) => {
     const text = (req.query.text ?? '').trim();
-    if (!text) return reply.code(400).send({ error: 'text is required' });
-    if (text.length > 400) return reply.code(400).send({ error: 'text too long' });
+    if (!text) return reply.code(400).send(errorBody('text_required', 'text is required'));
+    if (text.length > 400) return reply.code(400).send(errorBody('text_too_long', 'text too long'));
     const rate = Number(req.query.rate ?? 0) || 0;
     try {
       const stream = await tts.synthesize({
@@ -496,9 +498,9 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
       return reply.send(stream);
     } catch (err) {
       // A voice from another language is the caller's mistake, not an outage.
-      if (err instanceof UnknownVoiceError) return reply.code(400).send({ error: err.message });
+      if (err instanceof UnknownVoiceError) return reply.code(400).send(errorBody('unknown_voice', err.message));
       console.error('[tts] synthesis failed:', err instanceof Error ? err.message : err);
-      return reply.code(502).send({ error: 'TTS unavailable' });
+      return reply.code(502).send(errorBody('tts_unavailable', 'TTS unavailable'));
     }
   });
 
@@ -571,6 +573,8 @@ export function languageDescriptor(profile: LanguageProfile) {
     code: profile.code,
     name: profile.name,
     endonym: profile.endonym,
+    /** One ordinary word in this language, for the "add a word" placeholder. */
+    lexiconExample: profile.lexiconExample,
     htmlLang: profile.htmlLang,
     /** BCP-47 tag for speech recognition and TTS. */
     locale: profile.locale,
@@ -612,8 +616,8 @@ async function handleFreeResponse(
 ) {
   const mime = (req.headers['content-type'] as string | undefined) ?? 'application/octet-stream';
   const buf = req.body as Buffer | undefined;
-  if (!buf || buf.length === 0) return reply.code(400).send({ error: 'empty recording' });
-  if (buf.length > 50 * 1024 * 1024) return reply.code(413).send({ error: 'recording too large' });
+  if (!buf || buf.length === 0) return reply.code(400).send(errorBody('empty_recording', 'empty recording'));
+  if (buf.length > 50 * 1024 * 1024) return reply.code(413).send(errorBody('recording_too_large', 'recording too large'));
 
   const ext = mimeToExt(mime);
   const attemptId = ctx.review.createFreeSpeechAttempt(sessionId, pack);

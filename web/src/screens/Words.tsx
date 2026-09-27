@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
-import { api, posLabel } from '../api';
+import { api, humanizeLevel, posLabel } from '../api';
 import { SrsCard } from '../components/SrsCard';
 import { SpeakButton } from '../components/SpeakButton';
 import { useSrsReview } from '../hooks/useSrsReview';
-import type { TtsLanguage } from '../hooks/useTts';
-import type { Settings, WordRow, WordSuggestion } from '../types';
+import { useCopy } from '../copy';
+import type { LanguageDescriptor, Settings, WordRow, WordSuggestion } from '../types';
 
 type DueFilter = 'all' | 'due' | 'later';
 
@@ -28,6 +28,7 @@ export function Words() {
 // ---------------- Practice due cards ----------------
 
 function PracticeCard({ onReviewed }: { onReviewed: () => void }) {
+  const { t } = useCopy();
   const { cards, dueTotal, busyId, err, load, review } = useSrsReview();
   const [open, setOpen] = useState(false);
   const [settings, setSettings] = useState<Settings | null>(null);
@@ -45,7 +46,7 @@ function PracticeCard({ onReviewed }: { onReviewed: () => void }) {
     <div className="card">
       <div className="row">
         <div className="grow">
-          <b>SRS review</b>
+          <b>{t('words.srsReview')}</b>
           <p className="small muted">
             {cards === null ? '…' : dueTotal === 0 ? 'No words due right now.' : `${dueTotal} due now`}
             {open && cards !== null && cards.length > 0 ? ' · ' : ''}
@@ -75,7 +76,7 @@ function PracticeCard({ onReviewed }: { onReviewed: () => void }) {
               </button>
             </>
           ) : (
-            <p className="muted">All clear — nothing due.</p>
+            <p className="muted">{t('words.allClear')}</p>
           )}
         </>
       )}
@@ -86,6 +87,7 @@ function PracticeCard({ onReviewed }: { onReviewed: () => void }) {
 // ---------------- Browse & search ----------------
 
 function BrowseCard({ refreshKey }: { refreshKey: number }) {
+  const { t, serverError } = useCopy();
   const [words, setWords] = useState<WordRow[] | null>(null);
   const [settings, setSettings] = useState<Settings | null>(null);
   const [query, setQuery] = useState('');
@@ -102,7 +104,7 @@ function BrowseCard({ refreshKey }: { refreshKey: number }) {
       setSettings(s);
       setErr('');
     } catch (e) {
-      setErr(e instanceof Error ? e.message : 'could not load words');
+      setErr(serverError(e));
     }
   };
   useEffect(() => {
@@ -133,12 +135,12 @@ function BrowseCard({ refreshKey }: { refreshKey: number }) {
   return (
     <div className="card">
       <div className="row">
-        <h3 className="grow">Word list</h3>
+        <h3 className="grow">{t('words.listTitle')}</h3>
         <button className="small" onClick={() => setShowAdd((v) => !v)}>
-          + Add
+          + {t('common.add')}
         </button>
       </div>
-      <input placeholder="Search words (lemma / meaning)…" value={query} onChange={(e) => setQuery(e.target.value)} />
+      <input placeholder={t('words.searchPlaceholder')} value={query} onChange={(e) => setQuery(e.target.value)} />
       <div className="row wrap">
         {(['all', 'due', 'later'] as DueFilter[]).map((f) => (
           <button
@@ -146,26 +148,26 @@ function BrowseCard({ refreshKey }: { refreshKey: number }) {
             className={`small ${dueFilter === f ? 'primary' : ''}`}
             onClick={() => setDueFilter(f)}
           >
-            {f === 'all' ? 'All' : f === 'due' ? 'Due now' : 'Not due yet'}
+            {f === 'all' ? t('words.all') : f === 'due' ? t('words.due') : t('words.later')}
           </button>
         ))}
         <select
           className="small"
           value={levelFilter}
           onChange={(e) => setLevelFilter(Number(e.target.value))}
-          aria-label="Filter by level"
+          aria-label={t('words.filterByLevel')}
         >
-          <option value={0}>All levels</option>
+          <option value={0}>{t('common.allLevels')}</option>
           {[1, 2, 3, 4, 5, 6].map((l) => (
             <option key={l} value={l}>
-              Level {l}
+              {humanizeLevel(l, settings.lang.levels)}
             </option>
           ))}
         </select>
       </div>
-      {showAdd && <AddWordForm defaultLevel={settings.level} onAdded={() => { setShowAdd(false); void reload(); }} onError={setErr} />}
+      {showAdd && <AddWordForm defaultLevel={settings.level} lang={settings.lang} onAdded={() => { setShowAdd(false); void reload(); }} onError={setErr} />}
       <div className="list">
-        {filtered.length === 0 && <p className="muted">No words match — tap words while reading to grow your list.</p>}
+        {filtered.length === 0 && <p className="muted">{t('words.noMatch')}</p>}
         {filtered.map((w) => (
           <WordRowItem
             key={w.id}
@@ -194,9 +196,10 @@ function WordRowItem({
   open: boolean;
   rate: number;
   voiceUri: string;
-  lang: TtsLanguage;
+  lang: LanguageDescriptor;
   onToggle: () => void;
 }) {
+  const { t } = useCopy();
   const due = w.card?.due_date ? isDue(w.card.due_date) : true;
   return (
     <div className="row list-item">
@@ -210,7 +213,8 @@ function WordRowItem({
         {open ? (
           <div className="small muted">
             <p>
-              example: <span lang="ko">{w.example_target || w.surface_example}</span>
+              {t('words.labelExample')}:{' '}
+              <span lang={lang.htmlLang}>{w.example_target || w.surface_example}</span>
               {w.example_native ? ` — ${w.example_native}` : ''}
             </p>
             <p>
@@ -229,7 +233,7 @@ function WordRowItem({
           </div>
         )}
       </div>
-      <SpeakButton text={w.lemma} rate={rate} voiceUri={voiceUri} lang={lang} label={w.lemma} />
+      <SpeakButton text={w.lemma} rate={rate} voiceUri={voiceUri} lang={lang} label="speak.playWord" labelParams={{ word: w.lemma }} />
     </div>
   );
 }
@@ -238,13 +242,16 @@ function WordRowItem({
 
 function AddWordForm({
   defaultLevel,
+  lang,
   onAdded,
   onError,
 }: {
   defaultLevel: number;
+  lang: LanguageDescriptor;
   onAdded: () => void;
   onError: (e: string) => void;
 }) {
+  const { t, serverError } = useCopy();
   const [lemma, setLemma] = useState('');
   const [meaning, setMeaning] = useState('');
   const [example, setExample] = useState('');
@@ -265,7 +272,7 @@ function AddWordForm({
       });
       onAdded();
     } catch (e) {
-      onError(e instanceof Error ? e.message : 'could not add word');
+      onError(serverError(e));
     } finally {
       setBusy(false);
     }
@@ -273,18 +280,18 @@ function AddWordForm({
 
   return (
     <div className="card">
-      <h4>Add a word</h4>
-      <input lang="ko" placeholder="Word (e.g. 사과)" value={lemma} onChange={(e) => setLemma(e.target.value)} />
-      <input placeholder="Meaning in English" value={meaning} onChange={(e) => setMeaning(e.target.value)} />
-      <input lang="ko" placeholder="Example sentence (optional)" value={example} onChange={(e) => setExample(e.target.value)} />
+      <h4>{t('words.addTitle')}</h4>
+      <input lang={lang.htmlLang} placeholder={t('words.addLemmaPlaceholder', { example: lang.lexiconExample })} value={lemma} onChange={(e) => setLemma(e.target.value)} />
+      <input placeholder={t('words.addMeaningPlaceholder')} value={meaning} onChange={(e) => setMeaning(e.target.value)} />
+      <input lang={lang.htmlLang} placeholder={t('words.addExamplePlaceholder')} value={example} onChange={(e) => setExample(e.target.value)} />
       <div className="controls">
         <label className="control">
-          <span className="small muted">Level</span>
+          <span className="small muted">{t('common.level')}</span>
           <select id="add-level" value={level} onChange={(e) => setLevel(Number(e.target.value))}>
             {[1, 2, 3, 4, 5, 6].map((l) => (
               <option key={l} value={l}>
-                Level {l}
-              </option>
+              {humanizeLevel(l, lang.levels)}
+            </option>
             ))}
           </select>
         </label>
@@ -293,7 +300,7 @@ function AddWordForm({
           disabled={busy || lemma.trim() === '' || meaning.trim() === ''}
           onClick={add}
         >
-          {busy ? 'Saving…' : 'Save word'}
+          {busy ? t('words.saving') : t('words.saveWord')}
         </button>
       </div>
     </div>
@@ -303,6 +310,7 @@ function AddWordForm({
 // ---------------- Discover (LLM suggestions) ----------------
 
 function DiscoverCard({ onChanged }: { onChanged: () => void }) {
+  const { t, serverError } = useCopy();
   const [open, setOpen] = useState(false);
   const [topic, setTopic] = useState('');
   const [count, setCount] = useState(5);
@@ -312,10 +320,19 @@ function DiscoverCard({ onChanged }: { onChanged: () => void }) {
   const [err, setErr] = useState('');
   const [added, setAdded] = useState<Record<string, boolean>>({});
   const [saved, setSaved] = useState(0);
+  // Kept whole, not just the level: the suggestion examples need htmlLang.
+  const [settings, setSettings] = useState<Settings | null>(null);
 
   useEffect(() => {
-    void api.getSettings().then((s) => setLevel(s.level));
+    void api.getSettings().then((s) => {
+      setLevel(s.level);
+      setSettings(s);
+    });
   }, []);
+
+  // Settings carry htmlLang, which decides how the example is announced and
+  // which font the browser picks, so the card waits for them like the others.
+  if (!settings) return <div className="spinner" />;
 
   const run = async () => {
     setBusy(true);
@@ -330,7 +347,7 @@ function DiscoverCard({ onChanged }: { onChanged: () => void }) {
       });
       setSuggestions(suggestions);
     } catch (e) {
-      setErr(e instanceof Error ? e.message : 'could not get suggestions');
+      setErr(serverError(e));
     } finally {
       setBusy(false);
     }
@@ -353,7 +370,7 @@ function DiscoverCard({ onChanged }: { onChanged: () => void }) {
       setSaved((n) => n + 1);
       onChanged();
     } catch (e) {
-      setErr(e instanceof Error ? e.message : 'could not add word');
+      setErr(serverError(e));
     }
   };
 
@@ -365,29 +382,32 @@ function DiscoverCard({ onChanged }: { onChanged: () => void }) {
     <div className="card">
       <div className="row">
         <div className="grow">
-          <b>Discover new words</b>
-          <p className="small muted">Ask the trainer for fresh vocabulary to grow your list.</p>
+          <b>{t('words.discoverTitle')}</b>
+          <p className="small muted">{t('words.discoverHint')}</p>
         </div>
         <button className="small primary" onClick={() => setOpen((v) => !v)}>
-          {open ? 'Hide' : 'Suggest words'}
+          {open ? t('words.hide') : t('words.suggestWords')}
         </button>
       </div>
       {open && (
         <div className="stack">
-          <input placeholder="Optional topic (e.g. cooking, travel)…" value={topic} onChange={(e) => setTopic(e.target.value)} />
+          <input placeholder={t('words.topicPlaceholder')} value={topic} onChange={(e) => setTopic(e.target.value)} />
           <div className="controls">
             <label className="control">
-              <span className="small muted">Match my level</span>
+              <span className="small muted">{t('words.matchLevel')}</span>
               <select value={level} onChange={(e) => setLevel(Number(e.target.value))}>
                 {[1, 2, 3, 4, 5, 6].map((l) => (
                   <option key={l} value={l}>
-                    Level {l}
+                    {/* Before settings arrive there is nothing to name the level
+                        with, so show the bare number rather than a proficiency
+                        label that would belong to another language's scale. */}
+                    {settings ? humanizeLevel(l, settings.lang.levels) : l}
                   </option>
                 ))}
               </select>
             </label>
             <label className="control">
-              <span className="small muted">How many</span>
+              <span className="small muted">{t('words.howMany')}</span>
               <select value={count} onChange={(e) => setCount(Number(e.target.value))}>
                 {[3, 5, 10].map((c) => (
                   <option key={c} value={c}>
@@ -397,7 +417,7 @@ function DiscoverCard({ onChanged }: { onChanged: () => void }) {
               </select>
             </label>
             <button className="control-suggest primary small" disabled={busy} onClick={run}>
-              {busy ? 'Thinking…' : 'Suggest'}
+              {busy ? t('words.thinking') : t('words.suggest')}
             </button>
           </div>
           {err && <div className="error-banner">{err}</div>}
@@ -405,10 +425,10 @@ function DiscoverCard({ onChanged }: { onChanged: () => void }) {
             <>
               <div className="row">
                 <p className="small muted grow">
-                  {suggestions.length === 0 ? 'Nothing new found — your list already covers the topic.' : `${suggestions.length} suggestions`}
-                  {saved > 0 ? ` · ${saved} saved` : ''}
+                  {suggestions.length === 0 ? t('words.nothingNew') : t('words.nSuggestions', { count: suggestions.length })}
+                  {saved > 0 ? ` · ${t('words.nSaved', { saved })}` : ''}
                 </p>
-                {suggestions.length > 0 && <button className="small" onClick={addAll}>Add all</button>}
+                {suggestions.length > 0 && <button className="small" onClick={addAll}>{t('common.addAll')}</button>}
               </div>
               <div className="list">
                 {suggestions.map((s) => (
@@ -420,11 +440,11 @@ function DiscoverCard({ onChanged }: { onChanged: () => void }) {
                       </div>
                       <div className="small muted">{s.meaning_native}</div>
                       <div className="small muted">
-                        <span lang="ko">{s.example_target}</span> — {s.example_native}
+                        <span lang={settings.lang.htmlLang}>{s.example_target}</span> — {s.example_native}
                       </div>
                     </div>
                     <button className="small" disabled={added[s.lemma]} onClick={() => addOne(s)}>
-                      {added[s.lemma] ? 'Added' : 'Add'}
+                      {added[s.lemma] ? t('common.added') : t('common.add')}
                     </button>
                   </div>
                 ))}

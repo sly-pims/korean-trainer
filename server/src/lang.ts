@@ -24,6 +24,12 @@ export const languageProfileSchema = z
     code: z.string().min(2).max(5),
     name: z.string().min(1),
     endonym: z.string().min(1),
+    /**
+     * One ordinary word in this language, shown as the placeholder in the
+     * "add a word" form. It replaced a literal Korean word that sat in the
+     * markup, which told a French learner to type a Korean word.
+     */
+    lexiconExample: z.string().min(1),
     /** BCP-47 tag used for speech recognition and TTS. */
     locale: z.string().min(2),
     htmlLang: z.string().min(2),
@@ -87,32 +93,27 @@ export const copySchema = z.object({
   appName: z.string().min(1),
   appTagline: z.string(),
   login: z.object({
-    title: z.string().min(1),
-    tagline: z.string(),
-    username: z.string().min(1),
+    // The form is password-only: there is no username field, so a `username`
+    // string here would only ever invite someone to render an input that the
+    // API does not accept. `error` was a duplicate of `failed`, and `failed`
+    // went away too — a wrong password now arrives as the coded
+    // `invalid_password` error and renders from `error.invalidPassword`.
     password: z.string().min(1),
+    passwordPlaceholder: z.string().min(1),
     submit: z.string().min(1),
-    error: z.string().min(1),
+    signingIn: z.string().min(1),
   }),
   nav: z.object({
     home: z.string().min(1),
     practice: z.string().min(1),
     words: z.string().min(1),
     progress: z.string().min(1),
-    history: z.string().min(1),
     settings: z.string().min(1),
   }),
   common: z.object({
-    loading: z.string().min(1),
-    save: z.string().min(1),
     saved: z.string().min(1),
-    cancel: z.string().min(1),
     close: z.string().min(1),
-    retry: z.string().min(1),
-    back: z.string().min(1),
-    next: z.string().min(1),
     done: z.string().min(1),
-    none: z.string().min(1),
     error: z.string().min(1),
   }),
 });

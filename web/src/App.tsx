@@ -3,6 +3,7 @@ import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-
 import { api } from './api';
 import { TabBar } from './components/TabBar';
 import { Home } from './screens/Home';
+import { useCopy } from './copy';
 
 const Session = lazy(() => import('./screens/Session').then((m) => ({ default: m.Session })));
 const Practice = lazy(() => import('./screens/Practice').then((m) => ({ default: m.Practice })));
@@ -76,37 +77,46 @@ export function App() {
 }
 
 function LoginGate({ onOk }: { onOk: () => void }) {
+  const { serverError } = useCopy();
   const [pw, setPw] = useState('');
   const [err, setErr] = useState('');
+  const [busy, setBusy] = useState(false);
   const nav = useNavigate();
+  const { t, appName, appTagline } = useCopy();
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErr('');
+    setBusy(true);
     try {
       await api.login(pw);
       onOk();
       nav('/', { replace: true });
     } catch (er) {
-      setErr(er instanceof Error ? er.message : 'login failed');
+      setErr(serverError(er));
+    } finally {
+      setBusy(false);
     }
   };
 
   return (
     <div className="login-wrap">
       <form className="card login-card" onSubmit={submit}>
-        <h2>한국어</h2>
-        <p className="muted small">Korean Daily Trainer</p>
+        {/* The app name from the server, not a hardcoded 한국어: this screen
+            used to greet a French learner with the Korean language's own name. */}
+        <h2>{appName}</h2>
+        <p className="muted small">{appTagline}</p>
         <input
           type="password"
-          placeholder="Trainer password"
+          placeholder={t('login.passwordPlaceholder')}
+          aria-label={t('login.password')}
           autoFocus
           value={pw}
           onChange={(e) => setPw(e.target.value)}
         />
         {err && <div className="error-banner">{err}</div>}
-        <button className="primary" type="submit">
-          Unlock
+        <button className="primary" type="submit" disabled={busy}>
+          {busy ? t('login.signingIn') : t('login.submit')}
         </button>
       </form>
     </div>

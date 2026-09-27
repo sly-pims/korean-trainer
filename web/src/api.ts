@@ -15,9 +15,29 @@ import type {
 
 export class ApiError extends Error {
   status: number;
-  constructor(status: number, message: string) {
+  /**
+   * Stable token from the server, e.g. `unknown_voice`. Undefined when the
+   * response was not JSON or came from something older than `server/src/errors.ts`.
+   * Screens translate this rather than `message`, so an error on a French
+   * learner's screen does not turn into an English sentence.
+   */
+  code?: string;
+  constructor(status: number, message: string, code?: string) {
     super(message);
     this.status = status;
+    this.code = code;
+  }
+}
+
+/** Reads `{ code, error }` off a failed response, tolerating a non-JSON body. */
+async function readError(res: Response): Promise<{ msg: string; code?: string }> {
+  const fallback = { msg: `HTTP ${res.status}` };
+  try {
+    const body = (await res.json()) as { code?: string; error?: string };
+    const msg = body.error ?? fallback.msg;
+    return { msg, code: typeof body.code === 'string' ? body.code : undefined };
+  } catch {
+    return fallback;
   }
 }
 
@@ -26,28 +46,16 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   if (!('Content-Type' in headers)) headers['Content-Type'] = 'application/json';
   const res = await fetch(path, { ...init, headers });
   if (res.status === 401) {
-    let msg = 'unauthorized';
-    try {
-      const body = await res.json();
-      msg = (body as { error?: string }).error ?? msg;
-    } catch {
-      /* keep default */
-    }
+    const { msg, code } = await readError(res);
     if (path !== '/api/login') {
       // Session expired -> let the router send the user to the login screen.
       window.dispatchEvent(new CustomEvent('kt:unauthorized'));
     }
-    throw new ApiError(401, msg);
+    throw new ApiError(401, msg, code);
   }
   if (!res.ok) {
-    let msg = `HTTP ${res.status}`;
-    try {
-      const body = await res.json();
-      msg = (body as { error?: string }).error ?? msg;
-    } catch {
-      /* keep default */
-    }
-    throw new ApiError(res.status, msg);
+    const { msg, code } = await readError(res);
+    throw new ApiError(res.status, msg, code);
   }
   if (res.status === 204) return undefined as T;
   return (await res.json()) as T;

@@ -268,6 +268,7 @@ describe('the language descriptor sent to the client', () => {
       code: 'fr',
       name: fr.name,
       endonym: fr.endonym,
+      lexiconExample: fr.lexiconExample,
       htmlLang: fr.htmlLang,
       locale: fr.locale,
       defaultVoice: fr.defaultVoice,

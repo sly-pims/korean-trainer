@@ -5,11 +5,13 @@ import { SpeakingEvaluation } from '../components/Feedback';
 import { GlossCard } from '../components/GlossCard';
 import { SpeakButton, SpeakToggle } from '../components/SpeakButton';
 import { useMediaRecorder } from '../hooks/useMediaRecorder';
-import type { TtsLanguage } from '../hooks/useTts';
+import type { LanguageDescriptor } from '../types';
+import { useCopy, type CopyKey } from '../copy';
 import type { GlossaryEntry, SpeakingFeedback } from '../types';
 
 /** Standalone practice screen: random pack, read-aloud drill and a free-response drill. */
 export function Practice() {
+  const { t, serverError } = useCopy();
   const [pack, setPack] = useState<import('../types').ContentPack | null>(null);
   const [settings, setSettings] = useState<import('../types').Settings | null>(null);
   const [error, setError] = useState('');
@@ -22,7 +24,7 @@ export function Practice() {
         setPack(p.pack);
         setSettings(s);
       } catch (e) {
-        setError(e instanceof Error ? e.message : 'practice unavailable');
+        setError(serverError(e));
       }
     })();
   }, []);
@@ -36,14 +38,14 @@ export function Practice() {
 
   return (
     <>
-      <h2>Practice</h2>
+      <h2>{t('practice.title')}</h2>
       <p className="muted small">
         Extra drills outside your daily session. Speaking free responses count against the daily LLM budget.
       </p>
       <div className="card">
         <div className="row">
-          <h3 className="grow">Random lesson</h3>
-          <SpeakButton text={pack.passage_target} rate={rate} voiceUri={voiceUri} lang={lang} label="Play passage" />
+          <h3 className="grow">{t('practice.randomLesson')}</h3>
+          <SpeakButton text={pack.passage_target} rate={rate} voiceUri={voiceUri} lang={lang} label="speak.playPassage" />
         </div>
         <p className="passage">
           {splitPassage(pack.passage_target, pack.glossary.map((g) => g.surface)).map((piece, i) =>
@@ -93,7 +95,8 @@ function splitPassage(text: string, surfaces: string[]): { text: string; surface
   return parts;
 }
 
-function ReadAloudPractice({ pack, rate, voiceUri, lang }: { pack: import('../types').ContentPack; rate: number; voiceUri: string; lang: TtsLanguage }) {
+function ReadAloudPractice({ pack, rate, voiceUri, lang }: { pack: import('../types').ContentPack; rate: number; voiceUri: string; lang: LanguageDescriptor }) {
+  const { t, serverError } = useCopy();
   const target = pack.sentences[0]?.target ?? pack.speaking_prompt.target;
   const rec = useMediaRecorder();
   const [typed, setTyped] = useState('');
@@ -111,7 +114,7 @@ function ReadAloudPractice({ pack, rate, voiceUri, lang }: { pack: import('../ty
         const graded = await api.gradeReadAloudSelf(target, r.transcript);
         setResult({ percent: graded.percent, segments: splitCharDiff(target, r.transcript) });
       } catch (e) {
-        setErr(e instanceof Error ? e.message : 'check failed');
+        setErr(serverError(e));
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -124,13 +127,13 @@ function ReadAloudPractice({ pack, rate, voiceUri, lang }: { pack: import('../ty
       const r = await api.gradeReadAloudSelf(target, typed);
       setResult({ percent: r.percent, segments: splitCharDiff(target, typed) });
     } catch (e) {
-      setErr(e instanceof Error ? e.message : 'check failed');
+      setErr(serverError(e));
     }
   };
 
   return (
     <div className="card">
-      <h3>Read-aloud drill</h3>
+      <h3>{t('practice.readAloudDrill')}</h3>
       <div className="row">
         <span className="target-text grow">{target}</span>
         <SpeakToggle text={target} rate={rate} voiceUri={voiceUri} lang={lang} />
@@ -151,10 +154,10 @@ function ReadAloudPractice({ pack, rate, voiceUri, lang }: { pack: import('../ty
         >
           {rec.recording ? '⏹ Stop recording' : '🎤 Record & check'}
         </button>
-        {rec.recording && <span className="small muted grow">Reading… tap stop when done.</span>}
+        {rec.recording && <span className="small muted grow">{t('practice.readingTapStop')}</span>}
       </div>
       {rec.error && <div className="error-banner">{rec.error}</div>}
-      <input lang="ko" value={typed} onChange={(e) => setTyped(e.target.value)} placeholder="Speak it, or type or paste what you said" />
+      <input lang={lang.htmlLang} value={typed} onChange={(e) => setTyped(e.target.value)} placeholder={t('practice.transcribePlaceholder')} />
       <div className="row">
         <button className="small" onClick={check} disabled={typed.trim() === ''}>
           Check match
@@ -162,17 +165,17 @@ function ReadAloudPractice({ pack, rate, voiceUri, lang }: { pack: import('../ty
         {result && <span className={`tag ${result.percent >= 80 ? '' : 'small-label'}`}>{result.percent}%</span>}
       </div>
       {result && <DiffView segments={result.segments} />}
-      {result && <p className="small muted" style={{ margin: '6px 0 0' }}>{readAloudBand(result.percent)}</p>}
+      {result && <p className="small muted" style={{ margin: '6px 0 0' }}>{t(readAloudBand(result.percent))}</p>}
       {err && <div className="error-banner">{err}</div>}
     </div>
   );
 }
 
-function readAloudBand(p: number): string {
-  if (p >= 90) return 'Great job — you covered nearly the whole sentence.';
-  if (p >= 70) return 'Close — a syllable or two didn\'t come through.';
-  if (p >= 50) return 'Roughly there — keep practising for a smoother read.';
-  return 'Not quite — try again slowly, syllable by syllable.';
+function readAloudBand(p: number): CopyKey {
+  if (p >= 90) return 'practice.bandGreat';
+  if (p >= 70) return 'practice.bandClose';
+  if (p >= 50) return 'practice.bandRough';
+  return 'practice.bandLow';
 }
 
 function splitCharDiff(aRaw: string, bRaw: string): { type: 'equal' | 'delete' | 'insert'; text: string }[] {
@@ -213,7 +216,8 @@ function splitCharDiff(aRaw: string, bRaw: string): { type: 'equal' | 'delete' |
   return out;
 }
 
-function FreeResponsePractice({ pack, rate, voiceUri, lang }: { pack: import('../types').ContentPack; rate: number; voiceUri: string; lang: TtsLanguage }) {
+function FreeResponsePractice({ pack, rate, voiceUri, lang }: { pack: import('../types').ContentPack; rate: number; voiceUri: string; lang: LanguageDescriptor }) {
+  const { t, serverError } = useCopy();
   const rec = useMediaRecorder();
   const [attemptId, setAttemptId] = useState<number | null>(null);
   const [queued, setQueued] = useState(false);
@@ -229,9 +233,9 @@ function FreeResponsePractice({ pack, rate, voiceUri, lang }: { pack: import('..
       setAttemptId(res.attempt_id);
       setQueued(res.queued);
       setFeedback(res.feedback ?? null);
-      setMsg(res.queued ? 'Submitted — feedback will appear after grading.' : 'Submitted.');
+      setMsg(res.queued ? t('practice.submittedFeedback') : t('practice.submitted'));
     } catch (e) {
-      setMsg(e instanceof Error ? e.message : 'upload failed');
+      setMsg(serverError(e));
     } finally {
       setBusy(false);
     }
@@ -260,7 +264,7 @@ function FreeResponsePractice({ pack, rate, voiceUri, lang }: { pack: import('..
         setQueued(false);
       }
     } catch (e) {
-      setMsg(e instanceof Error ? e.message : 'feedback check failed');
+      setMsg(serverError(e));
     }
   };
 
@@ -273,10 +277,10 @@ function FreeResponsePractice({ pack, rate, voiceUri, lang }: { pack: import('..
 
   return (
     <div className="card">
-      <h3>Free-response drill</h3>
+      <h3>{t('practice.freeResponseDrill')}</h3>
       <div className="row">
         <p className="target-text grow">{pack.speaking_prompt.target}</p>
-        <SpeakButton text={pack.speaking_prompt.target} rate={rate} voiceUri={voiceUri} lang={lang} label="Hear prompt" />
+        <SpeakButton text={pack.speaking_prompt.target} rate={rate} voiceUri={voiceUri} lang={lang} label="speak.hearPrompt" />
       </div>
       {feedback ? (
         <>
@@ -288,7 +292,7 @@ function FreeResponsePractice({ pack, rate, voiceUri, lang }: { pack: import('..
       ) : (
         <>
           {!rec.supported ? (
-            <div className="error-banner">Recording needs HTTPS and a supported browser — you can attach a file below.</div>
+            <div className="error-banner">{t('practice.httpsRequired')}</div>
           ) : (
             <div className="row">
               <button
@@ -311,15 +315,15 @@ function FreeResponsePractice({ pack, rate, voiceUri, lang }: { pack: import('..
           {rec.blob && attemptId === null && (
             <div className="row">
               <button className="small primary" disabled={busy} onClick={submitRecording}>
-                {busy ? 'Uploading…' : 'Submit recording'}
+                {busy ? t('common.uploading') : t('common.submitRecording')}
               </button>
             </div>
           )}
           {queued && (
             <div className="row">
-              <span className="small muted grow">Grading in progress — check back in a moment.</span>
+              <span className="small muted grow">{t('practice.gradingInProgress')}</span>
               <button className="small" onClick={pollFeedback} disabled={!attemptId}>
-                Check feedback
+                {t('common.checkFeedback')}
               </button>
             </div>
           )}

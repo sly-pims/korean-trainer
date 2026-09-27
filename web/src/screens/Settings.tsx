@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api, humanizeLevel } from '../api';
 import type { Settings } from '../types';
+import { useCopy } from '../copy';
 
 const IANA_TZ = [
   'Asia/Seoul',
@@ -32,23 +33,25 @@ const IANA_TZ = [
  * only set of options that will actually work.
  */
 function voiceOptions(voices: string[]): { id: string; label: string }[] {
-  return voices.map((id) => ({ id, label: id.replace(/^[a-z]{2}-[A-Z]{2}-/, '').replace(/Neural$/, '') }));
+  return voices.map((id) => ({ id, label: id.replace(/^[a-z]{2,3}-[A-Z]{2,3}-/, '').replace(/Neural$/, '') }));
 }
 
 export function SettingsScreen() {
+  const { serverError } = useCopy();
   const [s, setS] = useState<Settings | null>(null);
   const [err, setErr] = useState('');
   const [saved, setSaved] = useState('');
   const [busy, setBusy] = useState(false);
   const [resetting, setResetting] = useState(false);
   const [resetMsg, setResetMsg] = useState<{ text: string; error: boolean } | null>(null);
+  const { t } = useCopy();
 
   useEffect(() => {
     (async () => {
       try {
         setS(await api.getSettings());
       } catch (e) {
-        setErr(e instanceof Error ? e.message : 'could not load settings');
+        setErr(serverError(e));
       }
     })();
   }, []);
@@ -62,16 +65,16 @@ export function SettingsScreen() {
     // The server's reset always lands on level 1, so name it from the profile
     // rather than writing "Beginner 1" into an English sentence.
     const ok = window.confirm(
-      `Reset ALL progress? This deletes every session, word, writing entry and speaking attempt, sets your level back to ${humanizeLevel(1, s.lang.levels)} and clears the streak. Voice/speed settings are kept. This cannot be undone.`,
+      t('settings.resetConfirm', { level: humanizeLevel(1, s.lang.levels) }),
     );
     if (!ok) return;
     setResetting(true);
     setResetMsg(null);
     try {
       const r = await api.resetProgress();
-      setResetMsg(r.ok ? { text: 'Progress reset — you are ready to start from scratch.', error: false } : { text: 'Reset reported a problem.', error: true });
+      setResetMsg(r.ok ? { text: t('settings.resetDone'), error: false } : { text: t('settings.resetFailed'), error: true });
     } catch (e) {
-      setResetMsg({ text: e instanceof Error ? e.message : 'reset failed', error: true });
+      setResetMsg({ text: serverError(e), error: true });
     } finally {
       setResetting(false);
     }
@@ -91,9 +94,9 @@ export function SettingsScreen() {
         timezone: s.timezone,
       });
       setS(next);
-      setSaved('Saved ✓');
+      setSaved(t('common.saved'));
     } catch (e) {
-      setErr(e instanceof Error ? e.message : 'could not save');
+      setErr(serverError(e));
     } finally {
       setBusy(false);
     }
@@ -101,11 +104,11 @@ export function SettingsScreen() {
 
   return (
     <>
-      <h2>Settings</h2>
+      <h2>{t('settings.title')}</h2>
       {err && <div className="error-banner">{err}</div>}
 
       <div className="card">
-        <label htmlFor="level">Level</label>
+        <label htmlFor="level">{t('common.level')}</label>
         <p className="small muted">{s.lang.levels[String(s.level)]?.note ?? ''}</p>
         <select id="level" value={s.level} onChange={(e) => patch({ level: Number(e.target.value) })}>
           {[1, 2, 3, 4, 5, 6].map((l) => (
@@ -115,7 +118,7 @@ export function SettingsScreen() {
           ))}
         </select>
 
-        <label htmlFor="tts_rate">Speech speed ×{s.tts_rate.toFixed(2)}</label>
+        <label htmlFor="tts_rate">{t('settings.speechSpeed', { rate: s.tts_rate.toFixed(2) })}</label>
         <input
           id="tts_rate"
           type="range"
@@ -126,7 +129,7 @@ export function SettingsScreen() {
           onChange={(e) => patch({ tts_rate: Number(e.target.value) })}
         />
 
-        <label htmlFor="tts_voice">Voice</label>
+        <label htmlFor="tts_voice">{t('settings.voice')}</label>
         <select id="tts_voice" value={s.tts_voice} onChange={(e) => patch({ tts_voice: e.target.value })}>
           {voiceOptions(s.lang.voices).map((v) => (
             <option key={v.id} value={v.id}>
@@ -144,8 +147,8 @@ export function SettingsScreen() {
 
         <label className="row">
           <span>
-            Show romanization:
-            <span className="small muted"> (rendered next to passages)</span>
+            {t('settings.showRomanization')}
+            <span className="small muted">{t('settings.showRomanizationHint')}</span>
           </span>
           <input
             type="checkbox"
@@ -154,7 +157,7 @@ export function SettingsScreen() {
           />
         </label>
 
-        <label htmlFor="keep">Keep recordings (days)</label>
+        <label htmlFor="keep">{t('settings.keepRecordings')}</label>
         <select
           id="keep"
           value={s.keep_recordings_days}
@@ -162,16 +165,16 @@ export function SettingsScreen() {
         >
           {[0, 7, 14, 30, 90].map((d) => (
             <option key={d} value={d}>
-              {d === 0 ? 'Never keep' : `${d} days`}
+              {d === 0 ? t('settings.neverKeep') : t('settings.keepDays', { days: d })}
             </option>
           ))}
         </select>
 
-        <label htmlFor="tz">Timezone</label>
+        <label htmlFor="tz">{t('settings.timezone')}</label>
         <select id="tz" value={s.timezone} onChange={(e) => patch({ timezone: e.target.value })}>
-          {IANA_TZ.map((t) => (
-            <option key={t} value={t}>
-              {t}
+          {IANA_TZ.map((zone) => (
+            <option key={zone} value={zone}>
+              {zone}
             </option>
           ))}
           {s.timezone && !IANA_TZ.includes(s.timezone) && <option value={s.timezone}>{s.timezone}</option>}
@@ -180,19 +183,18 @@ export function SettingsScreen() {
 
       <div className="row">
         <button className="primary big-cta" disabled={busy} onClick={save}>
-          {busy ? 'Saving…' : 'Save settings'}
+          {busy ? t('settings.saving') : t('settings.save')}
         </button>
         {saved && <span className="small muted">{saved}</span>}
       </div>
 
-      <h3 style={{ marginTop: 24 }}>Danger zone</h3>
+      <h3 style={{ marginTop: 24 }}>{t('settings.dangerZone')}</h3>
       <div className="card">
         <p className="small muted">
-          Reset ALL progress: every session, word, writing entry and speaking attempt is deleted, your level returns to{' '}
-          {humanizeLevel(1, s.lang.levels)} and the streak is cleared. Voice/speed settings are kept. This cannot be undone.
+          {t('settings.resetWarning', { level: humanizeLevel(1, s.lang.levels) })}
         </p>
         <button className="danger" disabled={resetting} onClick={reset}>
-          {resetting ? 'Resetting…' : 'Reset all progress'}
+          {resetting ? t('settings.resetting') : t('settings.resetAll')}
         </button>
         {resetMsg && <p className={`small ${resetMsg.error ? 'error-banner' : 'muted'}`}>{resetMsg.text}</p>}
       </div>

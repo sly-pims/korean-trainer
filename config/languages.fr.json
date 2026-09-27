@@ -2,6 +2,7 @@
   "code": "fr",
   "name": "French",
   "endonym": "Français",
+  "lexiconExample": "pomme",
   "locale": "fr-FR",
   "htmlLang": "fr",
   "defaultVoice": "fr-FR-DeniseNeural",

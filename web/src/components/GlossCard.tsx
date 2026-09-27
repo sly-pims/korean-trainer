@@ -1,16 +1,18 @@
 import type { GlossaryEntry } from '../types';
 import { SpeakButton } from './SpeakButton';
-import type { TtsLanguage } from '../hooks/useTts';
+import { useCopy } from '../copy';
+import type { LanguageDescriptor } from '../types';
 
 interface Props {
   entry: GlossaryEntry;
   rate: number;
   voiceUri?: string | null;
-  lang: TtsLanguage;
+  lang: LanguageDescriptor;
   onTap?: () => void;
 }
 
 export function GlossCard({ entry, rate, voiceUri, lang, onTap }: Props) {
+  const { t } = useCopy();
   return (
     <div className="card gloss-card">
       <div className="row">
@@ -24,7 +26,7 @@ export function GlossCard({ entry, rate, voiceUri, lang, onTap }: Props) {
       <p className="muted">{entry.meaning_native}</p>
       {onTap && (
         <button className="small" onClick={onTap}>
-          Close
+          {t('common.close')}
         </button>
       )}
     </div>

@@ -49,6 +49,18 @@ describe('language profiles', () => {
     expect(new RegExp(fr.scriptPattern).test('안녕하세요')).toBe(false);
   });
 
+  it('lexiconExample is written in its own language, not copied from another', () => {
+    // The placeholder in the "add a word" form used to be a literal Korean
+    // word sitting in the markup. This is the guard that keeps it honest: the
+    // example has to match the language's own script, so a French profile
+    // cannot keep a Hangul example after being copied from the Korean one.
+    // Mutation-checked: putting the Korean example in the French profile fails.
+    for (const code of codes) {
+      const p = loadLanguageProfile(repoRoot, code);
+      expect(new RegExp(p.scriptPattern).test(p.lexiconExample)).toBe(true);
+    }
+  });
+
   it('defines all six levels and a level guide for each', () => {
     for (const code of codes) {
       const p = loadLanguageProfile(repoRoot, code);

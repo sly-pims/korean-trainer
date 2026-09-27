@@ -7,7 +7,7 @@ import { GlossCard } from '../components/GlossCard';
 import { SrsCard } from '../components/SrsCard';
 import { SpeakButton, SpeakToggle } from '../components/SpeakButton';
 import { useMediaRecorder } from '../hooks/useMediaRecorder';
-import type { TtsLanguage } from '../hooks/useTts';
+import { useCopy, type CopyKey } from '../copy';
 import type { LanguageDescriptor } from '../types';
 import { useSrsReview } from '../hooks/useSrsReview';
 import type { GlossaryEntry, ListeningResult, SessionWithPack, Settings, WritingFeedback } from '../types';
@@ -16,13 +16,13 @@ const STEP_ORDER = ['warmup', 'read', 'writing', 'listening', 'speaking', 'done'
 
 type StepName = (typeof STEP_ORDER)[number];
 
-const STEP_LABEL: Record<string, string> = {
-  warmup: 'Review',
-  read: 'Read',
-  writing: 'Write',
-  listening: 'Listen',
-  speaking: 'Speak',
-  done: 'Done',
+const STEP_LABEL: Record<string, CopyKey> = {
+  warmup: 'session.warmup',
+  read: 'session.read',
+  writing: 'session.writing',
+  listening: 'session.listen',
+  speaking: 'session.speak',
+  done: 'common.done',
 };
 
 interface SessionUiState {
@@ -33,6 +33,7 @@ interface SessionUiState {
 }
 
 export function Session() {
+  const { t, serverError } = useCopy();
   const { id } = useParams();
   const nav = useNavigate();
   const sessionId = Number(id);
@@ -53,7 +54,7 @@ export function Session() {
           // already completed recap fetched lazily
         }
       } catch (err) {
-        setUi((u) => ({ ...u, error: err instanceof Error ? err.message : 'load failed' }));
+        setUi((u) => ({ ...u, error: serverError(err) }));
       }
     })();
   }, [sessionId]);
@@ -68,7 +69,7 @@ export function Session() {
       await api.setStep(sessionId, next);
       setData((d) => (d ? { ...d, session: { ...d.session, current_step: next } } : d));
     } catch (err) {
-      setUi((u) => ({ ...u, error: err instanceof Error ? err.message : 'step failed' }));
+      setUi((u) => ({ ...u, error: serverError(err) }));
     } finally {
       setUi((u) => ({ ...u, busy: false }));
     }
@@ -82,9 +83,9 @@ export function Session() {
   return (
     <>
       <div className="row">
-        <h2 className="grow">Daily session</h2>
+        <h2 className="grow">{t('session.title')}</h2>
         <span className="steps-chip">
-          {STEP_LABEL[step]} {idx + 1}/{STEP_ORDER.length}
+          {t(STEP_LABEL[step]!)} {idx + 1}/{STEP_ORDER.length}
         </span>
       </div>
       <div className="progress-strip">
@@ -142,7 +143,8 @@ export function Session() {
 
 // ---------------- Warmup ----------------
 
-function Warmup({ rate, voiceUri, lang, onDone }: { rate: number; voiceUri: string; lang: TtsLanguage; onDone: () => void }) {
+function Warmup({ rate, voiceUri, lang, onDone }: { rate: number; voiceUri: string; lang: LanguageDescriptor; onDone: () => void }) {
+  const { t } = useCopy();
   const { cards, busyId, err, review } = useSrsReview();
 
   if (err) return <div className="error-banner">{err}</div>;
@@ -150,10 +152,10 @@ function Warmup({ rate, voiceUri, lang, onDone }: { rate: number; voiceUri: stri
 
   return (
     <>
-      <h3>Warm-up (due words)</h3>
+      <h3>{t('session.warmup')}</h3>
       {cards.length === 0 ? (
         <div className="card">
-          <p className="muted">No words due right now. Great job keeping on top of them!</p>
+          <p className="muted">{t('session.warmupNone')}</p>
         </div>
       ) : (
         <SrsCard cards={cards} busy={busyId} rate={rate} voiceUri={voiceUri} lang={lang} onReview={review} />
@@ -179,9 +181,10 @@ function Read({
   sessionId: number;
   rate: number;
   voiceUri: string;
-  lang: TtsLanguage;
+  lang: LanguageDescriptor;
   onDone: () => void;
 }) {
+  const { t } = useCopy();
   const [selected, setSelected] = useState<GlossaryEntry | null>(null);
   const [tappableSet, setTappable] = useState<Set<string>>(new Set());
   const [showEn, setShowEn] = useState(false);
@@ -259,10 +262,10 @@ function Read({
   return (
     <>
       <div className="row">
-        <h3 className="grow">Reading</h3>
-        <SpeakButton text={pack.passage_target} rate={rate} voiceUri={voiceUri} lang={lang} label="Read the passage" />
+        <h3 className="grow">{t('session.reading')}</h3>
+        <SpeakButton text={pack.passage_target} rate={rate} voiceUri={voiceUri} lang={lang} label="speak.readPassage" />
         <button className="small" onClick={() => setShowEn((v) => !v)}>
-          {showEn ? 'Hide English' : 'Show English'}
+          {showEn ? t('session.hideTranslation') : t('session.showTranslation')}
         </button>
       </div>
       {showEn && <p className="muted small card">{pack.passage_native}</p>}
@@ -282,7 +285,7 @@ function Read({
         {selected && <GlossCard entry={selected} rate={rate} voiceUri={voiceUri} lang={lang} onTap={() => setSelected(null)} />}
       </div>
 
-      <h3>Check your understanding</h3>
+      <h3>{t('session.checkUnderstanding')}</h3>
       {pack.questions.map((q, qi) => {
         const answered = qAnswers[qi] !== undefined;
         return (
@@ -308,7 +311,7 @@ function Read({
       <button className="primary big-cta" disabled={!allAnswered || saving} onClick={() => void continueToWriting()}>
         Continue to writing →
       </button>
-      {allAnswered && <p className="small muted center">Your answers will be saved as you continue.</p>}
+      {allAnswered && <p className="small muted center">{t('session.answersSaved')}</p>}
     </>
   );
 }
@@ -327,9 +330,10 @@ function Write({
   sessionId: number;
   rate: number;
   voiceUri: string;
-  lang: TtsLanguage;
+  lang: LanguageDescriptor;
   onDone: () => void;
 }) {
+  const { t, serverError } = useCopy();
   const [text, setText] = useState('');
   const [feedback, setFeedback] = useState<WritingFeedback | null>(null);
   const [queued, setQueued] = useState(false);
@@ -345,7 +349,7 @@ function Write({
       setQueued(res.queued);
       setFeedback(res.feedback);
     } catch (e) {
-      setErr(e instanceof Error ? e.message : 'could not submit');
+      setErr(serverError(e));
     } finally {
       setBusy(false);
     }
@@ -355,35 +359,33 @@ function Write({
 
   return (
     <>
-      <h3>Writing</h3>
+      <h3>{t('session.writing')}</h3>
       <div className="card">
-        <p className="small muted">
-          Write about <b>your own life</b> — this model sentence only shows the pattern to use. Don't copy it verbatim.
-        </p>
+        <p className="small muted">{t('session.writingHint')}</p>
         <div className="row">
-          <span className="tag">model sentence</span>
+          <span className="tag">{t('session.modelSentence')}</span>
           <span className="grow" />
-          <SpeakButton text={pack.writing_prompt.target} rate={rate} voiceUri={voiceUri} lang={lang} label="Hear the model" />
+          <SpeakButton text={pack.writing_prompt.target} rate={rate} voiceUri={voiceUri} lang={lang} label="speak.hearModel" />
         </div>
         <p className="target-text grow">{pack.writing_prompt.target}</p>
         <p className="muted">
-          {pack.writing_prompt.native} — try the same pattern with your own details (family, hobbies, plans…).
+          {pack.writing_prompt.native} {t('session.writingTryPattern')}
         </p>
         {pack.writing_prompt.target_grammar && <span className="tag small-label">{pack.writing_prompt.target_grammar}</span>}
       </div>
-      <label htmlFor="write">Write your own sentence in Korean (any topic using the same structure)</label>
+      <label htmlFor="write">{t('session.writeOwn', { lang: lang.name })}</label>
       <textarea
         id="write"
-        lang="ko"
+        lang={lang.htmlLang}
         enterKeyHint="done"
         value={text}
         onChange={(e) => setText(e.target.value)}
-        placeholder="나의 문장을 써 보세요… (e.g. 저는 가족이 세 명이에요)"
+        placeholder={t('session.writePlaceholder')}
       />
       {err && <div className="error-banner">{err}</div>}
-      {queued && <p className="muted small">Sent for grading — feedback will appear shortly.</p>}
+      {queued && <p className="muted small">{t('session.queuedGrading')}</p>}
       <button className="primary big-cta" disabled={busy || text.trim().length === 0} onClick={submit}>
-        {busy ? 'Grading…' : 'Submit'}
+        {busy ? t('common.grading') : t('common.submit')}
       </button>
     </>
   );
@@ -399,7 +401,7 @@ function WritingFeedbackView({
   feedback: WritingFeedback;
   rate: number;
   voiceUri: string;
-  lang: TtsLanguage;
+  lang: LanguageDescriptor;
   onDone: () => void;
 }) {
   return (
@@ -426,9 +428,10 @@ function Listen({
   sessionId: number;
   rate: number;
   voiceUri: string;
-  lang: TtsLanguage;
+  lang: LanguageDescriptor;
   onDone: () => void;
 }) {
+  const { t, serverError } = useCopy();
   const targets = pack.sentences.slice(0, 3);
   const [typed, setTyped] = useState<string[]>(targets.map(() => ''));
   const [result, setResult] = useState<ListeningResult | null>(null);
@@ -441,7 +444,7 @@ function Listen({
     try {
       setResult(await api.gradeListening(sessionId, typed));
     } catch (e) {
-      setErr(e instanceof Error ? e.message : 'listening failed');
+      setErr(serverError(e));
     } finally {
       setBusy(false);
     }
@@ -449,7 +452,7 @@ function Listen({
 
   return (
     <>
-      <h3>Dictation</h3>
+      <h3>{t('session.dictation')}</h3>
       <p className="muted small">
         Listen, then type what you hear. Spaces and punctuation don’t count.
       </p>
@@ -465,10 +468,10 @@ function Listen({
             )}
           </div>
           <input
-            lang="ko"
+            lang={lang.htmlLang}
             value={typed[i]}
             onChange={(e) => setTyped((t) => t.map((v, j) => (j === i ? e.target.value : v)))}
-            placeholder="듣고 적어 보세요…"
+            placeholder={t('session.dictationPlaceholder')}
             disabled={!!result}
           />
           {result && <DiffView segments={result.perSentence[i].segments} />}
@@ -477,7 +480,7 @@ function Listen({
       {err && <div className="error-banner">{err}</div>}
       {!result && (
         <button className="primary big-cta" disabled={busy || typed.some((t) => t.trim() === '')} onClick={check}>
-          {busy ? 'Checking…' : 'Check dictation'}
+          {busy ? t('common.checking') : t('common.checkDictation')}
         </button>
       )}
       {result && (
@@ -503,7 +506,7 @@ function Speak({
   sessionId: number;
   rate: number;
   voiceUri: string;
-  lang: TtsLanguage;
+  lang: LanguageDescriptor;
   onDone: () => void;
 }) {
   return (
@@ -525,12 +528,13 @@ function ReadAloud({
   sessionId: number;
   rate: number;
   voiceUri: string;
-  lang: TtsLanguage;
+  lang: LanguageDescriptor;
 }) {
+  const { t } = useCopy();
   const targets = pack.sentences.slice(0, 3);
   return (
     <>
-      <h3>Read aloud</h3>
+      <h3>{t('session.readAloud')}</h3>
       <p className="muted small">
         Tap 🔊 to hear the sentence, then read it back. Mic recognition is approximate — a low match may be the
         recognizer, not you.
@@ -562,8 +566,9 @@ function ReadAloudSentence({
   sessionId: number;
   rate: number;
   voiceUri: string;
-  lang: TtsLanguage;
+  lang: LanguageDescriptor;
 }) {
+  const { t, serverError } = useCopy();
   const rec = useMediaRecorder();
   const [transcript, setTranscript] = useState('');
   const [percent, setPercent] = useState<number | null>(null);
@@ -582,7 +587,7 @@ function ReadAloudSentence({
         setPercent(r.percent);
         setSegments(buildSegments(target, r.transcript));
       } catch (e) {
-        setErr(e instanceof Error ? e.message : 'check failed');
+        setErr(serverError(e));
       } finally {
         setBusy(false);
       }
@@ -599,7 +604,7 @@ function ReadAloudSentence({
       setPercent(r.percent);
       setSegments(buildSegments(target, transcript));
     } catch (e) {
-      setErr(e instanceof Error ? e.message : 'check failed');
+      setErr(serverError(e));
     } finally {
       setBusy(false);
     }
@@ -610,7 +615,7 @@ function ReadAloudSentence({
       <div className="row">
         <span className="small muted grow">{index + 1}.</span>
         <span className="target-text">{target}</span>
-        <SpeakButton text={target} rate={rate} voiceUri={voiceUri} lang={lang} label="Hear the sentence" />
+        <SpeakButton text={target} rate={rate} voiceUri={voiceUri} lang={lang} label="speak.hearSentence" />
       </div>
       <div className="row">
         <button
@@ -629,16 +634,16 @@ function ReadAloudSentence({
         >
           {rec.recording ? '⏹ Stop recording' : '🎤 Record & check'}
         </button>
-        {rec.recording && <span className="small muted grow">Recording… read it out loud, then tap stop.</span>}
+        {rec.recording && <span className="small muted grow">{t('session.recording')}</span>}
       </div>
       {rec.error && <div className="error-banner">{rec.error}</div>}
-      <label htmlFor={`transcript-${index}`}>Transcript</label>
+      <label htmlFor={`transcript-${index}`}>{t('common.transcript')}</label>
       <input
         id={`transcript-${index}`}
-        lang="ko"
+        lang={lang.htmlLang}
         value={transcript}
         onChange={(e) => setTranscript(e.target.value)}
-        placeholder="Type what you said if microphone recognition is unavailable"
+        placeholder={t('session.transcriptPlaceholder')}
       />
       {percent !== null && segments && (
         <div className="row">
@@ -648,7 +653,7 @@ function ReadAloudSentence({
       )}
       {err && <div className="error-banner">{err}</div>}
       <button className="small" disabled={busy || transcript.trim() === '' || percent !== null} onClick={check}>
-        {busy ? 'Checking…' : 'Check my reading'}
+        {busy ? t('common.checking') : t('common.checkReading')}
       </button>
     </div>
   );
@@ -712,9 +717,10 @@ function FreeResponse({
   sessionId: number;
   rate: number;
   voiceUri: string;
-  lang: TtsLanguage;
+  lang: LanguageDescriptor;
   onDone: () => void;
 }) {
+  const { t, serverError } = useCopy();
   const rec = useMediaRecorder((msg) => setErr(msg));
   const [uploading, setUploading] = useState(false);
   const [attemptId, setAttemptId] = useState<number | null>(null);
@@ -736,7 +742,7 @@ function FreeResponse({
       localStorage.setItem('kt:privacy-ok', '1');
       setShowPrivacy(false);
     } catch (e) {
-      setErr(e instanceof Error ? e.message : 'upload failed');
+      setErr(serverError(e));
     } finally {
       setUploading(false);
     }
@@ -751,7 +757,7 @@ function FreeResponse({
         setQueued(false);
       }
     } catch (e) {
-      setErr(e instanceof Error ? e.message : 'feedback check failed');
+      setErr(serverError(e));
     }
   };
 
@@ -768,27 +774,24 @@ function FreeResponse({
 
   return (
     <>
-      <h3>Free response</h3>
+      <h3>{t('session.freeResponse')}</h3>
       <div className="card">
         <div className="row">
           <p className="target-text grow">{pack.speaking_prompt.target}</p>
-          <SpeakButton text={pack.speaking_prompt.target} rate={rate} voiceUri={voiceUri} lang={lang} label="Hear the prompt" />
+          <SpeakButton text={pack.speaking_prompt.target} rate={rate} voiceUri={voiceUri} lang={lang} label="speak.hearPrompt" />
         </div>
         <p className="muted">{pack.speaking_prompt.native}</p>
       </div>
       {showPrivacy && (
         <div className="card">
-          <p className="small muted">
-            🔒 Your recording stays on this trainer and is only used for feedback. It is auto-deleted after the
-            retention period.
-          </p>
+          <p className="small muted">{t('session.recordingPrivacy')}</p>
           <button className="small" onClick={() => { setShowPrivacy(false); localStorage.setItem('kt:privacy-ok', '1'); }}>
             Got it
           </button>
         </div>
       )}
       {!rec.supported ? (
-        <div className="error-banner">Recording needs HTTPS and a supported browser.</div>
+        <div className="error-banner">{t('session.httpsRequired')}</div>
       ) : (
         <div className="card">
           <div className="row">
@@ -806,21 +809,21 @@ function FreeResponse({
             >
               {rec.recording ? '⏹ Stop recording' : '🎤 Start recording'}
             </button>
-            {rec.recording && <span className="small muted">max 60s</span>}
+            {rec.recording && <span className="small muted">{t('session.maxSeconds')}</span>}
           </div>
           {rec.elapsedMs > 0 && <p className="small muted">{Math.round(rec.elapsedMs / 1000)}s recorded</p>}
           {err && <div className="error-banner">{err}</div>}
           {queued && (
             <div className="row">
-              <span className="small muted grow">Grading in progress — check back in a moment.</span>
+              <span className="small muted grow">{t('session.grading')}</span>
               <button className="small" onClick={pollFeedback} disabled={!attemptId}>
-                Check feedback
+                {t('common.checkFeedback')}
               </button>
             </div>
           )}
           {attemptId === null && (
             <button className="small" disabled={!rec.blob || uploading} onClick={submitRecording}>
-              {uploading ? 'Uploading…' : 'Submit recording'}
+              {uploading ? t('common.uploading') : t('common.submitRecording')}
             </button>
           )}
         </div>
@@ -845,6 +848,7 @@ function WrapUp({
   lang: LanguageDescriptor;
   onBack: () => void;
 }) {
+  const { t, serverError } = useCopy();
   const [result, setResult] = useState<import('../types').SessionCompleteResult | null>(null);
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
@@ -856,7 +860,7 @@ function WrapUp({
         const r = await api.completeSession(session.id, duration);
         setResult(r);
       } catch (e) {
-        setErr(e instanceof Error ? e.message : 'wrap-up failed');
+        setErr(serverError(e));
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -880,7 +884,7 @@ function WrapUp({
           : r,
       );
     } catch (e) {
-      setErr(e instanceof Error ? e.message : 'level change failed');
+      setErr(serverError(e));
     } finally {
       setBusy(false);
     }
@@ -899,18 +903,18 @@ function WrapUp({
 
   return (
     <>
-      <h3>Session complete!</h3>
+      <h3>{t('session.completeTitle')}</h3>
       <div className="card center">
         <p className="target-text" style={{ fontSize: '1.8rem' }}>
           🎉 {result.streak}-day streak
         </p>
-        <p className="muted">Keep it going tomorrow.</p>
+        <p className="muted">{t('session.keepGoing')}</p>
       </div>
       <div className="card">
         {rows.map(([label, score]) => (
           <div className="list-item" key={label}>
             <span className="grow">{label}</span>
-            {score === null ? <span className="muted small">skipped</span> : <span className="tag">{score}%</span>}
+            {score === null ? <span className="muted small">{t('session.skipped')}</span> : <span className="tag">{score}%</span>}
           </div>
         ))}
       </div>
@@ -918,12 +922,12 @@ function WrapUp({
         <div className="card">
           <p>{levelSuggestionToPrompt(result.suggestion, lang.levels)}</p>
           <button className="primary" disabled={busy} onClick={applySuggestion}>
-            {result.suggestion.action === 'up' ? 'Level up' : 'Level down'}
+            {result.suggestion.action === 'up' ? t('session.levelUp') : t('session.levelDown')}
           </button>
         </div>
       )}
       <button className="ghost" onClick={onBack}>
-        Back to home
+        {t('session.backToHome')}
       </button>
     </>
   );

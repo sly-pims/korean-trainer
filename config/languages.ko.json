@@ -2,6 +2,7 @@
   "code": "ko",
   "name": "Korean",
   "endonym": "한국어",
+  "lexiconExample": "사과",
   "locale": "ko-KR",
   "htmlLang": "ko",
   "defaultVoice": "ko-KR-SunHiNeural",

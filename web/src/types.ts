@@ -56,6 +56,8 @@ export interface LanguageDescriptor {
   code: string;
   name: string;
   endonym: string;
+  /** One ordinary word in this language, for the "add a word" placeholder. */
+  lexiconExample: string;
   htmlLang: string;
   /** BCP-47 tag for speech recognition and TTS. */
   locale: string;
