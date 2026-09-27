@@ -171,8 +171,26 @@ export const api = {
     request<Settings>('/api/settings', { method: 'PUT', body: JSON.stringify(patch) }),
 };
 
-export const humanizeLevel = (level: number): string =>
-  ['', 'Beginner 1', 'Beginner 2', 'Beginner 3', 'Intermediate 1', 'Intermediate 2', 'Advanced'][level] ?? `Level ${level}`;
+/**
+ * A level's name on the active language's own scale.
+ *
+ * This used to be a hardcoded array returning "Beginner 2" and "Advanced",
+ * which is a guess at what TOPIK levels mean and simply wrong for a language
+ * measured on CEFR. The server sends the real names, so the UI says `TOPIK 2`
+ * or `CEFR B1` without knowing anything about either.
+ *
+ * `levels` is the descriptor's map, keyed by level number as a string.
+ */
+export const humanizeLevel = (level: number, levels: LevelMap): string => {
+  const name = levels?.[String(level)]?.name;
+  if (name) return name;
+  // Before the descriptor arrives there is nothing to name the level, so show
+  // the number rather than inventing a proficiency label for it.
+  return `Level ${level}`;
+};
+
+/** The level map a {@link humanizeLevel} call needs, from wherever settings came. */
+export type LevelMap = Settings['lang']['levels'];
 
 export function posLabel(pos: string): string {
   const map: Record<string, string> = {
@@ -198,10 +216,13 @@ export function timeEstimate(level: number): number {
   return level <= 2 ? 12 : level <= 4 ? 18 : 25;
 }
 
-export function levelSuggestionToPrompt(s: LevelSuggestion | null | undefined): string {
+export function levelSuggestionToPrompt(
+  s: LevelSuggestion | null | undefined,
+  levels: LevelMap,
+): string {
   if (!s) return 'No level change suggested yet.';
-  if (s.action === 'up') return `Well done! Consider moving up to ${humanizeLevel(s.suggested_level)}.`;
-  if (s.action === 'down') return `Today was tough. Consider easing back to ${humanizeLevel(s.suggested_level)}.`;
+  if (s.action === 'up') return `Well done! Consider moving up to ${humanizeLevel(s.suggested_level, levels)}.`;
+  if (s.action === 'down') return `Today was tough. Consider easing back to ${humanizeLevel(s.suggested_level, levels)}.`;
   return 'You are right on track. Keep practising!';
 }
 

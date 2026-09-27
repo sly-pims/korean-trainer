@@ -1,16 +1,23 @@
 import { useState } from 'react';
-import { useTts } from '../hooks/useTts';
+import { useTts, type TtsLanguage } from '../hooks/useTts';
 
 interface Props {
   text: string;
   rate?: number;
   voiceUri?: string | null;
   label?: string;
+  /**
+   * The active language, from `settings.lang`. Required rather than defaulted:
+   * the hook has to know which language it is speaking to pick a voice, and a
+   * default here would be a hardcoded language in a component that cannot know
+   * the deployment teaches more than one.
+   */
+  lang: TtsLanguage;
 }
 
-/** A button that plays Korean text through speechSynthesis. */
-export function SpeakButton({ text, rate, voiceUri, label }: Props) {
-  const { speak, stop, speaking, supported } = useTts();
+/** A button that plays target-language text aloud. */
+export function SpeakButton({ text, rate, voiceUri, label, lang }: Props) {
+  const { speak, stop, speaking, supported } = useTts(lang);
   const [err, setErr] = useState('');
   if (!supported) return null;
   return (
@@ -29,8 +36,18 @@ export function SpeakButton({ text, rate, voiceUri, label }: Props) {
 }
 
 /** A speak button with an explicit slow/normal toggle (for dictation). */
-export function SpeakToggle({ text, rate, voiceUri }: { text: string; rate: number; voiceUri?: string | null }) {
-  const { speak, stop, speaking, supported } = useTts();
+export function SpeakToggle({
+  text,
+  rate,
+  voiceUri,
+  lang,
+}: {
+  text: string;
+  rate: number;
+  voiceUri?: string | null;
+  lang: TtsLanguage;
+}) {
+  const { speak, stop, speaking, supported } = useTts(lang);
   const [slow, setSlow] = useState(false);
   if (!supported) return <span className="small muted">TTS unavailable</span>;
   return (

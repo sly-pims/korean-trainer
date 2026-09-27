@@ -255,3 +255,62 @@ describe('the profile the route resolves', () => {
     expect((await get('/api/settings')).json().tts_voice).toBe(fr.defaultVoice);
   });
 });
+
+describe('the language descriptor sent to the client', () => {
+  // The web app used to hardcode the voice list, the locale and the level names.
+  // It now reads them from here, so the contract is pinned here: a change that
+  // drops a field would otherwise only show up as an empty select or a
+  // "Level undefined" in the browser.
+  it('describes the active language, not a hardcoded one', async () => {
+    const { get } = await signedInApp('fr');
+    const lang = (await get('/api/settings')).json().lang;
+    expect(lang).toEqual({
+      code: 'fr',
+      name: fr.name,
+      endonym: fr.endonym,
+      htmlLang: fr.htmlLang,
+      locale: fr.locale,
+      defaultVoice: fr.defaultVoice,
+      voices: fr.voices,
+      levelScaleName: fr.levelScaleName,
+      levels: Object.fromEntries(
+        Object.entries(fr.levels).map(([l, e]) => [l, { name: e.name, note: e.note }]),
+      ),
+    });
+  });
+
+  it('travels on every response that carries settings', async () => {
+    // Home and Progress read the level name off the settings they already fetch,
+    // so a descriptor missing from one of them would blank that screen. The
+    // envelope differs per endpoint: /api/settings is the settings object
+    // itself, the others nest it under `settings`.
+    const { get } = await signedInApp('ko');
+    for (const url of ['/api/settings', '/api/home', '/api/progress']) {
+      const res = await get(url);
+      expect(res.statusCode, url).toBe(200);
+      const settings = url === '/api/settings' ? res.json() : res.json().settings;
+      expect(settings?.lang?.code, url).toBe('ko');
+    }
+  });
+
+  it('names levels on the language own scale, with a note for each', async () => {
+    const { get } = await signedInApp('ko');
+    const lang = (await get('/api/settings')).json().lang;
+    for (const l of ['1', '2', '3', '4', '5', '6']) {
+      expect(lang.levels[l].name).toContain(lang.levelScaleName);
+      expect(lang.levels[l].note).toBeTruthy();
+    }
+  });
+
+  it('offers only voices the active language can actually speak', async () => {
+    // The settings screen builds its select from this list, and /api/tts refuses
+    // anything outside it, so the two must not be able to drift.
+    const { get } = await signedInApp('fr');
+    const lang = (await get('/api/settings')).json().lang;
+    expect(lang.voices).toContain(lang.defaultVoice);
+    for (const voice of lang.voices) {
+      expect(() => resolveVoice(fr, voice)).not.toThrow();
+      expect(() => resolveVoice(ko, voice)).toThrow(UnknownVoiceError);
+    }
+  });
+});

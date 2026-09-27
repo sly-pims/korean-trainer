@@ -23,20 +23,17 @@ const IANA_TZ = [
   'Etc/UTC',
 ];
 
-const KO_VOICES = [
-  { id: 'ko-KR-SunHiNeural', label: 'SunHi — female (natural)' },
-  { id: 'ko-KR-InJoonNeural', label: 'InJoon — male (natural)' },
-  { id: 'ko-KR-HyunsuNeural', label: 'Hyunsu — male (natural)' },
-];
-
-const LEVEL_NOTES = [
-  'Day 1 – greetings, hangul reading',
-  'Basics: self-introduction, food, daily verbs',
-  'Common travel & conversation vocabulary',
-  'Intermediate: longer passages, past tense',
-  'Upper-intermediate: opinion and narrative',
-  'Advanced: near-native passages',
-];
+/**
+ * The voices to offer, from the active language's own allowlist.
+ *
+ * This was a hardcoded list of three Korean voices — the profile has six, so
+ * three of them were unreachable — and nothing at all for any other language.
+ * The server refuses a voice outside `lang.voices`, so this list is also the
+ * only set of options that will actually work.
+ */
+function voiceOptions(voices: string[]): { id: string; label: string }[] {
+  return voices.map((id) => ({ id, label: id.replace(/^[a-z]{2}-[A-Z]{2}-/, '').replace(/Neural$/, '') }));
+}
 
 export function SettingsScreen() {
   const [s, setS] = useState<Settings | null>(null);
@@ -62,8 +59,10 @@ export function SettingsScreen() {
   const patch = (p: Partial<Settings>) => setS((cur) => (cur ? { ...cur, ...p } : cur));
 
   const reset = async () => {
+    // The server's reset always lands on level 1, so name it from the profile
+    // rather than writing "Beginner 1" into an English sentence.
     const ok = window.confirm(
-      'Reset ALL progress? This deletes every session, word, writing entry and speaking attempt, sets your level back to Beginner 1 and clears the streak. Voice/speed settings are kept. This cannot be undone.',
+      `Reset ALL progress? This deletes every session, word, writing entry and speaking attempt, sets your level back to ${humanizeLevel(1, s.lang.levels)} and clears the streak. Voice/speed settings are kept. This cannot be undone.`,
     );
     if (!ok) return;
     setResetting(true);
@@ -107,11 +106,11 @@ export function SettingsScreen() {
 
       <div className="card">
         <label htmlFor="level">Level</label>
-        <p className="small muted">{LEVEL_NOTES[s.level] ?? ''}</p>
+        <p className="small muted">{s.lang.levels[String(s.level)]?.note ?? ''}</p>
         <select id="level" value={s.level} onChange={(e) => patch({ level: Number(e.target.value) })}>
           {[1, 2, 3, 4, 5, 6].map((l) => (
             <option key={l} value={l}>
-              {humanizeLevel(l)}
+              {humanizeLevel(l, s.lang.levels)}
             </option>
           ))}
         </select>
@@ -129,12 +128,16 @@ export function SettingsScreen() {
 
         <label htmlFor="tts_voice">Voice</label>
         <select id="tts_voice" value={s.tts_voice} onChange={(e) => patch({ tts_voice: e.target.value })}>
-          {KO_VOICES.map((v) => (
+          {voiceOptions(s.lang.voices).map((v) => (
             <option key={v.id} value={v.id}>
               {v.label}
             </option>
           ))}
-          {s.tts_voice && !KO_VOICES.some((v) => v.id === s.tts_voice) && (
+          {/* A voice the server no longer offers (the language list changed under
+              a saved setting) stays visible rather than silently resetting the
+              select. readSettings already substitutes the default, so this only
+              triggers on a value the client set and the server has not re-read. */}
+          {s.tts_voice && !s.lang.voices.includes(s.tts_voice) && (
             <option value={s.tts_voice}>{s.tts_voice}</option>
           )}
         </select>
@@ -185,8 +188,8 @@ export function SettingsScreen() {
       <h3 style={{ marginTop: 24 }}>Danger zone</h3>
       <div className="card">
         <p className="small muted">
-          Reset ALL progress: every session, word, writing entry and speaking attempt is deleted, your level returns to
-          Beginner 1 and the streak is cleared. Voice/speed settings are kept. This cannot be undone.
+          Reset ALL progress: every session, word, writing entry and speaking attempt is deleted, your level returns to{' '}
+          {humanizeLevel(1, s.lang.levels)} and the streak is cleared. Voice/speed settings are kept. This cannot be undone.
         </p>
         <button className="danger" disabled={resetting} onClick={reset}>
           {resetting ? 'Resetting…' : 'Reset all progress'}

@@ -5,6 +5,7 @@ import { SpeakingEvaluation } from '../components/Feedback';
 import { GlossCard } from '../components/GlossCard';
 import { SpeakButton, SpeakToggle } from '../components/SpeakButton';
 import { useMediaRecorder } from '../hooks/useMediaRecorder';
+import type { TtsLanguage } from '../hooks/useTts';
 import type { GlossaryEntry, SpeakingFeedback } from '../types';
 
 /** Standalone practice screen: random pack, read-aloud drill and a free-response drill. */
@@ -31,6 +32,7 @@ export function Practice() {
 
   const rate = settings.tts_rate;
   const voiceUri = settings.tts_voice;
+  const lang = settings.lang;
 
   return (
     <>
@@ -41,7 +43,7 @@ export function Practice() {
       <div className="card">
         <div className="row">
           <h3 className="grow">Random lesson</h3>
-          <SpeakButton text={pack.passage_target} rate={rate} voiceUri={voiceUri} label="Play passage" />
+          <SpeakButton text={pack.passage_target} rate={rate} voiceUri={voiceUri} lang={lang} label="Play passage" />
         </div>
         <p className="passage">
           {splitPassage(pack.passage_target, pack.glossary.map((g) => g.surface)).map((piece, i) =>
@@ -62,13 +64,13 @@ export function Practice() {
           )}
         </p>
         {selected && (
-          <GlossCard entry={selected} rate={rate} voiceUri={voiceUri} onTap={() => setSelected(null)} />
+          <GlossCard entry={selected} rate={rate} voiceUri={voiceUri} lang={lang} onTap={() => setSelected(null)} />
         )}
         <p className="small muted">{pack.passage_native}</p>
       </div>
 
-      <ReadAloudPractice pack={pack} rate={rate} voiceUri={voiceUri} />
-      <FreeResponsePractice pack={pack} rate={rate} voiceUri={voiceUri} />
+      <ReadAloudPractice pack={pack} rate={rate} voiceUri={voiceUri} lang={lang} />
+      <FreeResponsePractice pack={pack} rate={rate} voiceUri={voiceUri} lang={lang} />
     </>
   );
 }
@@ -91,7 +93,7 @@ function splitPassage(text: string, surfaces: string[]): { text: string; surface
   return parts;
 }
 
-function ReadAloudPractice({ pack, rate, voiceUri }: { pack: import('../types').ContentPack; rate: number; voiceUri: string }) {
+function ReadAloudPractice({ pack, rate, voiceUri, lang }: { pack: import('../types').ContentPack; rate: number; voiceUri: string; lang: TtsLanguage }) {
   const target = pack.sentences[0]?.target ?? pack.speaking_prompt.target;
   const rec = useMediaRecorder();
   const [typed, setTyped] = useState('');
@@ -131,7 +133,7 @@ function ReadAloudPractice({ pack, rate, voiceUri }: { pack: import('../types').
       <h3>Read-aloud drill</h3>
       <div className="row">
         <span className="target-text grow">{target}</span>
-        <SpeakToggle text={target} rate={rate} voiceUri={voiceUri} />
+        <SpeakToggle text={target} rate={rate} voiceUri={voiceUri} lang={lang} />
       </div>
       <div className="row">
         <button
@@ -211,7 +213,7 @@ function splitCharDiff(aRaw: string, bRaw: string): { type: 'equal' | 'delete' |
   return out;
 }
 
-function FreeResponsePractice({ pack, rate, voiceUri }: { pack: import('../types').ContentPack; rate: number; voiceUri: string }) {
+function FreeResponsePractice({ pack, rate, voiceUri, lang }: { pack: import('../types').ContentPack; rate: number; voiceUri: string; lang: TtsLanguage }) {
   const rec = useMediaRecorder();
   const [attemptId, setAttemptId] = useState<number | null>(null);
   const [queued, setQueued] = useState(false);
@@ -274,11 +276,11 @@ function FreeResponsePractice({ pack, rate, voiceUri }: { pack: import('../types
       <h3>Free-response drill</h3>
       <div className="row">
         <p className="target-text grow">{pack.speaking_prompt.target}</p>
-        <SpeakButton text={pack.speaking_prompt.target} rate={rate} voiceUri={voiceUri} label="Hear prompt" />
+        <SpeakButton text={pack.speaking_prompt.target} rate={rate} voiceUri={voiceUri} lang={lang} label="Hear prompt" />
       </div>
       {feedback ? (
         <>
-          <SpeakingEvaluation feedback={feedback} rate={rate} voiceUri={voiceUri} />
+          <SpeakingEvaluation feedback={feedback} rate={rate} voiceUri={voiceUri} lang={lang} />
           <button className="small" onClick={recordAgain}>
             Record another answer
           </button>

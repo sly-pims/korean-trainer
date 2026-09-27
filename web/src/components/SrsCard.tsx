@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import { SpeakButton } from './SpeakButton';
 import type { SrsCardRow, SrsRating } from '../types';
+import type { TtsLanguage } from '../hooks/useTts';
 
 interface Props {
   cards: SrsCardRow[];
   busy?: number | null;
   rate: number;
   voiceUri: string;
+  lang: TtsLanguage;
   onReview: (wordId: number, rating: SrsRating) => void;
 }
 
@@ -18,7 +20,7 @@ const RATINGS: { rating: SrsRating; label: string; hint: string }[] = [
 ];
 
 /** A single SRS recall card: try to remember the meaning first, then reveal and rate. */
-export function SrsCard({ cards, busy, rate, voiceUri, onReview }: Props) {
+export function SrsCard({ cards, busy, rate, voiceUri, lang, onReview }: Props) {
   const card = cards[0];
   const [revealed, setRevealed] = useState(false);
 
@@ -46,7 +48,7 @@ export function SrsCard({ cards, busy, rate, voiceUri, onReview }: Props) {
         <>
           <p className="muted">{card.meaning_native}</p>
           <div className="row">
-            <SpeakButton text={card.lemma} rate={rate} voiceUri={voiceUri} label="Hear it" />
+            <SpeakButton text={card.lemma} rate={rate} voiceUri={voiceUri} lang={lang} label="Hear it" />
             <span className="small muted grow">How well did you know it?</span>
             <button className="ghost small" onClick={() => setRevealed(false)}>
               hide

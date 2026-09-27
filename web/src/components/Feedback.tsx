@@ -1,5 +1,6 @@
 import type { WritingFeedback, SpeakingFeedback } from '../types';
 import { SpeakButton } from './SpeakButton';
+import type { TtsLanguage } from '../hooks/useTts';
 
 /** Render an issue list for writing or speaking feedback. */
 function Issues({ feedback }: { feedback: { issues: { original: string; fix: string; type: string; explanation_native: string }[] } }) {
@@ -39,7 +40,7 @@ function PronunciationNotes({ notes }: { notes: { word: string; note_native: str
 }
 
 /** Writing evaluation block (§8.2). */
-export function WritingEvaluation({ feedback, rate, voiceUri }: { feedback: WritingFeedback; rate: number; voiceUri?: string | null }) {
+export function WritingEvaluation({ feedback, rate, voiceUri, lang }: { feedback: WritingFeedback; rate: number; voiceUri?: string | null; lang: TtsLanguage }) {
   return (
     <>
       <div className="card">
@@ -59,7 +60,7 @@ export function WritingEvaluation({ feedback, rate, voiceUri }: { feedback: Writ
               <p className="target-text grow" style={{ color: 'var(--good)' }}>
                 ✍ {feedback.more_natural_target}
               </p>
-              <SpeakButton text={feedback.more_natural_target} rate={rate} voiceUri={voiceUri} label="Play corrected" />
+              <SpeakButton text={feedback.more_natural_target} rate={rate} voiceUri={voiceUri} lang={lang} label="Play corrected" />
             </>
           )}
         </div>
@@ -71,7 +72,7 @@ export function WritingEvaluation({ feedback, rate, voiceUri }: { feedback: Writ
 }
 
 /** Speaking evaluation block (§8.3). */
-export function SpeakingEvaluation({ feedback, rate, voiceUri }: { feedback: SpeakingFeedback; rate: number; voiceUri?: string | null }) {
+export function SpeakingEvaluation({ feedback, rate, voiceUri, lang }: { feedback: SpeakingFeedback; rate: number; voiceUri?: string | null; lang: TtsLanguage }) {
   return (
     <>
       <div className="card">
@@ -95,7 +96,7 @@ export function SpeakingEvaluation({ feedback, rate, voiceUri }: { feedback: Spe
             <p className="target-text grow" style={{ color: 'var(--good)' }}>
               ✍ {feedback.more_natural_target}
             </p>
-            <SpeakButton text={feedback.more_natural_target} rate={rate} voiceUri={voiceUri} label="Play corrected" />
+            <SpeakButton text={feedback.more_natural_target} rate={rate} voiceUri={voiceUri} lang={lang} label="Play corrected" />
           </div>
         </div>
       )}
@@ -104,7 +105,7 @@ export function SpeakingEvaluation({ feedback, rate, voiceUri }: { feedback: Spe
           <h3>Corrected</h3>
           <div className="row">
             <p className="target-text grow muted">{feedback.corrected_target}</p>
-            <SpeakButton text={feedback.corrected_target} rate={rate} voiceUri={voiceUri} label="Play corrected" />
+            <SpeakButton text={feedback.corrected_target} rate={rate} voiceUri={voiceUri} lang={lang} label="Play corrected" />
           </div>
         </div>
       )}

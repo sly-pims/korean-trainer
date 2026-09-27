@@ -3,6 +3,7 @@ import { api, posLabel } from '../api';
 import { SrsCard } from '../components/SrsCard';
 import { SpeakButton } from '../components/SpeakButton';
 import { useSrsReview } from '../hooks/useSrsReview';
+import type { TtsLanguage } from '../hooks/useTts';
 import type { Settings, WordRow, WordSuggestion } from '../types';
 
 type DueFilter = 'all' | 'due' | 'later';
@@ -65,6 +66,7 @@ function PracticeCard({ onReviewed }: { onReviewed: () => void }) {
                   busy={busyId}
                   rate={settings.tts_rate}
                   voiceUri={settings.tts_voice}
+                  lang={settings.lang}
                   onReview={reviewAndRefresh}
                 />
               )}
@@ -171,6 +173,7 @@ function BrowseCard({ refreshKey }: { refreshKey: number }) {
             open={!!openIds[w.id]}
             rate={settings.tts_rate}
             voiceUri={settings.tts_voice}
+            lang={settings.lang}
             onToggle={() => setOpenIds((m) => ({ ...m, [w.id]: !m[w.id] }))}
           />
         ))}
@@ -184,12 +187,14 @@ function WordRowItem({
   open,
   rate,
   voiceUri,
+  lang,
   onToggle,
 }: {
   w: WordRow;
   open: boolean;
   rate: number;
   voiceUri: string;
+  lang: TtsLanguage;
   onToggle: () => void;
 }) {
   const due = w.card?.due_date ? isDue(w.card.due_date) : true;
@@ -224,7 +229,7 @@ function WordRowItem({
           </div>
         )}
       </div>
-      <SpeakButton text={w.lemma} rate={rate} voiceUri={voiceUri} label={w.lemma} />
+      <SpeakButton text={w.lemma} rate={rate} voiceUri={voiceUri} lang={lang} label={w.lemma} />
     </div>
   );
 }

@@ -1,19 +1,21 @@
 import type { GlossaryEntry } from '../types';
 import { SpeakButton } from './SpeakButton';
+import type { TtsLanguage } from '../hooks/useTts';
 
 interface Props {
   entry: GlossaryEntry;
   rate: number;
   voiceUri?: string | null;
+  lang: TtsLanguage;
   onTap?: () => void;
 }
 
-export function GlossCard({ entry, rate, voiceUri, onTap }: Props) {
+export function GlossCard({ entry, rate, voiceUri, lang, onTap }: Props) {
   return (
     <div className="card gloss-card">
       <div className="row">
         <span className="surface ko">{entry.surface}</span>
-        <SpeakButton text={entry.surface} rate={rate} voiceUri={voiceUri} />
+        <SpeakButton text={entry.surface} rate={rate} voiceUri={voiceUri} lang={lang} />
       </div>
       <div className="row">
         <span className="tag">{entry.pos}</span>

@@ -7,6 +7,7 @@ import { SpeakButton, SpeakToggle } from '../components/SpeakButton';
 import type {
   SessionDetail,
   SessionHistoryRow,
+  Settings,
 } from '../types';
 
 // ---------------- List ----------------
@@ -94,13 +95,16 @@ export function HistoryReplay() {
   const sessionId = Number(id);
   const nav = useNavigate();
   const [detail, setDetail] = useState<SessionDetail | null>(null);
+  // Replay speaks the session's own language, so it needs the TTS settings too.
+  const [settings, setSettings] = useState<Settings | null>(null);
   const [err, setErr] = useState('');
 
   useEffect(() => {
     (async () => {
       try {
-        const { detail: d } = await api.sessionDetail(sessionId);
-        setDetail(d);
+        const [res, s] = await Promise.all([api.sessionDetail(sessionId), api.getSettings()]);
+        setDetail(res.detail);
+        setSettings(s);
       } catch (e) {
         setErr(e instanceof Error ? e.message : 'could not load replay');
       }
@@ -108,8 +112,9 @@ export function HistoryReplay() {
   }, [sessionId]);
 
   if (err && !detail) return <div className="error-banner">{err}</div>;
-  if (!detail) return <div className="spinner" />;
+  if (!detail || !settings) return <div className="spinner" />;
   const d2 = detail;
+  const speech = { rate: settings.tts_rate, voiceUri: settings.tts_voice, lang: settings.lang };
 
   return (
     <>
@@ -149,7 +154,7 @@ export function HistoryReplay() {
       <div className="card">
         <div className="row">
           <span className="small muted grow">passage</span>
-          <SpeakButton text={d2.pack.passage_target} rate={1} label="Play passage" />
+          <SpeakButton text={d2.pack.passage_target} {...speech} label="Play passage" />
         </div>
         <p className="target-text">{d2.pack.passage_target}</p>
         <p className="muted small">{d2.pack.passage_native}</p>
@@ -198,7 +203,7 @@ export function HistoryReplay() {
           {w.feedback ? (
             <>
               <p className="small muted">feedback</p>
-              <WritingEvaluation feedback={w.feedback} rate={1} />
+              <WritingEvaluation feedback={w.feedback} {...speech} />
             </>
           ) : (
             <div className="card">
@@ -262,7 +267,7 @@ export function HistoryReplay() {
                 Your transcript and evaluation for this attempt weren't
                 available in the replay.
               </p>
-              <SpeakToggle text={a.target ?? ''} rate={1} />
+              <SpeakToggle text={a.target ?? ''} {...speech} />
             </>
           )}
         </div>

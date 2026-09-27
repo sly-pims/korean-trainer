@@ -554,6 +554,40 @@ function storedVoice(profile: LanguageProfile, stored: string | null): string {
   }
 }
 
+/**
+ * The client-facing description of the active target language.
+ *
+ * The web app used to hardcode all of this: a three-entry list of Korean voices
+ * in Settings, `"Beginner 2"` where the profile says `TOPIK 2`, and a `ko-KR`
+ * fallback in useTts. Everything needed to render the language correctly is
+ * already in the profile, so it travels with the settings the screens fetch.
+ *
+ * Phase 7 replaces this with the enrollment's language, at which point the
+ * client stops assuming one language per deployment and starts following
+ * whichever enrollment is active.
+ */
+export function languageDescriptor(profile: LanguageProfile) {
+  return {
+    code: profile.code,
+    name: profile.name,
+    endonym: profile.endonym,
+    htmlLang: profile.htmlLang,
+    /** BCP-47 tag for speech recognition and TTS. */
+    locale: profile.locale,
+    defaultVoice: profile.defaultVoice,
+    /** The complete allowlist; /api/tts will refuse anything else. */
+    voices: profile.voices,
+    levelScaleName: profile.levelScaleName,
+    /** Level number to its name on this language's scale, e.g. `3` -> `TOPIK 3`. */
+    levels: Object.fromEntries(
+      Object.entries(profile.levels).map(([level, entry]) => [
+        level,
+        { name: entry.name, note: entry.note },
+      ]),
+    ),
+  };
+}
+
 export function readSettings(db: DatabaseSync, cfg: Ctx['cfg'], profile: LanguageProfile) {
   const s = db.prepare('SELECT * FROM settings WHERE id=1').get() as Record<string, unknown>;
   return {
@@ -565,6 +599,7 @@ export function readSettings(db: DatabaseSync, cfg: Ctx['cfg'], profile: Languag
     streak: Number(s.streak) || 0,
     last_session_date: (s.last_session_date as string | null) ?? null,
     timezone: effectiveTz(db, cfg),
+    lang: languageDescriptor(profile),
   };
 }
 

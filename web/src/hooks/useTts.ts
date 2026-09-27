@@ -3,28 +3,50 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 export interface TtsOptions {
   rate?: number;
   voiceUri?: string | null;
-  lang?: string;
   onEnd?: () => void;
   onError?: (msg: string) => void;
 }
 
-const DEFAULT_VOICE = 'ko-KR-SunHiNeural';
+/**
+ * What the hook needs to know about the language being spoken.
+ *
+ * Supplied by the caller from `settings.lang` rather than imported from a
+ * context, so a hook used before the descriptor has loaded still has a defined
+ * behaviour instead of reaching for a default.
+ */
+export interface TtsLanguage {
+  /** BCP-47 tag, e.g. `ko-KR` or `fr-FR`. */
+  locale: string;
+  defaultVoice: string;
+}
 
 function osVoices(): SpeechSynthesisVoice[] {
   if (typeof window === 'undefined' || !('speechSynthesis' in window)) return [];
   return window.speechSynthesis.getVoices();
 }
 
-function hasRealKoreanVoice(): boolean {
-  if (!('speechSynthesis' in window)) return false;
-  return osVoices().some((v) => v.lang?.toLowerCase().startsWith('ko'));
+/** The language part of a BCP-47 tag, lowercased: `fr-FR` -> `fr`. */
+function baseLanguage(locale: string): string {
+  return locale.split('-')[0].toLowerCase();
+}
+
+function osVoiceFor(locale: string): SpeechSynthesisVoice | undefined {
+  const base = baseLanguage(locale);
+  return osVoices().find((v) => v.lang?.toLowerCase().startsWith(base));
 }
 
 /**
- * Korean TTS: 1) neural Edge TTS proxied through /api/tts (free, natural),
- * 2) Web Speech if a real Korean OS voice exists, 3) Google Translate fallback.
+ * Neural TTS for the active language: 1) Edge TTS proxied through /api/tts
+ * (free, natural), 2) the Web Speech API if the OS has a voice for this
+ * language, 3) give up.
+ *
+ * The Web Speech fallback used to look specifically for a `ko` voice and fall
+ * back to speaking with `u.lang = 'ko-KR'`, so on a machine with only a French
+ * OS voice a French learner either got silence or, worse, an utterance tagged
+ * as Korean — the browser's own version of the leak /api/tts now refuses.
  */
-export function useTts() {
+export function useTts(lang: TtsLanguage) {
+  const { locale, defaultVoice } = lang;
   const [speaking, setSpeaking] = useState(false);
   const [supported] = useState(() => typeof window !== 'undefined' && typeof Audio !== 'undefined');
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -92,17 +114,17 @@ export function useTts() {
       stop();
       if (!supported || !text.trim()) return;
       const ratePercent = Math.round(((opts.rate ?? 1) - 1) * 100);
-      const voice = opts.voiceUri ?? DEFAULT_VOICE;
+      const voice = opts.voiceUri ?? defaultVoice;
       const fail = (msg: string) => opts.onError?.(msg);
 
       void playServer(text, voice, ratePercent).then((ok) => {
         if (ok) return;
-        if (hasRealKoreanVoice()) {
+        const osVoice = 'speechSynthesis' in window ? osVoiceFor(locale) : undefined;
+        if (osVoice) {
           const u = new SpeechSynthesisUtterance(text);
-          u.lang = opts.lang ?? 'ko-KR';
+          u.lang = locale;
           u.rate = opts.rate ?? 1;
-          const v = osVoices().find((vv) => vv.lang?.toLowerCase().startsWith('ko'));
-          if (v) u.voice = v;
+          u.voice = osVoice;
           u.onstart = () => setSpeaking(true);
           u.onend = () => {
             setSpeaking(false);
@@ -119,7 +141,7 @@ export function useTts() {
         fail('TTS unavailable');
       });
     },
-    [playServer, stop, supported],
+    [defaultVoice, locale, playServer, stop, supported],
   );
 
   return { speak, stop, speaking, supported };

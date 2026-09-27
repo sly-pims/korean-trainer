@@ -45,6 +45,27 @@ export interface SessionWithPack {
   pack: ContentPack;
 }
 
+/**
+ * The active target language, as the server describes it.
+ *
+ * The screens used to hardcode this: a three-entry list of Korean voices,
+ * `"Beginner 2"` where the profile says `TOPIK 2`, and a `ko-KR` fallback in
+ * useTts. It rides along with the settings every screen already fetches.
+ */
+export interface LanguageDescriptor {
+  code: string;
+  name: string;
+  endonym: string;
+  htmlLang: string;
+  /** BCP-47 tag for speech recognition and TTS. */
+  locale: string;
+  defaultVoice: string;
+  /** The complete allowlist; /api/tts refuses anything else. */
+  voices: string[];
+  levelScaleName: string;
+  levels: Record<string, { name: string; note: string }>;
+}
+
 export interface Settings {
   level: number;
   tts_rate: number;
@@ -54,6 +75,7 @@ export interface Settings {
   streak: number;
   last_session_date: string | null;
   timezone: string;
+  lang: LanguageDescriptor;
 }
 
 export interface HomeData {

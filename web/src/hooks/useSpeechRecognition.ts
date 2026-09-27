@@ -37,8 +37,18 @@ const TRANSIENT_ERRORS = new Set(['aborted', 'abort', 'no-speech', 'audio-captur
 const MAX_RETRIES = 1;
 const RETRY_DELAY_MS = 600;
 
-/** Wraps the (vendor-prefixed) Web Speech API for ko-KR dictation. */
-export function useSpeechRecognition(lang = 'ko-KR') {
+/**
+ * Wraps the (vendor-prefixed) Web Speech API for dictation in a given language.
+ *
+ * `lang` is required: it used to default to `ko-KR`, which meant a caller that
+ * forgot it silently dictated Korean. Pass the active language's `locale` from
+ * `settings.lang`.
+ *
+ * Note this hook has no production caller — the dictation paths use
+ * MediaRecorder and server-side transcription, which is more reliable on mobile
+ * browsers. It is kept for its retry handling and its test.
+ */
+export function useSpeechRecognition(lang: string) {
   const [supported] = useState(() => getRecognition() !== null);
   const [listening, setListening] = useState(false);
   const [interim, setInterim] = useState('');

@@ -7,6 +7,8 @@ import { GlossCard } from '../components/GlossCard';
 import { SrsCard } from '../components/SrsCard';
 import { SpeakButton, SpeakToggle } from '../components/SpeakButton';
 import { useMediaRecorder } from '../hooks/useMediaRecorder';
+import type { TtsLanguage } from '../hooks/useTts';
+import type { LanguageDescriptor } from '../types';
 import { useSrsReview } from '../hooks/useSrsReview';
 import type { GlossaryEntry, ListeningResult, SessionWithPack, Settings, WritingFeedback } from '../types';
 
@@ -96,16 +98,17 @@ export function Session() {
         <WrapUp
           session={data.session}
           startedAt={ui.startedAt}
+          lang={ui.settings.lang}
           onBack={() => nav('/')}
         />
       ) : step === 'warmup' ? (
-        <Warmup rate={ui.settings.tts_rate} voiceUri={ui.settings.tts_voice} onDone={() => go('read')} />
+        <Warmup rate={ui.settings.tts_rate} voiceUri={ui.settings.tts_voice} lang={ui.settings.lang} onDone={() => go('read')} />
       ) : step === 'read' ? (
         <Read
           pack={data.pack}
           sessionId={sessionId}
           rate={ui.settings.tts_rate}
-          voiceUri={ui.settings.tts_voice}
+          voiceUri={ui.settings.tts_voice} lang={ui.settings.lang}
           onDone={() => go('writing')}
         />
       ) : step === 'writing' ? (
@@ -113,7 +116,7 @@ export function Session() {
           pack={data.pack}
           sessionId={sessionId}
           rate={ui.settings.tts_rate}
-          voiceUri={ui.settings.tts_voice}
+          voiceUri={ui.settings.tts_voice} lang={ui.settings.lang}
           onDone={() => go('listening')}
         />
       ) : step === 'listening' ? (
@@ -121,7 +124,7 @@ export function Session() {
           pack={data.pack}
           sessionId={sessionId}
           rate={ui.settings.tts_rate}
-          voiceUri={ui.settings.tts_voice}
+          voiceUri={ui.settings.tts_voice} lang={ui.settings.lang}
           onDone={() => go('speaking')}
         />
       ) : (
@@ -129,7 +132,7 @@ export function Session() {
           pack={data.pack}
           sessionId={sessionId}
           rate={ui.settings.tts_rate}
-          voiceUri={ui.settings.tts_voice}
+          voiceUri={ui.settings.tts_voice} lang={ui.settings.lang}
           onDone={() => go('done')}
         />
       )}
@@ -139,7 +142,7 @@ export function Session() {
 
 // ---------------- Warmup ----------------
 
-function Warmup({ rate, voiceUri, onDone }: { rate: number; voiceUri: string; onDone: () => void }) {
+function Warmup({ rate, voiceUri, lang, onDone }: { rate: number; voiceUri: string; lang: TtsLanguage; onDone: () => void }) {
   const { cards, busyId, err, review } = useSrsReview();
 
   if (err) return <div className="error-banner">{err}</div>;
@@ -153,7 +156,7 @@ function Warmup({ rate, voiceUri, onDone }: { rate: number; voiceUri: string; on
           <p className="muted">No words due right now. Great job keeping on top of them!</p>
         </div>
       ) : (
-        <SrsCard cards={cards} busy={busyId} rate={rate} voiceUri={voiceUri} onReview={review} />
+        <SrsCard cards={cards} busy={busyId} rate={rate} voiceUri={voiceUri} lang={lang} onReview={review} />
       )}
       <button className="primary big-cta" onClick={onDone}>
         Continue to reading →
@@ -169,12 +172,14 @@ function Read({
   sessionId,
   rate,
   voiceUri,
+  lang,
   onDone,
 }: {
   pack: import('../types').ContentPack;
   sessionId: number;
   rate: number;
   voiceUri: string;
+  lang: TtsLanguage;
   onDone: () => void;
 }) {
   const [selected, setSelected] = useState<GlossaryEntry | null>(null);
@@ -255,7 +260,7 @@ function Read({
     <>
       <div className="row">
         <h3 className="grow">Reading</h3>
-        <SpeakButton text={pack.passage_target} rate={rate} voiceUri={voiceUri} label="Read the passage" />
+        <SpeakButton text={pack.passage_target} rate={rate} voiceUri={voiceUri} lang={lang} label="Read the passage" />
         <button className="small" onClick={() => setShowEn((v) => !v)}>
           {showEn ? 'Hide English' : 'Show English'}
         </button>
@@ -274,7 +279,7 @@ function Read({
             ),
           )}
         </p>
-        {selected && <GlossCard entry={selected} rate={rate} voiceUri={voiceUri} onTap={() => setSelected(null)} />}
+        {selected && <GlossCard entry={selected} rate={rate} voiceUri={voiceUri} lang={lang} onTap={() => setSelected(null)} />}
       </div>
 
       <h3>Check your understanding</h3>
@@ -315,12 +320,14 @@ function Write({
   sessionId,
   rate,
   voiceUri,
+  lang,
   onDone,
 }: {
   pack: import('../types').ContentPack;
   sessionId: number;
   rate: number;
   voiceUri: string;
+  lang: TtsLanguage;
   onDone: () => void;
 }) {
   const [text, setText] = useState('');
@@ -344,7 +351,7 @@ function Write({
     }
   };
 
-  if (feedback) return <WritingFeedbackView feedback={feedback} rate={rate} voiceUri={voiceUri} onDone={onDone} />;
+  if (feedback) return <WritingFeedbackView feedback={feedback} rate={rate} voiceUri={voiceUri} lang={lang} onDone={onDone} />;
 
   return (
     <>
@@ -356,7 +363,7 @@ function Write({
         <div className="row">
           <span className="tag">model sentence</span>
           <span className="grow" />
-          <SpeakButton text={pack.writing_prompt.target} rate={rate} voiceUri={voiceUri} label="Hear the model" />
+          <SpeakButton text={pack.writing_prompt.target} rate={rate} voiceUri={voiceUri} lang={lang} label="Hear the model" />
         </div>
         <p className="target-text grow">{pack.writing_prompt.target}</p>
         <p className="muted">
@@ -386,16 +393,18 @@ function WritingFeedbackView({
   feedback,
   rate,
   voiceUri,
+  lang,
   onDone,
 }: {
   feedback: WritingFeedback;
   rate: number;
   voiceUri: string;
+  lang: TtsLanguage;
   onDone: () => void;
 }) {
   return (
     <>
-      <WritingEvaluation feedback={feedback} rate={rate} voiceUri={voiceUri} />
+      <WritingEvaluation feedback={feedback} rate={rate} voiceUri={voiceUri} lang={lang} />
       <button className="primary big-cta" onClick={onDone}>
         Continue to listening →
       </button>
@@ -410,12 +419,14 @@ function Listen({
   sessionId,
   rate,
   voiceUri,
+  lang,
   onDone,
 }: {
   pack: import('../types').ContentPack;
   sessionId: number;
   rate: number;
   voiceUri: string;
+  lang: TtsLanguage;
   onDone: () => void;
 }) {
   const targets = pack.sentences.slice(0, 3);
@@ -446,7 +457,7 @@ function Listen({
         <div className="card" key={i}>
           <div className="row">
             <span className="small muted">{i + 1}.</span>
-            <SpeakToggle text={s.target} rate={rate} voiceUri={voiceUri} />
+            <SpeakToggle text={s.target} rate={rate} voiceUri={voiceUri} lang={lang} />
             {result && (
               <span className={`tag ${result.perSentence[i].percent >= 90 ? '' : 'small-label'}`}>
                 {result.perSentence[i].percent}%
@@ -485,18 +496,20 @@ function Speak({
   sessionId,
   rate,
   voiceUri,
+  lang,
   onDone,
 }: {
   pack: import('../types').ContentPack;
   sessionId: number;
   rate: number;
   voiceUri: string;
+  lang: TtsLanguage;
   onDone: () => void;
 }) {
   return (
     <>
-      <ReadAloud pack={pack} sessionId={sessionId} rate={rate} voiceUri={voiceUri} />
-      <FreeResponse pack={pack} sessionId={sessionId} rate={rate} voiceUri={voiceUri} onDone={onDone} />
+      <ReadAloud pack={pack} sessionId={sessionId} rate={rate} voiceUri={voiceUri} lang={lang} />
+      <FreeResponse pack={pack} sessionId={sessionId} rate={rate} voiceUri={voiceUri} lang={lang} onDone={onDone} />
     </>
   );
 }
@@ -506,11 +519,13 @@ function ReadAloud({
   sessionId,
   rate,
   voiceUri,
+  lang,
 }: {
   pack: import('../types').ContentPack;
   sessionId: number;
   rate: number;
   voiceUri: string;
+  lang: TtsLanguage;
 }) {
   const targets = pack.sentences.slice(0, 3);
   return (
@@ -527,7 +542,7 @@ function ReadAloud({
           target={s.target}
           sessionId={sessionId}
           rate={rate}
-          voiceUri={voiceUri}
+          voiceUri={voiceUri} lang={lang}
         />
       ))}
     </>
@@ -540,12 +555,14 @@ function ReadAloudSentence({
   sessionId,
   rate,
   voiceUri,
+  lang,
 }: {
   index: number;
   target: string;
   sessionId: number;
   rate: number;
   voiceUri: string;
+  lang: TtsLanguage;
 }) {
   const rec = useMediaRecorder();
   const [transcript, setTranscript] = useState('');
@@ -593,7 +610,7 @@ function ReadAloudSentence({
       <div className="row">
         <span className="small muted grow">{index + 1}.</span>
         <span className="target-text">{target}</span>
-        <SpeakButton text={target} rate={rate} voiceUri={voiceUri} label="Hear the sentence" />
+        <SpeakButton text={target} rate={rate} voiceUri={voiceUri} lang={lang} label="Hear the sentence" />
       </div>
       <div className="row">
         <button
@@ -688,12 +705,14 @@ function FreeResponse({
   sessionId,
   rate,
   voiceUri,
+  lang,
   onDone,
 }: {
   pack: import('../types').ContentPack;
   sessionId: number;
   rate: number;
   voiceUri: string;
+  lang: TtsLanguage;
   onDone: () => void;
 }) {
   const rec = useMediaRecorder((msg) => setErr(msg));
@@ -739,7 +758,7 @@ function FreeResponse({
   if (feedback) {
     return (
       <>
-        <SpeakingEvaluation feedback={feedback} rate={rate} voiceUri={voiceUri} />
+        <SpeakingEvaluation feedback={feedback} rate={rate} voiceUri={voiceUri} lang={lang} />
         <button className="primary big-cta" onClick={onDone}>
           Finish session
         </button>
@@ -753,7 +772,7 @@ function FreeResponse({
       <div className="card">
         <div className="row">
           <p className="target-text grow">{pack.speaking_prompt.target}</p>
-          <SpeakButton text={pack.speaking_prompt.target} rate={rate} voiceUri={voiceUri} label="Hear the prompt" />
+          <SpeakButton text={pack.speaking_prompt.target} rate={rate} voiceUri={voiceUri} lang={lang} label="Hear the prompt" />
         </div>
         <p className="muted">{pack.speaking_prompt.native}</p>
       </div>
@@ -818,10 +837,12 @@ function FreeResponse({
 function WrapUp({
   session,
   startedAt,
+  lang,
   onBack,
 }: {
   session: import('../types').SessionRow;
   startedAt: number;
+  lang: LanguageDescriptor;
   onBack: () => void;
 }) {
   const [result, setResult] = useState<import('../types').SessionCompleteResult | null>(null);
@@ -895,7 +916,7 @@ function WrapUp({
       </div>
       {result.suggestion && result.suggestion.action !== 'stay' && (
         <div className="card">
-          <p>{levelSuggestionToPrompt(result.suggestion)}</p>
+          <p>{levelSuggestionToPrompt(result.suggestion, lang.levels)}</p>
           <button className="primary" disabled={busy} onClick={applySuggestion}>
             {result.suggestion.action === 'up' ? 'Level up' : 'Level down'}
           </button>

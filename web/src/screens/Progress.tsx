@@ -37,7 +37,7 @@ export function Progress() {
       <h2>Progress</h2>
       <div className="card progress-header">
         <div className="header-stat header-level">
-          <div className="level-name">{humanizeLevel(settings.level)}</div>
+          <div className="level-name">{humanizeLevel(settings.level, settings.lang.levels)}</div>
           <div className="stat-label">Level</div>
           <div className="small muted">~{timeEstimate(settings.level)} min/day</div>
         </div>

@@ -58,7 +58,7 @@ export function Home() {
           <p>
             <b>Level</b>
           </p>
-          <p className="target-text">{humanizeLevel(data.settings.level)}</p>
+          <p className="target-text">{humanizeLevel(data.settings.level, data.settings.lang.levels)}</p>
           <p className="small muted">~{timeEstimate(data.settings.level)} min per day</p>
         </div>
       </div>
