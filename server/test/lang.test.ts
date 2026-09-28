@@ -94,7 +94,7 @@ describe('language profiles', () => {
 });
 
 describe('UI copy', () => {
-  const langs = ['en', 'ko'];
+  const langs = ['en', 'ko', 'fr'];
 
   it('every copy set loads', () => {
     for (const l of langs) expect(loadCopy(repoRoot, l).appName).toBeTruthy();
@@ -144,7 +144,7 @@ describe('loadConfig', () => {
     // Guards the deploy gate: an existing .env predates these variables, so the
     // app must still boot without them.
     const cfg = loadConfig(base);
-    expect([...cfg.copies.keys()]).toEqual(['en', 'ko']);
+    expect([...cfg.copies.keys()]).toEqual(['en', 'ko', 'fr']);
     expect(cfg.defaultUiLang).toBe('en');
   });
 
@@ -152,11 +152,11 @@ describe('loadConfig', () => {
     const cfg = loadConfig({
       ...base,
       SUPPORTED_TARGET_LANGS: 'ko,fr',
-      SUPPORTED_UI_LANGS: 'en,ko',
+      SUPPORTED_UI_LANGS: 'en,ko,fr',
       DEFAULT_UI_LANG: 'en',
     });
     expect([...cfg.langs.keys()]).toEqual(['ko', 'fr']);
-    expect([...cfg.copies.keys()]).toEqual(['en', 'ko']);
+    expect([...cfg.copies.keys()]).toEqual(['en', 'ko', 'fr']);
   });
 
   it('rejects an unknown language code with a readable error', () => {
@@ -167,7 +167,7 @@ describe('loadConfig', () => {
 
   it('rejects a DEFAULT_UI_LANG that is not offered', () => {
     expect(() =>
-      loadConfig({ ...base, SUPPORTED_UI_LANGS: 'en,ko', DEFAULT_UI_LANG: 'fr' }),
+      loadConfig({ ...base, SUPPORTED_UI_LANGS: 'en,ko,fr', DEFAULT_UI_LANG: 'de' }),
     ).toThrow(/DEFAULT_UI_LANG/);
   });
 
@@ -177,7 +177,7 @@ describe('loadConfig', () => {
 });
 
 describe('langFor / copyFor', () => {
-  const cfg = loadConfig({ ...base, SUPPORTED_TARGET_LANGS: 'ko,fr', SUPPORTED_UI_LANGS: 'en,ko' });
+  const cfg = loadConfig({ ...base, SUPPORTED_TARGET_LANGS: 'ko,fr', SUPPORTED_UI_LANGS: 'en,ko,fr' });
 
   it('resolves a configured language', () => {
     expect(langFor(cfg, 'fr').code).toBe('fr');

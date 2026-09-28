@@ -37,6 +37,8 @@ export const languageProfileSchema = z
     voices: z.array(z.string().min(1)).min(1),
     /** Seed bank for this language, relative to the repo root. */
     seedFile: z.string().min(1),
+    /** Language used by the checked-in seed bank's native/explanation fields. */
+    seedNativeLang: z.string().min(2).max(8),
     /** Name of the level scale, e.g. TOPIK or CEFR. */
     levelScaleName: z.string().min(1),
     levels: z.record(levelSchema),

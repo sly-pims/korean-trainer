@@ -13,6 +13,7 @@
     "fr-FR-MauriceNeural"
   ],
   "seedFile": "seed/passages.fr.json",
+  "seedNativeLang": "en",
   "levelScaleName": "CEFR",
   "levels": {
     "1": { "name": "CEFR A1", "note": "Beginner: familiar everyday phrases" },

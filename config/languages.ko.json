@@ -15,6 +15,7 @@
     "ko-KR-YuJinNeural"
   ],
   "seedFile": "seed/passages.ko.json",
+  "seedNativeLang": "en",
   "levelScaleName": "TOPIK",
   "levels": {
     "1": { "name": "TOPIK 1", "note": "Everyday basics" },

@@ -52,6 +52,7 @@ CREATE TABLE IF NOT EXISTS settings (
 CREATE TABLE IF NOT EXISTS passages (
   id            INTEGER PRIMARY KEY AUTOINCREMENT,
   target_lang   TEXT NOT NULL,
+  native_lang   TEXT NOT NULL DEFAULT 'en',
   level         INTEGER NOT NULL,
   topic         TEXT NOT NULL,
   payload_json  TEXT NOT NULL,
@@ -59,6 +60,14 @@ CREATE TABLE IF NOT EXISTS passages (
   used          INTEGER NOT NULL DEFAULT 0,
   intended_date TEXT,
   created_at    TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS passage_translations (
+  passage_id INTEGER NOT NULL REFERENCES passages(id) ON DELETE CASCADE,
+  native_lang TEXT NOT NULL,
+  payload_json TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  PRIMARY KEY (passage_id, native_lang)
 );
 
 CREATE TABLE IF NOT EXISTS enrollment_passages (
@@ -438,6 +447,12 @@ function migrate(db: DatabaseSync, opts: OpenDbOptions): number {
   }
   if (tables.has('sessions') && !cols('sessions').includes('read_answers_json')) {
     db.exec('ALTER TABLE sessions ADD COLUMN read_answers_json TEXT');
+  }
+  if (tables.has('passages') && !cols('passages').includes('native_lang')) {
+    db.exec("ALTER TABLE passages ADD COLUMN native_lang TEXT NOT NULL DEFAULT 'en'");
+    if (cols('passages').includes('target_lang')) {
+      db.exec("UPDATE passages SET native_lang=CASE target_lang WHEN 'en' THEN 'ko' ELSE 'en' END");
+    }
   }
   // One database holds every supported language's passages; rows written before
   // that change were all Korean.

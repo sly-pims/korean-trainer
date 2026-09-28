@@ -3,26 +3,26 @@ import { Link } from 'react-router-dom';
 import { api, humanizeLevel, timeEstimate } from '../api';
 import type { HomeData, SessionWithPack } from '../types';
 import { useCopy } from '../copy';
+import { useAccount } from '../account';
 
 export function Home() {
-  const { serverError } = useCopy();
+  const { serverError, t } = useCopy();
+  const { account, active, switchTo, busy: accountBusy } = useAccount();
   const [data, setData] = useState<HomeData | null>(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
-  const { t } = useCopy();
-
-  const load = async () => {
-    setError('');
-    try {
-      setData(await api.home());
-    } catch (err) {
-      setError(serverError(err));
-    }
-  };
 
   useEffect(() => {
-    void load();
-  }, []);
+    let live = true;
+    setData(null);
+    setError('');
+    void api.home().then((home) => {
+      if (live) setData(home);
+    }).catch((err) => {
+      if (live) setError(serverError(err));
+    });
+    return () => { live = false; };
+  }, [active.id, serverError]);
 
   const start = async () => {
     setBusy(true);
@@ -52,6 +52,23 @@ export function Home() {
   return (
     <>
       <h1>{t('home.greeting')}</h1>
+      {account.enrollments.length > 1 && (
+        <label className="home-course-picker">
+          <span>{t('account.learning')}</span>
+          <select
+            aria-label={t('account.learning')}
+            value={active.id}
+            disabled={accountBusy}
+            onChange={(e) => void switchTo(Number(e.target.value))}
+          >
+            {account.enrollments.map((enrollment) => (
+              <option key={enrollment.id} value={enrollment.id}>
+                {enrollment.lang.endonym} — {enrollment.lang.name}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
       <div className="row wrap">
         <div className="card grow">
           <div className="row">

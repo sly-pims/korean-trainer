@@ -81,6 +81,11 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
     return row;
   };
 
+  const localizedTodaySession = async (e: Enrollment) => {
+    const session = content.getTodaySession(e.id);
+    return session ? content.localizeSession(session, e.nativeLang) : null;
+  };
+
   app.get('/api/health', async () => ({ ok: true, tz: cfg.tz }));
 
   // Deployment-level meta. Unauthenticated on purpose: the login page needs it
@@ -265,18 +270,19 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
     const e = enrollmentOf(req);
     return {
       tz: effectiveTz(db, cfg, e.id),
-      todaySession: content.getTodaySession(e.id),
+      todaySession: await localizedTodaySession(e),
       settings: readSettings(db, cfg, content.profileFor(e.targetLang), e.id),
       tomorrowPackReady: content.tomorrowReady(e.id, e.targetLang),
     };
   });
 
   // ---------- Session (§6) ----------
-  app.get('/api/session/today', async (req) => ({ session: content.getTodaySession(enrollmentOf(req).id) }));
+  app.get('/api/session/today', async (req) => ({ session: await localizedTodaySession(enrollmentOf(req)) }));
 
   app.post('/api/session/start', async (req) => {
     const e = enrollmentOf(req);
-    return { session: content.startTodaySession(e.id, e.targetLang) };
+    const session = content.startTodaySession(e.id, e.targetLang);
+    return { session: await content.localizeSession(session, e.nativeLang) };
   });
 
   app.post('/api/session/:id/step', async (req: PReq<{ step?: string }>, reply) => {
@@ -294,7 +300,8 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
     const e = enrollmentOf(req);
     const row = ownSession(req, req.params.id, reply);
     if (!row) return reply;
-    return content.addWord(e.id, row.id as number, parsed.data.surface);
+    const pack = await content.nativePackForSession(row.id as number, e.nativeLang);
+    return content.addWord(e.id, row.id as number, parsed.data.surface, pack);
   });
 
   /**
@@ -598,7 +605,7 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
   app.get('/api/sessions/:id/detail', async (req: PReq, reply) => {
     const row = ownSession(req, req.params.id, reply);
     if (!row) return reply;
-    const detail = content.sessionDetail(row.id as number);
+    const detail = await content.sessionDetail(row.id as number, enrollmentOf(req).nativeLang);
     if (!detail) return reply.code(404).send(errorBody('no_completed_session', 'no completed session found'));
     return { detail };
   });
@@ -639,7 +646,9 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
 
   // ---------- Speaking practice (standalone screen) ----------
   app.get('/api/practice/read', async (req) => {
-    const pack = content.randomPack(enrollmentOf(req).targetLang);
+    const e = enrollmentOf(req);
+    const selected = content.randomPack(e.targetLang);
+    const pack = selected ? await content.nativePack(selected.passageId, e.nativeLang, selected.pack) : null;
     return { pack };
   });
 
@@ -656,8 +665,9 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
     const e = enrollmentOf(req);
     const profile = content.profileFor(e.targetLang);
     const settings = readSettings(db, cfg, profile, e.id);
-    const p = content.randomPack(e.targetLang);
-    const pack: SpeakingPackLike = p ?? {
+    const selected = content.randomPack(e.targetLang);
+    const localized = selected ? await content.nativePack(selected.passageId, e.nativeLang, selected.pack) : null;
+    const pack: SpeakingPackLike = localized ?? {
       level: settings.level,
       speaking_prompt: profile.fallbacks.speakingPrompt,
     };

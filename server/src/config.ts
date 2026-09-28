@@ -43,7 +43,7 @@ const envSchema = z.object({
   // Interface languages. Comma-separated. Each must have config/copy/<code>.json.
   // Defaults to the copy sets that ship with the repo, so an existing
   // deployment boots with no .env change at all.
-  SUPPORTED_UI_LANGS: z.string().default('en,ko'),
+  SUPPORTED_UI_LANGS: z.string().default('en,ko,fr'),
   // Interface language used before anyone has logged in, i.e. on the login page.
   DEFAULT_UI_LANG: z.string().default('en'),
 });

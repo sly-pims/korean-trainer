@@ -6,7 +6,8 @@ import type { LanguageProfile, Langs, NativeLang } from '../lang.js';
 import { DailyCapReachedError } from '../llm/errors.js';
 import { CallManager } from '../llm/callManager.js';
 import { validateContentPack } from '../prompts/contentPack.js';
-import { ContentPackSchema } from '../schema/content.js';
+import { ContentPackSchema, NativePackTranslationSchema } from '../schema/content.js';
+import type { ContentPack, NativePackTranslation } from '../schema/content.js';
 import { filterGlossaryByPassage } from './glossary.js';
 import { compareReadAloud, compareStrings } from './diff.js';
 import { reviewCard as sm2Review } from './srs.js';
@@ -39,6 +40,7 @@ export interface SessionRow {
 export interface PassageRow {
   id: number;
   target_lang: string;
+  native_lang: string;
   level: number;
   topic: string;
   payload_json: string;
@@ -115,7 +117,7 @@ export class ContentService {
       'SELECT 1 FROM passages WHERE source=? AND target_lang=? AND payload_json=?',
     );
     const insert = this.db.prepare(
-      'INSERT INTO passages (target_lang, level, topic, payload_json, source, used, created_at) VALUES (?,?,?,?,?,0,?)',
+      'INSERT INTO passages (target_lang, native_lang, level, topic, payload_json, source, used, created_at) VALUES (?,?,?,?,?,?,0,?)',
     );
     const tx = this.db.prepare('BEGIN');
     const commit = this.db.prepare('COMMIT');
@@ -147,7 +149,7 @@ export class ContentService {
             result.existing++;
             continue;
           }
-          insert.run(targetLang, pack.level, pack.topic, payload, 'seed', nowIso());
+          insert.run(targetLang, profile.seedNativeLang, pack.level, pack.topic, payload, 'seed', nowIso());
           result.imported++;
         }
       }
@@ -256,6 +258,76 @@ export class ContentService {
     return { session: s, pack: JSON.parse(p.payload_json), passage: p };
   }
 
+  async localizeSession(session: SessionWithPack, nativeLang: string): Promise<SessionWithPack> {
+    return {
+      ...session,
+      pack: await this.nativePack(session.passage.id, nativeLang, session.pack),
+    };
+  }
+
+  async nativePackForSession(sessionId: number, nativeLang: string): Promise<ContentPack> {
+    const s = this.db.prepare('SELECT passage_id FROM sessions WHERE id=?').get(sessionId) as
+      | { passage_id: number }
+      | undefined;
+    if (!s) throw new Error(`no session ${sessionId}`);
+    return this.nativePack(s.passage_id, nativeLang);
+  }
+
+  async nativePack(
+    passageId: number,
+    nativeLang: string,
+    suppliedPack?: ContentPack,
+  ): Promise<ContentPack> {
+    const passage = this.db.prepare('SELECT target_lang, native_lang, payload_json FROM passages WHERE id=?').get(passageId) as
+      | { target_lang: string; native_lang: string; payload_json: string }
+      | undefined;
+    if (!passage) throw new Error(`no passage ${passageId}`);
+    const pack = suppliedPack ?? (JSON.parse(passage.payload_json) as ContentPack);
+    if (passage.native_lang === nativeLang) return pack;
+
+    const cached = this.db
+      .prepare('SELECT payload_json FROM passage_translations WHERE passage_id=? AND native_lang=?')
+      .get(passageId, nativeLang) as { payload_json: string } | undefined;
+    if (cached) return mergeNativeTranslation(pack, NativePackTranslationSchema.parse(JSON.parse(cached.payload_json)));
+    if (!this.callManager) return pack;
+
+    const targetName = this.languageName(passage.target_lang, nativeLang);
+    const sourceName = this.languageName(passage.target_lang, passage.native_lang);
+    const translation: NativePackTranslation = await this.callManager.generateJSON({
+      system: `You are a careful translator for a language-learning lesson. Translate explanations from ${sourceName} into ${targetName}. Preserve meaning, level-appropriate wording, names, answer correctness, and array order. Do not translate or rewrite target-language content.`,
+      prompt: `Translate only these native-language fields from ${sourceName} into ${targetName}. Keep every array the same length and order. Return JSON matching the requested structure.\n${JSON.stringify({
+        passage_native: pack.passage_native,
+        sentences: pack.sentences.map(({ native }) => ({ native })),
+        glossary: pack.glossary.map(({ meaning_native }) => ({ meaning_native })),
+        questions: pack.questions.map(({ q_native, explanation_native }) => ({ q_native, explanation_native })),
+        writing_prompt: pack.writing_prompt,
+        speaking_prompt: pack.speaking_prompt,
+      })}`,
+      schema: NativePackTranslationSchema,
+    });
+    if (
+      translation.sentences.length !== pack.sentences.length ||
+      translation.glossary.length !== pack.glossary.length
+    ) {
+      throw new Error(`native translation shape mismatch for passage ${passageId}`);
+    }
+    const payload = JSON.stringify(translation);
+    this.db
+      .prepare('INSERT OR IGNORE INTO passage_translations (passage_id, native_lang, payload_json, created_at) VALUES (?,?,?,?)')
+      .run(passageId, nativeLang, payload, nowIso());
+    const stored = this.db
+      .prepare('SELECT payload_json FROM passage_translations WHERE passage_id=? AND native_lang=?')
+      .get(passageId, nativeLang) as { payload_json: string };
+    return mergeNativeTranslation(pack, NativePackTranslationSchema.parse(JSON.parse(stored.payload_json)));
+  }
+
+  private languageName(targetLang: string, code: string): string {
+    if (code === 'en') return 'English';
+    if (code === 'ko') return 'Korean';
+    if (code === 'fr') return 'French';
+    return this.langs.get(code)?.name ?? code;
+  }
+
   setStep(sessionId: number, step: string): void {
     this.db.prepare('UPDATE sessions SET current_step=? WHERE id=?').run(step, sessionId);
   }
@@ -335,8 +407,9 @@ export class ContentService {
     enrollmentId: number,
     sessionId: number,
     surface: string,
+    localizedPack?: ContentPack,
   ): { found: boolean; word?: Record<string, unknown>; isNew?: boolean } {
-    const pack = this.packForSession(sessionId) as import('../schema/content.js').ContentPack;
+    const pack = localizedPack ?? (this.packForSession(sessionId) as ContentPack);
     const entry = pack.glossary.find((g) => g.surface === surface);
     if (!entry) return { found: false };
     const today = this.today(enrollmentId);
@@ -433,11 +506,11 @@ export class ContentService {
    * unscoped `ORDER BY RANDOM()` hands a French learner a Korean passage half
    * the time, and then grades the speaking prompt against the wrong language.
    */
-  randomPack(targetLang: string): import('../schema/content.js').ContentPack | null {
+  randomPack(targetLang: string): { passageId: number; pack: ContentPack } | null {
     const p = this.db
-      .prepare('SELECT payload_json FROM passages WHERE target_lang=? ORDER BY RANDOM() LIMIT 1')
-      .get(targetLang) as { payload_json: string } | undefined;
-    return p ? (JSON.parse(p.payload_json) as import('../schema/content.js').ContentPack) : null;
+      .prepare('SELECT id, payload_json FROM passages WHERE target_lang=? ORDER BY RANDOM() LIMIT 1')
+      .get(targetLang) as { id: number; payload_json: string } | undefined;
+    return p ? { passageId: p.id, pack: JSON.parse(p.payload_json) as ContentPack } : null;
   }
 
   /** Every lemma this enrollment has, so suggestions never repeat a known word. */
@@ -556,13 +629,13 @@ export class ContentService {
     });
   }
 
-  sessionDetail(sessionId: number): Record<string, unknown> | null {
+  async sessionDetail(sessionId: number, nativeLang: string): Promise<Record<string, unknown> | null> {
     const s = this.db.prepare('SELECT * FROM sessions WHERE id=?').get(sessionId) as unknown as
       | SessionRow
       | undefined;
     if (!s || s.status !== 'done') return null;
     const p = this.db.prepare('SELECT * FROM passages WHERE id=?').get(s.passage_id) as unknown as PassageRow;
-    const pack = JSON.parse(p.payload_json) as import('../schema/content.js').ContentPack;
+    const pack = await this.nativePack(p.id, nativeLang, JSON.parse(p.payload_json) as ContentPack);
     const answers: (number | null)[] = s.read_answers_json ? (JSON.parse(s.read_answers_json) as number[]) : [];
     const read = pack.questions.map((q, i) => {
       const chosen = answers[i] ?? null;
@@ -829,9 +902,9 @@ export class ContentService {
       const { pack } = await this.generatePack(level, undefined, undefined, targetLang, nativeLang);
       const res = this.db
         .prepare(
-          'INSERT INTO passages (target_lang, level, topic, payload_json, source, used, created_at) VALUES (?,?,?,?,?,0,?)',
+          'INSERT INTO passages (target_lang, native_lang, level, topic, payload_json, source, used, created_at) VALUES (?,?,?,?,?,?,0,?)',
         )
-        .run(targetLang, pack.level, pack.topic, JSON.stringify(pack), 'llm', nowIso());
+        .run(targetLang, nativeLang, pack.level, pack.topic, JSON.stringify(pack), 'llm', nowIso());
       this.db
         .prepare('INSERT OR IGNORE INTO enrollment_passages (enrollment_id, passage_id, intended_date, used_at) VALUES (?,?,?,NULL)')
         .run(enrollmentId, Number(res.lastInsertRowid), tomorrow);
@@ -856,4 +929,20 @@ export class ContentService {
       )
       .get(enrollmentId, targetLang, tomorrow);
   }
+}
+
+function mergeNativeTranslation(pack: ContentPack, translation: NativePackTranslation): ContentPack {
+  return {
+    ...pack,
+    passage_native: translation.passage_native,
+    sentences: pack.sentences.map((sentence, index) => ({ ...sentence, native: translation.sentences[index]!.native })),
+    glossary: pack.glossary.map((entry, index) => ({ ...entry, meaning_native: translation.glossary[index]!.meaning_native })),
+    questions: pack.questions.map((question, index) => ({
+      ...question,
+      q_native: translation.questions[index]!.q_native,
+      explanation_native: translation.questions[index]!.explanation_native,
+    })),
+    writing_prompt: { ...pack.writing_prompt, ...translation.writing_prompt },
+    speaking_prompt: { ...pack.speaking_prompt, ...translation.speaking_prompt },
+  };
 }

@@ -19,6 +19,7 @@
     "en-US-SteffanNeural"
   ],
   "seedFile": "seed/passages.en.json",
+  "seedNativeLang": "ko",
   "levelScaleName": "IELTS",
   "levels": {
     "1": { "name": "IELTS 4.0", "note": "Everyday basics" },

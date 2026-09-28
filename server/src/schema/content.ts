@@ -39,6 +39,24 @@ export const ContentPackSchema = z.object({
   speaking_prompt: z.object({ target: z.string().min(1), native: z.string().min(1) }),
 });
 
+/** Native-language-only fields translated for a learner whose native language
+ * differs from the language stored with the passage. */
+export const NativePackTranslationSchema = z.object({
+  passage_native: z.string().min(1),
+  sentences: z.array(z.object({ native: z.string().min(1) })).min(1),
+  glossary: z.array(z.object({ meaning_native: z.string().min(1) })),
+  questions: z.array(z.object({
+    q_native: z.string().min(1),
+    explanation_native: z.string().min(1),
+  })).length(3),
+  writing_prompt: z.object({
+    native: z.string().min(1),
+    target_grammar: z.string(),
+  }),
+  speaking_prompt: z.object({ native: z.string().min(1) }),
+});
+export type NativePackTranslation = z.infer<typeof NativePackTranslationSchema>;
+
 // §8.2 Writing grading
 export const WritingFeedbackSchema = z.object({
   corrected_target: z.string(),

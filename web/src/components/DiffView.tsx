@@ -10,12 +10,12 @@ interface Props {
 /** Green = matches the target; red = differs from the target (missing, extra, or substituted). */
 export function DiffView({ segments }: Props) {
   return (
-    <span className="diff-inline">
+    <div className="diff-inline">
       {segments.map((s, i) => (
         <span key={i} className={`${s.type === 'equal' ? 'diff-match' : 'diff-mismatch'} diff-seg`}>
           {s.text}
         </span>
       ))}
-    </span>
+    </div>
   );
 }

@@ -7,6 +7,7 @@ import type { CopyKey } from './copy';
 import { ApiError } from './api';
 import en from '../../config/copy/en.json';
 import ko from '../../config/copy/ko.json';
+import fr from '../../config/copy/fr.json';
 import { ERROR_CODES as SERVER_ERROR_CODES } from '../../server/src/errors';
 
 type Tree = { [k: string]: string | Tree };
@@ -52,15 +53,17 @@ describe('interpolate', () => {
 describe('locale files', () => {
   const enFlat = flat(en as Tree);
   const koFlat = flat(ko as Tree);
+  const frFlat = flat(fr as Tree);
 
   it('have the same key set', () => {
     // The server has the same assertion; this one fails closer to the mistake.
     expect(koFlat.map(([k]) => k).sort()).toEqual(enFlat.map(([k]) => k).sort());
+    expect(frFlat.map(([k]) => k).sort()).toEqual(enFlat.map(([k]) => k).sort());
   });
 
   it('have no empty values', () => {
     for (const [key, value] of enFlat) expect(value.trim(), key).not.toBe('');
-    for (const [key, value] of koFlat) expect(value.trim(), key).not.toBe('');
+    for (const [key, value] of [...koFlat, ...frFlat]) expect(value.trim(), key).not.toBe('');
   });
 
   it('use the same placeholders in every locale', () => {
@@ -69,9 +72,10 @@ describe('locale files', () => {
     const placeholders = (s: string) =>
       [...new Set([...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]!))].sort();
     for (const [key, enValue] of enFlat) {
-      const koValue = koFlat.find(([k]) => k === key)?.[1];
-      if (koValue === undefined) continue;
-      expect(placeholders(koValue), key).toEqual(placeholders(enValue));
+      for (const locale of [koFlat, frFlat]) {
+        const translated = locale.find(([k]) => k === key)?.[1];
+        if (translated !== undefined) expect(placeholders(translated), key).toEqual(placeholders(enValue));
+      }
     }
   });
 
@@ -150,6 +154,7 @@ describe('serverError', () => {
         .sort();
     expect(section(en as Tree, 'error')).toEqual(mapped);
     expect(section(ko as Tree, 'error')).toEqual(mapped);
+    expect(section(fr as Tree, 'error')).toEqual(mapped);
   });
 
   it('translates every code the server can emit', () => {

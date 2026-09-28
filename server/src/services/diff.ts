@@ -90,8 +90,9 @@ export interface CharDiffResult {
 export function compareStrings(aRaw: string, bRaw: string): CharDiffResult {
   const a = splitTokens(normalizeForCompare(aRaw));
   const b = splitTokens(normalizeForCompare(bRaw));
-  const ops = diffTokens(a, b);
-  const matched = ops.filter((o) => o.type === 'equal').length;
+  const scoringOps = diffTokens(a, b);
+  const ops = diffTokens(splitTokens(aRaw), splitTokens(bRaw));
+  const matched = scoringOps.filter((o) => o.type === 'equal').length;
   return {
     matched,
     ops,
@@ -110,8 +111,9 @@ export function compareStrings(aRaw: string, bRaw: string): CharDiffResult {
 export function compareReadAloud(aRaw: string, bRaw: string): CharDiffResult {
   const a = splitTokens(normalizeForCompare(aRaw));
   const b = splitTokens(normalizeForCompare(bRaw));
-  const ops = diffTokens(a, b);
-  const matched = ops.filter((o) => o.type === 'equal').length;
+  const scoringOps = diffTokens(a, b);
+  const ops = diffTokens(splitTokens(aRaw), splitTokens(bRaw));
+  const matched = scoringOps.filter((o) => o.type === 'equal').length;
   const percent = a.length === 0 ? 0 : Math.min(100, Math.round((matched / a.length) * 100));
   return { matched, ops, segments: groupOps(ops), percent };
 }

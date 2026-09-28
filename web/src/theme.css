@@ -137,6 +137,21 @@ label {
 .account-language-controls button {
   flex: 0 0 auto;
 }
+.account-switch-controls {
+  margin-top: 12px;
+}
+.account-switch-controls select {
+  flex: 1 1 180px;
+  min-width: 0;
+}
+.home-course-picker {
+  display: grid;
+  gap: 4px;
+  margin: 0 0 12px;
+}
+.home-course-picker select {
+  max-width: 100%;
+}
 .stack {
   display: flex;
   flex-direction: column;
@@ -350,8 +365,13 @@ label {
   white-space: pre-wrap;
 }
 .diff-inline {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
   font-size: 1.2rem;
   line-height: 1.7;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .list-item {

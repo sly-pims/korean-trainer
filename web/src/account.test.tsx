@@ -5,6 +5,7 @@ import { AccountProvider, useAccount } from './account';
 import { App } from './App';
 import { AccountPanel } from './components/AccountPanel';
 import { SettingsScreen } from './screens/Settings';
+import { Home } from './screens/Home';
 import { useCopy } from './copy';
 import type { AccountPayload, EnrollmentSummary, LanguageDescriptor as ShortLang } from './api';
 import type { LanguageDescriptor as LanguageProfile } from './types';
@@ -67,12 +68,12 @@ function copyFor(code: 'ko' | 'fr') {
   };
 }
 
-function payload(over: { active?: 'ko' | 'fr'; added?: 'ko' | 'fr' } = {}): AccountPayload {
+function payload(over: { active?: 'ko' | 'fr'; added?: 'ko' | 'fr'; native?: 'en' | 'ko' | 'fr' } = {}): AccountPayload {
   const active = over.active ?? 'ko';
   const added = over.added;
   const enrollments = [
-    enrollment({ id: 1, lang: ko }),
-    ...(added ? [enrollment({ id: 2, lang: added === 'ko' ? ko : fr })] : []),
+    enrollment({ id: 1, lang: ko, nativeLang: over.native ?? 'en' }),
+    ...(added ? [enrollment({ id: 2, lang: added === 'ko' ? ko : fr, nativeLang: over.native ?? 'en' })] : []),
   ];
   const activeSummary = enrollments.find((e) => e.lang.code === active) ?? enrollments[0]!;
   const profile = activeSummary.lang.code === 'ko' ? koProfile : frProfile;
@@ -82,7 +83,7 @@ function payload(over: { active?: 'ko' | 'fr'; added?: 'ko' | 'fr' } = {}): Acco
     enrollments,
     availableTargetLangs: added ? [] : [fr.code],
     targetLangs: [ko, fr],
-    uiLangs: ['en', 'ko'],
+    uiLangs: ['en', 'ko', 'fr'],
     lang: profile,
     copy: copyFor(activeSummary.lang.code === 'ko' ? 'ko' : 'fr'),
     settings: {
@@ -186,8 +187,9 @@ describe('the account panel', () => {
     const list = screen.getByRole('list');
     expect(within(list).getByText('한국어')).toBeTruthy();
     expect(within(list).getByText('français')).toBeTruthy();
-    // Only the active row offers a switch; the other offers nothing to do.
+    // One bottom switch control replaces per-row buttons.
     expect(screen.getAllByRole('button', { name: /français/ })).toHaveLength(1);
+    expect(screen.getByLabelText(/Your languages/)).toBeTruthy();
     expect(screen.getByText(/Current/)).toBeTruthy();
   });
 
@@ -229,14 +231,46 @@ describe('the account panel', () => {
       }
       return undefined;
     };
-    renderPanel(payload({ active: 'ko' }));
+    renderPanel(payload({ active: 'ko', native: 'ko' }));
 
     fireEvent.change(screen.getByLabelText(/Add a language/), { target: { value: 'fr' } });
     fireEvent.click(screen.getByRole('button', { name: 'Add' }));
 
     await waitFor(() => expect(screen.getByText(/added/i)).toBeTruthy());
     expect(screen.getByTestId('active').textContent).toBe('ko');
-    expect(callsTo('/api/enrollments')[0]?.body).toMatchObject({ target_lang: 'fr' });
+    expect(callsTo('/api/enrollments')[0]?.body).toMatchObject({ target_lang: 'fr', native_lang: 'ko' });
+  });
+
+  it('lets the learner change courses from Home and reloads that course lesson', async () => {
+    let current = payload({ active: 'ko', added: 'fr' });
+    let homeCalls = 0;
+    routes = (path) => {
+      if (path === '/api/home') {
+        homeCalls++;
+        return { settings: current.settings, todaySession: null, tz: 'Asia/Seoul', tomorrowPackReady: false };
+      }
+      if (path === '/api/enrollments/2/activate') {
+        current = payload({ active: 'fr', added: 'fr' });
+        return { ok: true, account: current };
+      }
+      return undefined;
+    };
+
+    render(
+      <MemoryRouter>
+        <AccountProvider initial={current} onUnauthorized={() => {}}>
+          <Home />
+        </AccountProvider>
+      </MemoryRouter>,
+    );
+
+    const picker = await screen.findByLabelText(/Learning/i) as HTMLSelectElement;
+    expect(picker.value).toBe('1');
+    fireEvent.change(picker, { target: { value: '2' } });
+
+    await waitFor(() => expect(picker.value).toBe('2'));
+    await waitFor(() => expect(homeCalls).toBe(2));
+    expect(callsTo('/api/enrollments/2/activate')).toHaveLength(1);
   });
 
   it('says the language was already there when the server declines to add it again', async () => {

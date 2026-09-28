@@ -22,7 +22,14 @@ describe('compareStrings', () => {
   it('ignores spacing differences', () => {
     const r = compareStrings('저는 밥을 먹어요.', '저는 밥을 먹어요');
     expect(r.percent).toBe(100);
+    expect(r.segments.map((s) => s.text).join('')).toContain('저는 밥을 먹어요.');
     expect(r.segments.every((s) => s.type === 'equal' || s.type === 'delete')).toBe(true);
+  });
+
+  it('keeps word spacing in visual segments even though spacing is ignored for score', () => {
+    const r = compareStrings('Je mange une pomme.', 'Jemangeunepomme.');
+    expect(r.percent).toBe(100);
+    expect(r.segments.some((s) => s.text.includes(' '))).toBe(true);
   });
 
   it('ignores punctuation differences', () => {

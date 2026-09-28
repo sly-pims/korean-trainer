@@ -14,7 +14,7 @@ import { cleanupTempArtifacts, makeTestApp, type TestApp } from './fixtures.js';
 let app: TestApp;
 
 beforeEach(async () => {
-  app = await makeTestApp({ targetLangs: 'ko,fr', uiLangs: 'en,ko' });
+  app = await makeTestApp({ targetLangs: 'ko,fr,en', uiLangs: 'en,ko,fr' });
 });
 
 afterEach(() => {
@@ -91,8 +91,8 @@ describe('/api/account', () => {
     expect(body.activeEnrollmentId).toBe(app.enrollmentId);
     expect(body.enrollments.map((e: { id: number }) => e.id)).toEqual([app.enrollmentId]);
     // ko is taken; fr is offered by the deployment and not yet added.
-    expect(body.availableTargetLangs).toEqual(['fr']);
-    expect(body.targetLangs.map((l: { code: string }) => l.code)).toEqual(['ko', 'fr']);
+    expect(body.availableTargetLangs).toEqual(['fr', 'en']);
+    expect(body.targetLangs.map((l: { code: string }) => l.code)).toEqual(['ko', 'fr', 'en']);
   });
 
   it('carries the copy for the active language, not the deployment default', async () => {
@@ -116,7 +116,7 @@ describe('adding a language', () => {
     expect(body.account.settings).not.toBeUndefined();
     // ...but the new language is now in the account and off the available list.
     expect(body.account.enrollments.map((e: { targetLang: string }) => e.targetLang)).toEqual(['ko', 'fr']);
-    expect(body.account.availableTargetLangs).toEqual([]);
+    expect(body.account.availableTargetLangs).toEqual(['en']);
   });
 
   it('is idempotent, so a double-tapped button does not create two', async () => {
@@ -163,7 +163,7 @@ describe('adding a language', () => {
     const mine = (await app.get('/api/account', app.cookie)).json();
     // The sibling's French did not appear in my account, and my count is still one.
     expect(mine.enrollments).toHaveLength(1);
-    expect(mine.availableTargetLangs).toEqual(['fr']);
+    expect(mine.availableTargetLangs).toEqual(['fr', 'en']);
     const siblingId = (app.db.prepare('SELECT id FROM users WHERE username=?').get('sibling') as { id: number }).id;
     expect(
       (app.db.prepare('SELECT COUNT(*) c FROM enrollments WHERE user_id=?').get(siblingId) as { c: number }).c,
@@ -171,7 +171,7 @@ describe('adding a language', () => {
   });
 
   it('supports the requested English, French, and Korean learning/native combinations', async () => {
-    const triad = await makeTestApp({ targetLangs: 'ko,fr,en', uiLangs: 'en,ko' });
+    const triad = await makeTestApp({ targetLangs: 'ko,fr,en', uiLangs: 'en,ko,fr' });
     const pairs = [
       { native: 'en', target: 'ko' },
       { native: 'en', target: 'fr' },
@@ -191,7 +191,7 @@ describe('adding a language', () => {
         expect(created.statusCode, `${pair.native} learning ${pair.target}: ${created.body}`).toBe(201);
         enrollmentId = created.json().enrollment.id;
         expect(created.json().enrollment.nativeLang).toBe(pair.native);
-        expect(created.json().enrollment.uiLang).toBe(pair.native === 'ko' ? 'ko' : 'en');
+        expect(created.json().enrollment.uiLang).toBe(pair.native);
       }
 
       const started = await triad.post('/api/session/start', {}, triad.switchTo(enrollmentId));
@@ -261,7 +261,7 @@ describe('/api/meta', () => {
     const res = await app.anon('/api/meta');
     expect(res.statusCode).toBe(200);
     const body = res.json();
-    expect(body.targetLangs.map((l: { code: string }) => l.code)).toEqual(['ko', 'fr']);
+    expect(body.targetLangs.map((l: { code: string }) => l.code)).toEqual(['ko', 'fr', 'en']);
     expect(body.uiLangs).toEqual(expect.arrayContaining(['en', 'ko']));
     expect(body.defaultUiLang).toBe('en');
   });

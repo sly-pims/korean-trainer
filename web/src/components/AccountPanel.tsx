@@ -25,6 +25,9 @@ export function AccountPanel({ onSignedOut }: { onSignedOut: () => void }) {
   const available = account.targetLangs.filter((l) => account.availableTargetLangs.includes(l.code));
   const [pending, setPending] = useState<string>('');
   const [native, setNative] = useState<string>('');
+  const alternatives = account.enrollments.filter((e) => e.id !== account.activeEnrollmentId);
+  const [switchSelection, setSwitchSelection] = useState('');
+  const selectedEnrollment = alternatives.find((e) => String(e.id) === switchSelection) ?? alternatives[0];
 
   const add = async () => {
     if (!pending) return;
@@ -32,7 +35,8 @@ export function AccountPanel({ onSignedOut }: { onSignedOut: () => void }) {
     const lang = account.targetLangs.find((l) => l.code === pending);
     // `native_lang` is optional server-side and defaults to the deployment's
     // interface language; only send it when the picker actually chose one.
-    const result = await addLanguage({ target_lang: pending, native_lang: native || undefined });
+    const nativeLang = native || active.nativeLang;
+    const result = await addLanguage({ target_lang: pending, native_lang: nativeLang });
     setPending('');
     setNative('');
     if (result === 'added' && lang) {
@@ -71,15 +75,26 @@ export function AccountPanel({ onSignedOut }: { onSignedOut: () => void }) {
                 <span className="small muted">{e.lang.name}</span>
                 {isActive && <span className="badge"> {t('account.current')}</span>}
               </span>
-              {!isActive && (
-                <button disabled={busy} onClick={() => void switchTo(e.id)}>
-                  {busy ? t('account.switching') : t('account.switchTo', { language: e.lang.endonym })}
-                </button>
-              )}
             </li>
           );
         })}
       </ul>
+      {selectedEnrollment && (
+        <div className="row wrap account-switch-controls">
+          <select
+            aria-label={t('account.languages')}
+            value={selectedEnrollment.id}
+            onChange={(e) => setSwitchSelection(e.target.value)}
+          >
+            {alternatives.map((e) => (
+              <option key={e.id} value={e.id}>{e.lang.endonym} — {e.lang.name}</option>
+            ))}
+          </select>
+          <button className="primary" disabled={busy} onClick={() => void switchTo(selectedEnrollment.id)}>
+            {busy ? t('account.switching') : t('account.switchTo', { language: selectedEnrollment.lang.endonym })}
+          </button>
+        </div>
+      )}
       {/* `active` is what the rest of the app is actually using; surfacing it
           keeps the list and the content obviously in step. */}
       <p className="small muted">
@@ -101,10 +116,9 @@ export function AccountPanel({ onSignedOut }: { onSignedOut: () => void }) {
             </select>
             <select
               aria-label={t('account.nativeLanguage')}
-              value={native}
+              value={native || active.nativeLang}
               onChange={(e) => setNative(e.target.value)}
             >
-              <option value="">{t('account.nativeLanguage')}</option>
               {account.targetLangs.map((language) => (
                 <option key={language.code} value={language.code}>
                   {language.endonym} — {language.name}
