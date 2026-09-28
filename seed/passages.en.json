@@ -6,7 +6,7 @@
     "passage_target": "My name is Kim Minjun. There are four people in my family: my father, my mother, my older sister and me. We live in a small flat in Seoul. My father works at a hospital and my mother teaches at a primary school. My sister is seventeen and she studies hard. I love my family very much.",
     "passage_native": "저는 김민준이에요. 우리 가족은 네 명이에요. 아버지, 어머니, 누나, 그리고 저예요. 우리는 서울의 작은 아파트에 살아요. 아버지는 병원에서 일하고 어머니는 초등학교에서 가르쳐요. 누나는 스물 살일곱 살이고 공부 열심히 해요. 저는 가족을 아주 사랑해요.",
     "sentences": [
-      { "target": "There are four people in my family.", "native": "우리 가족은 네 명이에요." },
+      { "target": "There are four people in my family: my father, my mother, my older sister and me.", "native": "우리 가족은 네 명이에요. 아버지, 어머니, 누나, 그리고 저예요." },
       { "target": "We live in a small flat in Seoul.", "native": "우리는 서울의 작은 아파트에 살아요." },
       { "target": "My sister is seventeen and she studies hard.", "native": "누나는 스물 살일곱 살이고 공부 열심히 해요." }
     ],
@@ -175,7 +175,7 @@
       { "surface": "crowds", "lemma": "crowd", "pos": "noun", "meaning_native": "사람들, 군중" },
       { "surface": "a bag of", "lemma": "bag", "pos": "noun", "meaning_native": "한 봉지의" },
       { "surface": "customer", "lemma": "customer", "pos": "noun", "meaning_native": "손님" },
-      { "surface": "on the way home", "lemma": "on the way", "pos": "expression", "meaning_native": "돌아오는 길에" },
+      { "surface": "On the way home", "lemma": "on the way", "pos": "expression", "meaning_native": "돌아오는 길에" },
       { "surface": "every weekend", "lemma": "weekend", "pos": "noun", "meaning_native": "매주 주말" }
     ],
     "questions": [
@@ -325,7 +325,7 @@
     "passage_native": "서른 살에 기타를 배우기로 했는데, 형이 너무 늦었다고 했어요. 싼 기타를 사고 네 개의 화음부터 시작했는데, 첫 두 달 동안은 아침마다 손가락이 아팠어요. 그런데 어느 순간 뭔가가 달라졌어요. 일 년쯤 지나서 한 곡을 서툴지만 완전히 칠 수 있게 되었고, 그만큼 행복한 적은 없었어요. 이제 일주일에 한 번 오래 연주하는 것보다 매일 조금씩 하는 게 좋다는 걸 알게 되어서, 매일 저녁 이십 분만 연습해요.",
     "sentences": [
       { "target": "I decided to learn the guitar in my thirties, which my brother said was too late.", "native": "서른 살에 기타를 배우기로 했는데, 형이 너무 늦었다고 했어요." },
-      { "target": "Now I practise for twenty minutes every evening instead of an hour.", "native": "이제 일주일에 한 번 오래 연주하는 것보다 매일 조금씩 하는 게 좋다는 걸 알게 되어서, 매일 저녁 이십 분만 연습해요." },
+      { "target": "Now I practise for twenty minutes every evening instead of an hour,", "native": "이제 일주일에 한 번 오래 연주하는 것보다 매일 조금씩 하는 게 좋다는 걸 알게 되어서, 매일 저녁 이십 분만 연습해요." },
       { "target": "I would rather play a little every day than a lot once a week.", "native": "일주일에 한 번 오래 하는 것보다 매일 조금씩 하는 편이 낫겠어요." }
     ],
     "glossary": [
@@ -334,7 +334,7 @@
       { "surface": "hurt", "lemma": "hurt", "pos": "verb", "meaning_native": "아프다" },
       { "surface": "badly but completely", "lemma": "badly", "pos": "adverb", "meaning_native": "서툴지만" },
       { "surface": "practise", "lemma": "practise", "pos": "verb", "meaning_native": "연습하다" },
-      { "surface": "would rather … than", "lemma": "would rather", "pos": "expression", "meaning_native": "…보다 …하는 편이 낫다" }
+      { "surface": "would rather", "lemma": "would rather", "pos": "expression", "meaning_native": "…하는 편이 낫다" }
     ],
     "questions": [
       {
@@ -377,13 +377,13 @@
     "passage_native": "의사가 너무 많이 앉아 있다고 해서 일월에 달리기를 시작했어요. 첫 주에는 두 개 골목만 달리고 멈춰야 했어요. 삼월까지는 강가를 따라 일주일에 세 번 달렸고, 육월까지는 멈추지 않고 첫 십 킬로미터를 완주했어요. 가장 놀랍던 건 달리는 것 자체가 아니었어요. 잠을 더 잘 자게 되었고, 등이 아프지 않았고, 오후에 졸린 느낌이 없어졌어요. 이제는 밖에서 달리기엔 너무 추워서, 건물 안에 있는 작은 체육관에 가요.",
     "sentences": [
       { "target": "I started running in January because my doctor said I sat down too much.", "native": "의사가 너무 많이 앉아 있다고 해서 일월에 달리기를 시작했어요." },
-      { "target": "By March I was running along the river three times a week.", "native": "삼월까지는 강가를 따라 일주일에 세 번 달렸어요." },
-      { "target": "What surprised me most was not the running. It was that I slept better.", "native": "가장 놀랍던 건 달리는 것 자체가 아니었어요. 잠을 더 잘 자게 되었고." }
+      { "target": "By March I was running along the river three times a week,", "native": "삼월까지는 강가를 따라 일주일에 세 번 달렸어요." },
+      { "target": "What surprised me most was not the running.", "native": "가장 놀랍던 건 달리는 것 자체가 아니었어요." }
     ],
     "glossary": [
-      { "surface": "sit down too much", "lemma": "sit down", "pos": "verb", "meaning_native": "너무 오래 앉아 있다" },
+      { "surface": "sat down too much", "lemma": "sit down", "pos": "verb", "meaning_native": "너무 오래 앉아 있다" },
       { "surface": "manage", "lemma": "manage", "pos": "verb", "meaning_native": "해내다" },
-      { "surface": "by March", "lemma": "by", "pos": "preposition", "meaning_native": "…까지가 되면" },
+      { "surface": "By March", "lemma": "by", "pos": "preposition", "meaning_native": "…까지가 되면" },
       { "surface": "finish", "lemma": "finish", "pos": "verb", "meaning_native": "완주하다, 끝내다" },
       { "surface": "surprise", "lemma": "surprise", "pos": "verb", "meaning_native": "놀라게 하다" },
       { "surface": "back", "lemma": "back", "pos": "noun", "meaning_native": "등, 허리" }
@@ -420,5 +420,187 @@
       "target": "How much exercise do you get in a week?",
       "native": "일주일에 운동을 얼마나 해요?"
     }
+  },
+  {
+    "level": 2,
+    "topic": "food",
+    "title_target": "A Lunch I Nearly Skipped",
+    "passage_target": "Last Tuesday I was so busy that I nearly skipped lunch. A colleague who sits near me noticed and offered half of her vegetable wrap. I had never tried one before, but it was lighter than the fried food I usually buy. Since then, I have brought lunch from home twice a week. It costs less, and I feel ready to work in the afternoon.",
+    "passage_native": "지난 화요일에는 너무 바빠서 점심을 거를 뻔했어요. 근처에 앉는 동료가 알아채고 채소 랩을 반 나눠 줬어요. 전에 먹어 본 적은 없었지만 제가 보통 사 먹는 튀긴 음식보다 가벼웠어요. 그 뒤로 일주일에 두 번은 집에서 점심을 가져와요. 돈도 덜 들고 오후에 일할 힘도 생겨요.",
+    "sentences": [
+      { "target": "Last Tuesday I was so busy that I nearly skipped lunch.", "native": "지난 화요일에는 너무 바빠서 점심을 거를 뻔했어요." },
+      { "target": "A colleague who sits near me noticed and offered half of her vegetable wrap.", "native": "근처에 앉는 동료가 알아채고 채소 랩을 반 나눠 줬어요." },
+      { "target": "Since then, I have brought lunch from home twice a week.", "native": "그 뒤로 일주일에 두 번은 집에서 점심을 가져와요." }
+    ],
+    "glossary": [
+      { "surface": "nearly skipped", "lemma": "nearly skip", "pos": "verb", "meaning_native": "거의 거를 뻔하다" },
+      { "surface": "colleague", "lemma": "colleague", "pos": "noun", "meaning_native": "동료" },
+      { "surface": "noticed", "lemma": "notice", "pos": "verb", "meaning_native": "알아차리다" },
+      { "surface": "lighter than", "lemma": "light", "pos": "adjective", "meaning_native": "~보다 가벼운" },
+      { "surface": "from home", "lemma": "from home", "pos": "expression", "meaning_native": "집에서 가져온" }
+    ],
+    "questions": [
+      { "q_target": "Why did the writer nearly skip lunch?", "q_native": "왜 점심을 거를 뻔했어요?", "choices": ["The writer was busy", "The shop was closed", "The colleague was away", "The food was cold"], "answer_index": 0, "explanation_native": "너무 바빠서 점심을 거를 뻔했다고 했어요." },
+      { "q_target": "What did the colleague share?", "q_native": "동료가 무엇을 나눠 줬어요?", "choices": ["A bowl of soup", "Half of a vegetable wrap", "A piece of fried fish", "Some fruit"], "answer_index": 1, "explanation_native": "동료가 채소 랩의 반을 나눠 줬어요." },
+      { "q_target": "What has the writer started doing?", "q_native": "글쓴이는 무엇을 하기 시작했어요?", "choices": ["Skipping lunch", "Buying fried food", "Bringing lunch from home", "Eating with a manager"], "answer_index": 2, "explanation_native": "그 뒤로 집에서 점심을 가져온다고 했어요." }
+    ],
+    "writing_prompt": { "target": "Describe a lunch that you enjoyed. Say who you ate with and what made it good.", "native": "맛있게 먹은 점심에 대해 쓰세요. 누구와 먹었고 무엇이 좋았는지 쓰세요.", "target_grammar": "past simple, present perfect, and comparatives" },
+    "speaking_prompt": { "target": "Do you usually bring lunch from home or buy it?", "native": "보통 점심을 집에서 가져오나요, 사 먹나요?" }
+  },
+  {
+    "level": 2,
+    "topic": "travel",
+    "title_target": "The Bus We Almost Missed",
+    "passage_target": "We left the hotel later than we had planned because the rain was heavy. I thought we would miss the bus, but the driver waited while we crossed the road. The ride was shorter than the train journey, although it was less comfortable. We reached the museum before it closed and still had time to see the main exhibition. Since that day, I check the bus times before I leave.",
+    "passage_native": "비가 많이 와서 계획보다 늦게 호텔을 나왔어요. 버스를 놓칠 줄 알았지만 우리가 길을 건너는 동안 기사가 기다려 줬어요. 기차 여행보다 짧았지만 덜 편했어요. 박물관이 문을 닫기 전에 도착해서 주요 전시를 볼 시간도 있었어요. 그날 이후로는 나가기 전에 버스 시간을 확인해요.",
+    "sentences": [
+      { "target": "We left the hotel later than we had planned because the rain was heavy.", "native": "비가 많이 와서 계획보다 늦게 호텔을 나왔어요." },
+      { "target": "I thought we would miss the bus, but the driver waited while we crossed the road.", "native": "버스를 놓칠 줄 알았지만 우리가 길을 건너는 동안 기사가 기다려 줬어요." },
+      { "target": "Since that day, I check the bus times before I leave.", "native": "그날 이후로는 나가기 전에 버스 시간을 확인해요." }
+    ],
+    "glossary": [
+      { "surface": "later than", "lemma": "late", "pos": "adverb", "meaning_native": "~보다 늦게" },
+      { "surface": "miss the bus", "lemma": "miss", "pos": "verb", "meaning_native": "버스를 놓치다" },
+      { "surface": "waited", "lemma": "wait", "pos": "verb", "meaning_native": "기다렸다" },
+      { "surface": "less comfortable", "lemma": "comfortable", "pos": "adjective", "meaning_native": "덜 편안한" },
+      { "surface": "exhibition", "lemma": "exhibition", "pos": "noun", "meaning_native": "전시회" }
+    ],
+    "questions": [
+      { "q_target": "Why did they leave the hotel late?", "q_native": "왜 호텔을 늦게 나왔어요?", "choices": ["They were waiting for a friend", "The rain was heavy", "The bus was broken", "The museum opened late"], "answer_index": 1, "explanation_native": "비가 많이 와서 계획보다 늦게 나왔다고 했어요." },
+      { "q_target": "What did the driver do?", "q_native": "기사가 무엇을 했어요?", "choices": ["He waited for them", "He changed the route", "He called the museum", "He stopped for lunch"], "answer_index": 0, "explanation_native": "길을 건너는 동안 기다려 줬어요." },
+      { "q_target": "What does the writer do now before leaving?", "q_native": "글쓴이는 이제 나가기 전에 무엇을 해요?", "choices": ["Checks the bus times", "Books a train", "Calls the driver", "Visits the museum website"], "answer_index": 0, "explanation_native": "버스 시간을 확인한다고 했어요." }
+    ],
+    "writing_prompt": { "target": "Write about a journey that did not go as planned. What happened, and what did you do?", "native": "계획대로 되지 않았던 여행에 대해 쓰세요. 무슨 일이 있었고 어떻게 했나요?", "target_grammar": "past perfect, past simple, and although" },
+    "speaking_prompt": { "target": "Have you ever almost missed a bus or train?", "native": "버스나 기차를 놓칠 뻔한 적이 있나요?" }
+  },
+  {
+    "level": 3,
+    "topic": "work",
+    "title_target": "A Change at the Office",
+    "passage_target": "When our office moved to a smaller building, the team had to decide what to keep. We had stored boxes that nobody had opened for years. My manager, who wanted the new space to feel calm, asked each person to choose one useful item. I found a notebook in which I had written ideas for my first project. We recycled the rest, and the room felt brighter by the end of the day. The change reminded me that old habits can take up space too.",
+    "passage_native": "사무실이 더 작은 건물로 옮기자 팀은 무엇을 보관할지 정해야 했어요. 몇 년 동안 아무도 열어 보지 않은 상자들이 쌓여 있었어요. 새 공간이 차분하기를 바란 매니저는 각자 쓸모 있는 물건 하나를 고르라고 했어요. 저는 첫 프로젝트 아이디어를 적었던 공책을 찾았어요. 나머지는 재활용했고, 하루가 끝날 무렵 방이 더 밝아 보였어요. 이 변화는 오래된 습관도 공간을 차지할 수 있다는 걸 일깨워 줬어요.",
+    "sentences": [
+      { "target": "We had stored boxes that nobody had opened for years.", "native": "몇 년 동안 아무도 열어 보지 않은 상자들이 쌓여 있었어요." },
+      { "target": "My manager, who wanted the new space to feel calm, asked each person to choose one useful item.", "native": "새 공간이 차분하기를 바란 매니저는 각자 쓸모 있는 물건 하나를 고르라고 했어요." },
+      { "target": "The change reminded me that old habits can take up space too.", "native": "이 변화는 오래된 습관도 공간을 차지할 수 있다는 걸 일깨워 줬어요." }
+    ],
+    "glossary": [
+      { "surface": "smaller building", "lemma": "small", "pos": "noun phrase", "meaning_native": "더 작은 건물" },
+      { "surface": "stored boxes", "lemma": "store", "pos": "verb", "meaning_native": "보관해 둔 상자들" },
+      { "surface": "useful item", "lemma": "useful", "pos": "noun phrase", "meaning_native": "쓸모 있는 물건" },
+      { "surface": "recycled", "lemma": "recycle", "pos": "verb", "meaning_native": "재활용했다" },
+      { "surface": "take up space", "lemma": "take up", "pos": "expression", "meaning_native": "공간을 차지하다" }
+    ],
+    "questions": [
+      { "q_target": "Why did the team sort through the boxes?", "q_native": "팀은 왜 상자들을 정리했어요?", "choices": ["The office moved to a smaller building", "The manager was leaving", "The boxes were wet", "A project had ended"], "answer_index": 0, "explanation_native": "사무실이 더 작은 건물로 옮겨서 무엇을 보관할지 정해야 했어요." },
+      { "q_target": "What did the writer find?", "q_native": "글쓴이는 무엇을 찾았어요?", "choices": ["An old phone", "A project notebook", "A box of photographs", "A useful chair"], "answer_index": 1, "explanation_native": "첫 프로젝트 아이디어를 적은 공책을 찾았어요." },
+      { "q_target": "What did the team do with the other things?", "q_native": "팀은 나머지 물건을 어떻게 했어요?", "choices": ["Sold them", "Stored them again", "Recycled them", "Gave them to the manager"], "answer_index": 2, "explanation_native": "나머지를 재활용했다고 했어요." }
+    ],
+    "writing_prompt": { "target": "Describe a change at work or school that improved the space. What had been happening before?", "native": "직장이나 학교의 공간을 더 좋게 만든 변화에 대해 쓰세요. 전에는 어떤 일이 있었나요?", "target_grammar": "relative clauses and past perfect" },
+    "speaking_prompt": { "target": "What is one old habit you would like to change?", "native": "바꾸고 싶은 오래된 습관 하나는 무엇인가요?" }
+  },
+  {
+    "level": 3,
+    "topic": "travel",
+    "title_target": "The Road That Was Closed",
+    "passage_target": "We had planned to drive through the mountain pass, which a friend had recommended. A storm had damaged the road during the night, so a sign warned us to turn back. We could have waited for it to reopen, but the forecast promised more rain. Instead, we took a longer coastal route that passed through two small towns. By the time we arrived, the clouds were breaking and the sea was calm. The detour took hours, yet it became the part of the trip we remembered best.",
+    "passage_native": "친구가 추천한 산길 고개를 지나 운전할 계획이었어요. 밤사이 폭풍이 도로를 손상해 표지판이 돌아가라고 경고했어요. 다시 열릴 때까지 기다릴 수도 있었지만 일기예보는 비가 더 온다고 했어요. 대신 작은 마을 두 곳을 지나는 더 긴 해안 도로를 탔어요. 도착할 때쯤 구름이 걷히고 바다는 잔잔했어요. 우회로 때문에 몇 시간이 더 걸렸지만 여행에서 가장 기억에 남는 부분이 됐어요.",
+    "sentences": [
+      { "target": "A storm had damaged the road during the night, so a sign warned us to turn back.", "native": "밤사이 폭풍이 도로를 손상해 표지판이 돌아가라고 경고했어요." },
+      { "target": "We could have waited for it to reopen, but the forecast promised more rain.", "native": "다시 열릴 때까지 기다릴 수도 있었지만 일기예보는 비가 더 온다고 했어요." },
+      { "target": "The detour took hours, yet it became the part of the trip we remembered best.", "native": "우회로 때문에 몇 시간이 더 걸렸지만 여행에서 가장 기억에 남는 부분이 됐어요." }
+    ],
+    "glossary": [
+      { "surface": "mountain pass", "lemma": "pass", "pos": "noun", "meaning_native": "산길 고개" },
+      { "surface": "damaged the road", "lemma": "damage", "pos": "verb", "meaning_native": "도로를 손상했다" },
+      { "surface": "turn back", "lemma": "turn back", "pos": "verb", "meaning_native": "되돌아가다" },
+      { "surface": "coastal route", "lemma": "coast", "pos": "noun phrase", "meaning_native": "해안 경로" },
+      { "surface": "detour", "lemma": "detour", "pos": "noun", "meaning_native": "우회로" }
+    ],
+    "questions": [
+      { "q_target": "Why did the travelers turn back?", "q_native": "여행자들은 왜 돌아갔어요?", "choices": ["They ran out of fuel", "A storm had damaged the road", "Their friend called them", "The coastal road was closed"], "answer_index": 1, "explanation_native": "폭풍이 산길을 손상해 표지판이 돌아가라고 했어요." },
+      { "q_target": "Why did they choose not to wait?", "q_native": "왜 기다리지 않았어요?", "choices": ["The forecast promised more rain", "The towns were closing", "They had already seen the sea", "The sign told them to hurry"], "answer_index": 0, "explanation_native": "비가 더 온다는 예보 때문에 기다리지 않았어요." },
+      { "q_target": "How did the travelers feel about the detour afterward?", "q_native": "나중에 우회로를 어떻게 생각했어요?", "choices": ["It was the best-remembered part", "It ruined the whole trip", "They forgot it immediately", "It was shorter than expected"], "answer_index": 0, "explanation_native": "우회로가 가장 기억에 남는 부분이 됐어요." }
+    ],
+    "writing_prompt": { "target": "Write about a plan that changed because of an unexpected problem. What could you have done?", "native": "예상치 못한 문제 때문에 계획이 바뀐 경험을 쓰세요. 어떤 선택을 할 수도 있었나요?", "target_grammar": "past perfect, relative clauses, and could have" },
+    "speaking_prompt": { "target": "Do you enjoy unexpected changes when you travel?", "native": "여행 중 예상치 못한 변화가 생기는 것을 좋아하나요?" }
+  },
+  {
+    "level": 3,
+    "topic": "weather",
+    "title_target": "A Garden After the Storm",
+    "passage_target": "The storm that crossed our town on Saturday left branches across the garden. I had planted young tomatoes only a week earlier, and I worried that the wind had broken them. My neighbour, whose garden is beside ours, came over with a box of supports. We tied the stems carefully and moved the pots that had been standing in the deepest water. By Monday, the plants had lifted their leaves again. I learned that a small amount of preparation can make a difficult morning easier.",
+    "passage_native": "토요일에 마을을 지나간 폭풍은 정원에 나뭇가지를 남겼어요. 일주일 전에 어린 토마토를 심었기 때문에 바람에 부러졌을까 걱정했어요. 옆집 정원을 가꾸는 이웃이 지지대 상자를 들고 왔어요. 줄기를 조심히 묶고 물이 가장 깊었던 곳에 있던 화분을 옮겼어요. 월요일이 되자 식물들이 다시 잎을 들었어요. 조금 준비해 두면 힘든 아침이 쉬워질 수 있다는 걸 배웠어요.",
+    "sentences": [
+      { "target": "The storm that crossed our town on Saturday left branches across the garden.", "native": "토요일에 마을을 지나간 폭풍은 정원에 나뭇가지를 남겼어요." },
+      { "target": "My neighbour, whose garden is beside ours, came over with a box of supports.", "native": "옆집 정원을 가꾸는 이웃이 지지대 상자를 들고 왔어요." },
+      { "target": "By Monday, the plants had lifted their leaves again.", "native": "월요일이 되자 식물들이 다시 잎을 들었어요." }
+    ],
+    "glossary": [
+      { "surface": "branches", "lemma": "branch", "pos": "noun", "meaning_native": "나뭇가지" },
+      { "surface": "young tomatoes", "lemma": "tomato", "pos": "noun phrase", "meaning_native": "어린 토마토 모종" },
+      { "surface": "supports", "lemma": "support", "pos": "noun", "meaning_native": "지지대" },
+      { "surface": "stems", "lemma": "stem", "pos": "noun", "meaning_native": "줄기" },
+      { "surface": "preparation", "lemma": "preparation", "pos": "noun", "meaning_native": "준비" }
+    ],
+    "questions": [
+      { "q_target": "What damage did the storm leave?", "q_native": "폭풍은 어떤 피해를 남겼어요?", "choices": ["Broken windows", "Branches in the garden", "A flooded road", "Lost garden tools"], "answer_index": 1, "explanation_native": "정원에 나뭇가지가 떨어져 있었어요." },
+      { "q_target": "Who brought the supports?", "q_native": "누가 지지대를 가져왔어요?", "choices": ["The writer's manager", "A neighbour", "A gardener from town", "The writer's brother"], "answer_index": 1, "explanation_native": "옆집 이웃이 지지대를 가져왔어요." },
+      { "q_target": "What had happened by Monday?", "q_native": "월요일까지 무슨 일이 있었어요?", "choices": ["The plants lifted their leaves again", "Another storm arrived", "The tomatoes were harvested", "The supports were removed"], "answer_index": 0, "explanation_native": "식물들이 다시 잎을 들었어요." }
+    ],
+    "writing_prompt": { "target": "Describe how you prepared for difficult weather. What had you done before it arrived?", "native": "궂은 날씨에 대비한 방법을 설명하세요. 날씨가 오기 전에 무엇을 해 두었나요?", "target_grammar": "relative clauses and past perfect" },
+    "speaking_prompt": { "target": "Have you ever helped someone after a storm?", "native": "폭풍이 지나간 뒤 누군가를 도와준 적이 있나요?" }
+  },
+  {
+    "level": 3,
+    "topic": "health",
+    "title_target": "The Walk That Changed My Routine",
+    "passage_target": "For months I had been taking a taxi to work, even though the office was only twenty minutes away on foot. A new roadworks project made the traffic slower, so I began walking instead. The route, which follows a canal, is quieter than the main street and passes a bakery that opens early. I used to arrive tense, but now I have time to listen to a podcast before work. I still take a taxi when it rains heavily, although I no longer think of walking as exercise I have to force myself to do.",
+    "passage_native": "몇 달 동안 사무실이 걸어서 20분 거리였는데도 택시를 타고 출근했어요. 새 도로 공사 때문에 차가 더 막혀서 걷기 시작했어요. 운하를 따라가는 길은 큰길보다 조용하고 일찍 문을 여는 빵집을 지나가요. 예전에는 긴장한 채 도착했지만 이제는 출근 전에 팟캐스트를 들을 시간이 있어요. 비가 많이 오면 아직 택시를 타지만, 걷기를 억지로 해야 하는 운동이라고 생각하지 않게 됐어요.",
+    "sentences": [
+      { "target": "For months I had been taking a taxi to work, even though the office was only twenty minutes away on foot.", "native": "몇 달 동안 사무실이 걸어서 20분 거리였는데도 택시를 타고 출근했어요." },
+      { "target": "The route, which follows a canal, is quieter than the main street and passes a bakery that opens early.", "native": "운하를 따라가는 길은 큰길보다 조용하고 일찍 문을 여는 빵집을 지나가요." },
+      { "target": "I used to arrive tense, but now I have time to listen to a podcast before work.", "native": "예전에는 긴장한 채 도착했지만 이제는 출근 전에 팟캐스트를 들을 시간이 있어요." }
+    ],
+    "glossary": [
+      { "surface": "roadworks project", "lemma": "roadworks", "pos": "noun", "meaning_native": "도로 공사" },
+      { "surface": "follows a canal", "lemma": "follow", "pos": "verb", "meaning_native": "운하를 따라가다" },
+      { "surface": "tense", "lemma": "tense", "pos": "adjective", "meaning_native": "긴장한" },
+      { "surface": "heavily", "lemma": "heavily", "pos": "adverb", "meaning_native": "많이, 심하게" },
+      { "surface": "force myself", "lemma": "force", "pos": "verb phrase", "meaning_native": "억지로 하다" }
+    ],
+    "questions": [
+      { "q_target": "Why did the writer start walking?", "q_native": "왜 걷기 시작했어요?", "choices": ["The taxi was too expensive", "Roadworks made traffic slower", "The office moved", "A friend asked them to"], "answer_index": 1, "explanation_native": "도로 공사 때문에 차가 더 막혔어요." },
+      { "q_target": "What is special about the walking route?", "q_native": "걷는 길의 특징은 무엇인가요?", "choices": ["It follows a canal and passes a bakery", "It goes through a shopping centre", "It is shorter than ten minutes", "It passes the writer's home"], "answer_index": 0, "explanation_native": "운하를 따라가고 일찍 여는 빵집을 지나가요." },
+      { "q_target": "How has the writer's arrival at work changed?", "q_native": "출근할 때 어떤 점이 달라졌어요?", "choices": ["They arrive more tense", "They can listen to a podcast first", "They arrive later every day", "They always take a taxi"], "answer_index": 1, "explanation_native": "이제 출근 전에 팟캐스트를 들을 시간이 있어요." }
+    ],
+    "writing_prompt": { "target": "Describe a small change that improved your daily routine. What had your routine been like before?", "native": "일상을 더 좋게 만든 작은 변화에 대해 쓰세요. 전에는 일상이 어땠나요?", "target_grammar": "past perfect continuous and relative clauses" },
+    "speaking_prompt": { "target": "How do you usually travel to work or school?", "native": "보통 직장이나 학교에 어떻게 가나요?" }
+  },
+  {
+    "level": 3,
+    "topic": "hobbies",
+    "title_target": "The Repair Club",
+    "passage_target": "The repair club meets in a library room that used to hold language classes. People bring small appliances that have stopped working, and volunteers show them how to open each case safely. I had never repaired anything before I joined, so I was nervous about damaging my old lamp. The volunteer who helped me found a loose wire, which we fixed in a few minutes. Now I bring one broken item each month, although I still ask for help when a job involves electricity.",
+    "passage_native": "수리 모임은 예전에 어학 수업을 하던 도서관 방에서 만나요. 사람들은 고장 난 작은 가전제품을 가져오고 봉사자들은 안전하게 여는 법을 보여 줘요. 가입 전에는 아무것도 고쳐 본 적이 없어서 오래된 램프를 망가뜨릴까 걱정했어요. 도와준 봉사자가 느슨한 전선을 찾아 몇 분 만에 고쳤어요. 이제 매달 고장 난 물건 하나를 가져오지만 전기가 관련된 일은 여전히 도움을 요청해요.",
+    "sentences": [
+      { "target": "The repair club meets in a library room that used to hold language classes.", "native": "수리 모임은 예전에 어학 수업을 하던 도서관 방에서 만나요." },
+      { "target": "The volunteer who helped me found a loose wire, which we fixed in a few minutes.", "native": "도와준 봉사자가 느슨한 전선을 찾아 몇 분 만에 고쳤어요." },
+      { "target": "Now I bring one broken item each month, although I still ask for help when a job involves electricity.", "native": "이제 매달 고장 난 물건 하나를 가져오지만 전기가 관련된 일은 여전히 도움을 요청해요." }
+    ],
+    "glossary": [
+      { "surface": "appliances", "lemma": "appliance", "pos": "noun", "meaning_native": "가전제품" },
+      { "surface": "volunteers", "lemma": "volunteer", "pos": "noun", "meaning_native": "봉사자들" },
+      { "surface": "loose wire", "lemma": "wire", "pos": "noun", "meaning_native": "느슨한 전선" },
+      { "surface": "broken item", "lemma": "broken", "pos": "noun phrase", "meaning_native": "고장 난 물건" },
+      { "surface": "involves electricity", "lemma": "involve", "pos": "expression", "meaning_native": "전기가 관련되다" }
+    ],
+    "questions": [
+      { "q_target": "Where does the repair club meet?", "q_native": "수리 모임은 어디에서 만나요?", "choices": ["In a library room", "At a repair shop", "In a school hall", "At the writer's home"], "answer_index": 0, "explanation_native": "도서관 방에서 만난다고 했어요." },
+      { "q_target": "What was wrong with the lamp?", "q_native": "램프에 무슨 문제가 있었어요?", "choices": ["It had a loose wire", "Its case was missing", "It was too old to open", "It had been dropped in water"], "answer_index": 0, "explanation_native": "느슨한 전선을 찾아 고쳤어요." },
+      { "q_target": "When does the writer still ask for help?", "q_native": "언제 여전히 도움을 요청하나요?", "choices": ["When the item is small", "When a repair involves electricity", "Every time they visit", "When volunteers are busy"], "answer_index": 1, "explanation_native": "전기가 관련된 일은 도움을 요청한다고 했어요." }
+    ],
+    "writing_prompt": { "target": "Write about a skill you learned from another person. What had you been unsure about?", "native": "다른 사람에게 배운 기술에 대해 쓰세요. 전에는 무엇이 걱정됐나요?", "target_grammar": "relative clauses and past perfect" },
+    "speaking_prompt": { "target": "What is something you can repair or make yourself?", "native": "직접 고치거나 만들 수 있는 것은 무엇인가요?" }
   }
 ]

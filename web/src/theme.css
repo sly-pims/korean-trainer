@@ -127,6 +127,16 @@ label {
 .row select {
   width: auto;
 }
+.practice-record-controls {
+  margin-bottom: 10px;
+}
+.account-language-controls select {
+  flex: 1 1 140px;
+  min-width: 0;
+}
+.account-language-controls button {
+  flex: 0 0 auto;
+}
 .stack {
   display: flex;
   flex-direction: column;

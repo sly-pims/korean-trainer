@@ -64,7 +64,15 @@ Key routes: `home`, `session/start|today|step|complete`, `words`,
 Everything is environment variables (see `.env.example`): `AUTH_PASSWORD`,
 `SESSION_SECRET`, `COOKIE_SECURE` (set `1` behind HTTPS), `TZ`, `DATA_DIR`,
 `DB_PATH`, `SEED_PATH`, `WEB_DIST`, `LLM_PROVIDER`, `GEMINI_API_KEY`,
-`GEMINI_MODEL`, `LLM_DAILY_CAP`, `FFMPEG_PATH`.
+`GEMINI_MODEL`, `LLM_DAILY_CAP`, `FFMPEG_PATH`, `SUPPORTED_TARGET_LANGS`,
+`SUPPORTED_UI_LANGS`, and `DEFAULT_UI_LANG`.
+
+The default learning languages are Korean, French, and English (`ko,fr,en`).
+Existing deployments with `SUPPORTED_TARGET_LANGS=ko` in their private `.env`
+must change it to `SUPPORTED_TARGET_LANGS=ko,fr,en` and recreate the container
+before those courses appear in Account → Add a language. The interface copy
+currently supports English and Korean; a French-native account defaults to the
+English interface unless another supported UI language is selected.
 
 ## Deploy to a Pi
 

@@ -90,7 +90,7 @@ export function AccountPanel({ onSignedOut }: { onSignedOut: () => void }) {
         <>
           <label htmlFor="add-lang">{t('account.addLanguage')}</label>
           <p className="small muted">{t('account.addLanguageHint')}</p>
-          <div className="row">
+          <div className="row wrap account-language-controls">
             <select id="add-lang" value={pending} onChange={(e) => setPending(e.target.value)}>
               <option value="">{t('common.add')}</option>
               {available.map((l) => (
@@ -105,9 +105,9 @@ export function AccountPanel({ onSignedOut }: { onSignedOut: () => void }) {
               onChange={(e) => setNative(e.target.value)}
             >
               <option value="">{t('account.nativeLanguage')}</option>
-              {account.uiLangs.map((code) => (
-                <option key={code} value={code}>
-                  {code}
+              {account.targetLangs.map((language) => (
+                <option key={language.code} value={language.code}>
+                  {language.endonym} — {language.name}
                 </option>
               ))}
             </select>

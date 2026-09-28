@@ -134,10 +134,10 @@ describe('UI copy', () => {
 });
 
 describe('loadConfig', () => {
-  it('defaults to Korean only, with no env configuration', () => {
+  it('enables Korean, French, and English by default', () => {
     const cfg = loadConfig(base);
-    expect(cfg.supportedTargetLangs).toEqual(['ko']);
-    expect([...cfg.langs.keys()]).toEqual(['ko']);
+    expect(cfg.supportedTargetLangs).toEqual(['ko', 'fr', 'en']);
+    expect([...cfg.langs.keys()]).toEqual(['ko', 'fr', 'en']);
   });
 
   it('defaults to the copy sets that ship with the repo', () => {

@@ -76,7 +76,7 @@ export interface Config {
   copies: Copies;
 }
 
-const DEFAULT_TARGET_LANGS = ['ko'];
+const DEFAULT_TARGET_LANGS = ['ko', 'fr', 'en'];
 
 function requireNonEmpty(list: string[], envName: string): string[] {
   if (list.length === 0) {

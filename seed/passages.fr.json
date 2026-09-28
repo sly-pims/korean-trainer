@@ -1,0 +1,337 @@
+[
+  {
+    "level": 1, "topic": "family", "title_target": "Ma famille",
+    "passage_target": "Je m'appelle Léa. J'habite avec ma mère et mon frère. Notre appartement est près d'un parc. Le soir, nous dînons ensemble.",
+    "passage_native": "My name is Léa. I live with my mother and brother. Our flat is near a park. In the evening, we have dinner together.",
+    "sentences": [
+      { "target": "Je m'appelle Léa.", "native": "My name is Léa." },
+      { "target": "Notre appartement est près d'un parc.", "native": "Our flat is near a park." },
+      { "target": "Le soir, nous dînons ensemble.", "native": "In the evening, we have dinner together." }
+    ],
+    "glossary": [
+      { "surface": "ma mère", "lemma": "mère", "pos": "noun", "meaning_native": "my mother" },
+      { "surface": "mon frère", "lemma": "frère", "pos": "noun", "meaning_native": "my brother" },
+      { "surface": "près d'un parc", "lemma": "près de", "pos": "expression", "meaning_native": "near a park" }
+    ],
+    "questions": [
+      { "q_target": "Comment s'appelle la personne ?", "q_native": "What is the person's name?", "choices": ["Léa", "Emma", "Paul", "Mina"], "answer_index": 0, "explanation_native": "Elle dit : Je m'appelle Léa." },
+      { "q_target": "Avec qui habite-t-elle ?", "q_native": "Who does she live with?", "choices": ["Son père et sa sœur", "Sa mère et son frère", "Ses amis", "Sa grand-mère"], "answer_index": 1, "explanation_native": "Elle habite avec sa mère et son frère." },
+      { "q_target": "Que fait la famille le soir ?", "q_native": "What does the family do in the evening?", "choices": ["Elle dîne ensemble", "Elle va au parc", "Elle travaille", "Elle regarde un match"], "answer_index": 0, "explanation_native": "Le texte dit qu'ils dînent ensemble." }
+    ],
+    "writing_prompt": { "target": "Présentez les personnes avec qui vous habitez.", "native": "Introduce the people you live with.", "target_grammar": "Present tense and basic family words" },
+    "speaking_prompt": { "target": "Avec qui habitez-vous ?", "native": "Who do you live with?" }
+  },
+  {
+    "level": 1, "topic": "food", "title_target": "Au marché",
+    "passage_target": "Le samedi, Hugo va au marché. Il achète des pommes et du pain. La vendeuse lui donne un sac. Ensuite, il rentre chez lui.",
+    "passage_native": "On Saturday, Hugo goes to the market. He buys apples and bread. The seller gives him a bag. Then he goes home.",
+    "sentences": [
+      { "target": "Le samedi, Hugo va au marché.", "native": "On Saturday, Hugo goes to the market." },
+      { "target": "Il achète des pommes et du pain.", "native": "He buys apples and bread." },
+      { "target": "Ensuite, il rentre chez lui.", "native": "Then he goes home." }
+    ],
+    "glossary": [
+      { "surface": "au marché", "lemma": "marché", "pos": "noun", "meaning_native": "to the market" },
+      { "surface": "des pommes", "lemma": "pomme", "pos": "noun", "meaning_native": "apples" },
+      { "surface": "La vendeuse", "lemma": "vendeur", "pos": "noun", "meaning_native": "the seller" }
+    ],
+    "questions": [
+      { "q_target": "Quand Hugo va-t-il au marché ?", "q_native": "When does Hugo go to the market?", "choices": ["Le lundi", "Le samedi", "Le soir", "En hiver"], "answer_index": 1, "explanation_native": "Il y va le samedi." },
+      { "q_target": "Qu'est-ce qu'il achète ?", "q_native": "What does he buy?", "choices": ["Du fromage", "Des pommes et du pain", "Du lait", "Un livre"], "answer_index": 1, "explanation_native": "Il achète des pommes et du pain." },
+      { "q_target": "Où va-t-il ensuite ?", "q_native": "Where does he go next?", "choices": ["À l'école", "Chez lui", "Au café", "À la gare"], "answer_index": 1, "explanation_native": "Il rentre chez lui." }
+    ],
+    "writing_prompt": { "target": "Qu'achetez-vous au marché ou au magasin ?", "native": "What do you buy at the market or shop?", "target_grammar": "Present tense and partitive articles" },
+    "speaking_prompt": { "target": "Quel fruit aimez-vous ?", "native": "What fruit do you like?" }
+  },
+  {
+    "level": 1, "topic": "town", "title_target": "Mon quartier",
+    "passage_target": "J'habite dans un quartier calme. Il y a une petite école et une pharmacie. La boulangerie est au coin de la rue. Je vais souvent au parc à pied.",
+    "passage_native": "I live in a quiet neighbourhood. There is a small school and a pharmacy. The bakery is on the corner. I often walk to the park.",
+    "sentences": [
+      { "target": "J'habite dans un quartier calme.", "native": "I live in a quiet neighbourhood." },
+      { "target": "La boulangerie est au coin de la rue.", "native": "The bakery is on the corner." },
+      { "target": "Je vais souvent au parc à pied.", "native": "I often walk to the park." }
+    ],
+    "glossary": [
+      { "surface": "quartier calme", "lemma": "quartier", "pos": "noun", "meaning_native": "quiet neighbourhood" },
+      { "surface": "une pharmacie", "lemma": "pharmacie", "pos": "noun", "meaning_native": "a pharmacy" },
+      { "surface": "au coin de la rue", "lemma": "coin", "pos": "expression", "meaning_native": "on the corner" }
+    ],
+    "questions": [
+      { "q_target": "Comment est le quartier ?", "q_native": "What is the neighbourhood like?", "choices": ["Calme", "Bruyant", "Très grand", "Loin de la ville"], "answer_index": 0, "explanation_native": "La personne le décrit comme calme." },
+      { "q_target": "Où se trouve la boulangerie ?", "q_native": "Where is the bakery?", "choices": ["Près de l'école", "Au coin de la rue", "Dans le parc", "À la gare"], "answer_index": 1, "explanation_native": "Elle est au coin de la rue." },
+      { "q_target": "Comment la personne va-t-elle au parc ?", "q_native": "How does the person go to the park?", "choices": ["En bus", "En voiture", "À pied", "À vélo"], "answer_index": 2, "explanation_native": "Elle y va à pied." }
+    ],
+    "writing_prompt": { "target": "Décrivez votre quartier en trois phrases.", "native": "Describe your neighbourhood in three sentences.", "target_grammar": "Il y a, être, and place words" },
+    "speaking_prompt": { "target": "Qu'est-ce qu'il y a près de chez vous ?", "native": "What is near your home?" }
+  },
+  {
+    "level": 1, "topic": "hobbies", "title_target": "Le dimanche",
+    "passage_target": "Le dimanche, Nora aime lire. Elle prend un livre et s'assoit près de la fenêtre. Son chat dort sur le canapé. Après la lecture, elle appelle une amie.",
+    "passage_native": "On Sundays, Nora likes reading. She takes a book and sits near the window. Her cat sleeps on the sofa. After reading, she calls a friend.",
+    "sentences": [
+      { "target": "Le dimanche, Nora aime lire.", "native": "On Sundays, Nora likes reading." },
+      { "target": "Son chat dort sur le canapé.", "native": "Her cat sleeps on the sofa." },
+      { "target": "Après la lecture, elle appelle une amie.", "native": "After reading, she calls a friend." }
+    ],
+    "glossary": [
+      { "surface": "aime lire", "lemma": "aimer", "pos": "verb", "meaning_native": "likes reading" },
+      { "surface": "près de la fenêtre", "lemma": "fenêtre", "pos": "expression", "meaning_native": "near the window" },
+      { "surface": "sur le canapé", "lemma": "canapé", "pos": "expression", "meaning_native": "on the sofa" }
+    ],
+    "questions": [
+      { "q_target": "Qu'est-ce que Nora aime faire ?", "q_native": "What does Nora like doing?", "choices": ["Lire", "Cuisiner", "Courir", "Dessiner"], "answer_index": 0, "explanation_native": "Nora aime lire." },
+      { "q_target": "Où s'assoit-elle ?", "q_native": "Where does she sit?", "choices": ["Près de la fenêtre", "Dans le jardin", "Sur le lit", "Au café"], "answer_index": 0, "explanation_native": "Elle s'assoit près de la fenêtre." },
+      { "q_target": "Qui appelle-t-elle après la lecture ?", "q_native": "Who does she call after reading?", "choices": ["Sa sœur", "Une amie", "Sa mère", "Son professeur"], "answer_index": 1, "explanation_native": "Elle appelle une amie." }
+    ],
+    "writing_prompt": { "target": "Qu'aimez-vous faire le week-end ?", "native": "What do you like doing at the weekend?", "target_grammar": "Aimer + infinitive" },
+    "speaking_prompt": { "target": "Qu'aimez-vous lire ou regarder ?", "native": "What do you like reading or watching?" }
+  },
+  {
+    "level": 1, "topic": "shopping", "title_target": "À la boulangerie",
+    "passage_target": "Ce matin, Paul entre dans une boulangerie. Il demande un croissant et un café. La serveuse sourit et lui dit bonjour. Paul paie, puis il s'assoit dehors.",
+    "passage_native": "This morning, Paul enters a bakery. He asks for a croissant and a coffee. The server smiles and says hello. Paul pays, then sits outside.",
+    "sentences": [
+      { "target": "Ce matin, Paul entre dans une boulangerie.", "native": "This morning, Paul enters a bakery." },
+      { "target": "Il demande un croissant et un café.", "native": "He asks for a croissant and a coffee." },
+      { "target": "Paul paie, puis il s'assoit dehors.", "native": "Paul pays, then sits outside." }
+    ],
+    "glossary": [
+      { "surface": "une boulangerie", "lemma": "boulangerie", "pos": "noun", "meaning_native": "a bakery" },
+      { "surface": "demande", "lemma": "demander", "pos": "verb", "meaning_native": "asks for" },
+      { "surface": "dehors", "lemma": "dehors", "pos": "adverb", "meaning_native": "outside" }
+    ],
+    "questions": [
+      { "q_target": "Où entre Paul ?", "q_native": "Where does Paul go in?", "choices": ["Dans une boulangerie", "Dans une banque", "Dans une école", "Dans un bus"], "answer_index": 0, "explanation_native": "Il entre dans une boulangerie." },
+      { "q_target": "Qu'est-ce qu'il commande ?", "q_native": "What does he order?", "choices": ["Un thé et un gâteau", "Un croissant et un café", "Un sandwich", "Un jus"], "answer_index": 1, "explanation_native": "Il demande un croissant et un café." },
+      { "q_target": "Où s'assoit-il ?", "q_native": "Where does he sit?", "choices": ["Dehors", "Chez lui", "Dans le bus", "Près de la porte"], "answer_index": 0, "explanation_native": "Il s'assoit dehors." }
+    ],
+    "writing_prompt": { "target": "Qu'achetez-vous dans une boulangerie ?", "native": "What do you buy in a bakery?", "target_grammar": "Ordering with demander and articles" },
+    "speaking_prompt": { "target": "Que prenez-vous au petit-déjeuner ?", "native": "What do you have for breakfast?" }
+  },
+  {
+    "level": 2, "topic": "travel", "title_target": "Une journée au bord de la mer",
+    "passage_target": "L'été dernier, nous sommes allés à la mer en train. Nous sommes partis tôt parce que nous voulions éviter la foule. Le voyage a duré deux heures, mais le train était confortable. À midi, nous avons mangé près du port. Ensuite, nous avons marché sur la plage avant de rentrer.",
+    "passage_native": "Last summer, we went to the seaside by train. We left early because we wanted to avoid the crowds. The journey lasted two hours, but the train was comfortable. At noon, we ate near the harbour. Then we walked on the beach before going home.",
+    "sentences": [
+      { "target": "L'été dernier, nous sommes allés à la mer en train.", "native": "Last summer, we went to the seaside by train." },
+      { "target": "Nous sommes partis tôt parce que nous voulions éviter la foule.", "native": "We left early because we wanted to avoid the crowds." },
+      { "target": "Ensuite, nous avons marché sur la plage avant de rentrer.", "native": "Then we walked on the beach before going home." }
+    ],
+    "glossary": [
+      { "surface": "éviter la foule", "lemma": "éviter", "pos": "verb", "meaning_native": "to avoid the crowds" },
+      { "surface": "a duré", "lemma": "durer", "pos": "verb", "meaning_native": "lasted" },
+      { "surface": "près du port", "lemma": "port", "pos": "expression", "meaning_native": "near the harbour" }
+    ],
+    "questions": [
+      { "q_target": "Comment sont-ils allés à la mer ?", "q_native": "How did they go to the seaside?", "choices": ["En voiture", "En train", "En bus", "À vélo"], "answer_index": 1, "explanation_native": "Ils sont allés à la mer en train." },
+      { "q_target": "Pourquoi sont-ils partis tôt ?", "q_native": "Why did they leave early?", "choices": ["Pour éviter la foule", "Pour voir un ami", "Pour prendre le bus", "Pour déjeuner"], "answer_index": 0, "explanation_native": "Ils voulaient éviter la foule." },
+      { "q_target": "Qu'ont-ils fait avant de rentrer ?", "q_native": "What did they do before going home?", "choices": ["Ils ont nagé", "Ils ont marché sur la plage", "Ils ont visité un musée", "Ils ont pris un bateau"], "answer_index": 1, "explanation_native": "Ils ont marché sur la plage." }
+    ],
+    "writing_prompt": { "target": "Racontez une sortie que vous avez faite récemment.", "native": "Describe an outing you took recently.", "target_grammar": "Passé composé and parce que" },
+    "speaking_prompt": { "target": "Où aimez-vous aller pendant les vacances ?", "native": "Where do you like going on holiday?" }
+  },
+  {
+    "level": 2, "topic": "food", "title_target": "Mon premier cours de cuisine",
+    "passage_target": "Samedi, j'ai suivi un cours de cuisine avec ma sœur. Nous avons préparé une soupe aux légumes et une tarte. Le chef a montré une technique simple, puis nous avons travaillé seuls. Ma première tarte était un peu trop cuite, mais elle avait bon goût. Nous sommes rentrées avec les recettes et l'envie de recommencer.",
+    "passage_native": "On Saturday, I took a cooking class with my sister. We made vegetable soup and a tart. The chef showed us a simple technique, then we worked on our own. My first tart was a little overcooked, but it tasted good. We went home with the recipes and the desire to try again.",
+    "sentences": [
+      { "target": "Samedi, j'ai suivi un cours de cuisine avec ma sœur.", "native": "On Saturday, I took a cooking class with my sister." },
+      { "target": "Le chef a montré une technique simple, puis nous avons travaillé seuls.", "native": "The chef showed us a simple technique, then we worked on our own." },
+      { "target": "Nous sommes rentrées avec les recettes et l'envie de recommencer.", "native": "We went home with the recipes and the desire to try again." }
+    ],
+    "glossary": [
+      { "surface": "un cours de cuisine", "lemma": "cuisine", "pos": "noun phrase", "meaning_native": "a cooking class" },
+      { "surface": "trop cuite", "lemma": "cuire", "pos": "adjective", "meaning_native": "overcooked" },
+      { "surface": "bon goût", "lemma": "goût", "pos": "expression", "meaning_native": "good taste" }
+    ],
+    "questions": [
+      { "q_target": "Avec qui la personne a-t-elle suivi le cours ?", "q_native": "Who took the class with the writer?", "choices": ["Sa sœur", "Son amie", "Sa mère", "Son chef"], "answer_index": 0, "explanation_native": "Elle a suivi le cours avec sa sœur." },
+      { "q_target": "Qu'ont-elles préparé ?", "q_native": "What did they make?", "choices": ["Du pain et du fromage", "Une soupe et une tarte", "Un gâteau", "Des pâtes"], "answer_index": 1, "explanation_native": "Elles ont préparé une soupe et une tarte." },
+      { "q_target": "Comment était la première tarte ?", "q_native": "What was the first tart like?", "choices": ["Trop salée", "Un peu trop cuite", "Encore froide", "Très petite"], "answer_index": 1, "explanation_native": "Elle était un peu trop cuite, mais bonne." }
+    ],
+    "writing_prompt": { "target": "Décrivez un plat que vous avez appris à préparer.", "native": "Describe a dish you learned to make.", "target_grammar": "Passé composé and sequencing words" },
+    "speaking_prompt": { "target": "Quel plat aimeriez-vous apprendre à cuisiner ?", "native": "What dish would you like to learn to cook?" }
+  },
+  {
+    "level": 2, "topic": "weather", "title_target": "Une journée de pluie",
+    "passage_target": "Hier, il a plu toute la journée. J'avais prévu de faire du vélo, alors j'ai changé mes plans. J'ai retrouvé une amie dans un café près de la gare. Nous avons parlé de nos projets et regardé les trains passer. Quand la pluie s'est arrêtée, nous sommes rentrées à pied.",
+    "passage_native": "Yesterday, it rained all day. I had planned to cycle, so I changed my plans. I met a friend in a café near the station. We talked about our plans and watched the trains go by. When the rain stopped, we walked home.",
+    "sentences": [
+      { "target": "Hier, il a plu toute la journée.", "native": "Yesterday, it rained all day." },
+      { "target": "J'avais prévu de faire du vélo, alors j'ai changé mes plans.", "native": "I had planned to cycle, so I changed my plans." },
+      { "target": "Quand la pluie s'est arrêtée, nous sommes rentrées à pied.", "native": "When the rain stopped, we walked home." }
+    ],
+    "glossary": [
+      { "surface": "toute la journée", "lemma": "journée", "pos": "expression", "meaning_native": "all day" },
+      { "surface": "J'avais prévu", "lemma": "prévoir", "pos": "verb", "meaning_native": "I had planned" },
+      { "surface": "s'est arrêtée", "lemma": "s'arrêter", "pos": "verb", "meaning_native": "stopped" }
+    ],
+    "questions": [
+      { "q_target": "Qu'avait prévu la personne ?", "q_native": "What had the person planned to do?", "choices": ["Faire du vélo", "Prendre le train", "Voir un film", "Rester au café"], "answer_index": 0, "explanation_native": "Elle avait prévu de faire du vélo." },
+      { "q_target": "Où a-t-elle retrouvé son amie ?", "q_native": "Where did she meet her friend?", "choices": ["À la gare", "Dans un café", "Chez elle", "Au parc"], "answer_index": 1, "explanation_native": "Elles se sont retrouvées dans un café." },
+      { "q_target": "Comment sont-elles rentrées ?", "q_native": "How did they go home?", "choices": ["En train", "En vélo", "À pied", "En taxi"], "answer_index": 2, "explanation_native": "Elles sont rentrées à pied." }
+    ],
+    "writing_prompt": { "target": "Racontez un moment où vous avez changé vos plans.", "native": "Describe a time when you changed your plans.", "target_grammar": "Imparfait and passé composé" },
+    "speaking_prompt": { "target": "Que faites-vous quand il pleut ?", "native": "What do you do when it rains?" }
+  },
+  {
+    "level": 2, "topic": "transport", "title_target": "Le vélo partagé",
+    "passage_target": "La semaine dernière, mon bus était en retard. J'ai loué un vélo partagé près de l'arrêt. Le trajet jusqu'au travail a été plus rapide que d'habitude. J'ai rendu le vélo devant mon bureau et j'ai commencé ma journée à l'heure. Maintenant, je vérifie la météo avant de choisir mon transport.",
+    "passage_native": "Last week, my bus was late. I rented a shared bicycle near the stop. The ride to work was faster than usual. I returned the bicycle outside my office and started my day on time. Now I check the weather before choosing my transport.",
+    "sentences": [
+      { "target": "La semaine dernière, mon bus était en retard.", "native": "Last week, my bus was late." },
+      { "target": "Le trajet jusqu'au travail a été plus rapide que d'habitude.", "native": "The ride to work was faster than usual." },
+      { "target": "Maintenant, je vérifie la météo avant de choisir mon transport.", "native": "Now I check the weather before choosing my transport." }
+    ],
+    "glossary": [
+      { "surface": "en retard", "lemma": "retard", "pos": "expression", "meaning_native": "late" },
+      { "surface": "vélo partagé", "lemma": "vélo", "pos": "noun phrase", "meaning_native": "shared bicycle" },
+      { "surface": "d'habitude", "lemma": "habitude", "pos": "expression", "meaning_native": "usually" }
+    ],
+    "questions": [
+      { "q_target": "Pourquoi la personne a-t-elle loué un vélo ?", "q_native": "Why did the person rent a bicycle?", "choices": ["Le bus était en retard", "Il faisait trop chaud", "Le vélo était gratuit", "Le bureau était fermé"], "answer_index": 0, "explanation_native": "Le bus était en retard." },
+      { "q_target": "Où a-t-elle rendu le vélo ?", "q_native": "Where did the person return the bicycle?", "choices": ["Devant le bureau", "À la gare", "Au parc", "Chez elle"], "answer_index": 0, "explanation_native": "Elle l'a rendu devant son bureau." },
+      { "q_target": "Que vérifie-t-elle maintenant ?", "q_native": "What does she check now?", "choices": ["Les horaires du train", "La météo", "Le prix du bus", "Son courrier"], "answer_index": 1, "explanation_native": "Elle vérifie la météo avant de choisir son transport." }
+    ],
+    "writing_prompt": { "target": "Comparez deux moyens de transport que vous utilisez.", "native": "Compare two forms of transport you use.", "target_grammar": "Comparatives and passé composé" },
+    "speaking_prompt": { "target": "Comment allez-vous au travail ou à l'école ?", "native": "How do you get to work or school?" }
+  },
+  {
+    "level": 2, "topic": "technology", "title_target": "Un dimanche sans téléphone",
+    "passage_target": "Dimanche, mon téléphone s'est éteint parce que la batterie était vide. Au début, je ne savais pas quoi faire. J'ai préparé le déjeuner et j'ai rangé mon bureau. Ensuite, j'ai lu un roman pendant une heure. Le soir, j'étais moins fatigué que d'habitude et j'ai décidé de garder une partie du dimanche sans écran.",
+    "passage_native": "On Sunday, my phone turned off because the battery was empty. At first, I did not know what to do. I made lunch and tidied my desk. Then I read a novel for an hour. In the evening, I was less tired than usual and decided to keep part of Sunday screen-free.",
+    "sentences": [
+      { "target": "Dimanche, mon téléphone s'est éteint parce que la batterie était vide.", "native": "On Sunday, my phone turned off because the battery was empty." },
+      { "target": "Ensuite, j'ai lu un roman pendant une heure.", "native": "Then I read a novel for an hour." },
+      { "target": "Le soir, j'étais moins fatigué que d'habitude et j'ai décidé de garder une partie du dimanche sans écran.", "native": "In the evening, I was less tired than usual and decided to keep part of Sunday screen-free." }
+    ],
+    "glossary": [
+      { "surface": "s'est éteint", "lemma": "s'éteindre", "pos": "verb", "meaning_native": "turned off" },
+      { "surface": "la batterie était vide", "lemma": "batterie", "pos": "expression", "meaning_native": "the battery was empty" },
+      { "surface": "sans écran", "lemma": "écran", "pos": "expression", "meaning_native": "screen-free" }
+    ],
+    "questions": [
+      { "q_target": "Pourquoi le téléphone s'est-il éteint ?", "q_native": "Why did the phone turn off?", "choices": ["La batterie était vide", "Il était cassé", "Il était trop vieux", "Il n'y avait pas de réseau"], "answer_index": 0, "explanation_native": "La batterie était vide." },
+      { "q_target": "Qu'a fait la personne ensuite ?", "q_native": "What did the person do next?", "choices": ["Elle a regardé un film", "Elle a lu un roman", "Elle a appelé un ami", "Elle est sortie"], "answer_index": 1, "explanation_native": "Elle a lu un roman pendant une heure." },
+      { "q_target": "Comment était-elle le soir ?", "q_native": "How did the person feel in the evening?", "choices": ["Plus fatiguée", "Moins fatiguée", "En colère", "Inquiète"], "answer_index": 1, "explanation_native": "Elle était moins fatiguée que d'habitude." }
+    ],
+    "writing_prompt": { "target": "Décrivez une journée où vous avez utilisé moins la technologie.", "native": "Describe a day when you used less technology.", "target_grammar": "Passé composé and imparfait" },
+    "speaking_prompt": { "target": "Pourriez-vous passer une journée sans téléphone ?", "native": "Could you spend a day without your phone?" }
+  },
+  {
+    "level": 3, "topic": "community", "title_target": "Le jardin partagé",
+    "passage_target": "Le jardin partagé, que la mairie a ouvert au printemps, se trouve derrière la bibliothèque. Les habitants qui n'ont pas de balcon peuvent y cultiver des herbes et des légumes. Quand je me suis inscrit, plusieurs parcelles étaient déjà occupées. Une voisine dont les tomates poussent très bien m'a expliqué comment protéger les jeunes plants. Nous devons arroser tôt, surtout quand la météo annonce une semaine chaude. Depuis que je participe, je connais davantage de personnes dans mon quartier.",
+    "passage_native": "The shared garden, which the town opened in spring, is behind the library. Residents who do not have a balcony can grow herbs and vegetables there. When I signed up, several plots were already taken. A neighbour whose tomatoes grow very well explained how to protect young plants. We have to water early, especially when the forecast predicts a hot week. Since I joined, I know more people in my neighbourhood.",
+    "sentences": [
+      { "target": "Le jardin partagé, que la mairie a ouvert au printemps, se trouve derrière la bibliothèque.", "native": "The shared garden, which the town opened in spring, is behind the library." },
+      { "target": "Une voisine dont les tomates poussent très bien m'a expliqué comment protéger les jeunes plants.", "native": "A neighbour whose tomatoes grow very well explained how to protect young plants." },
+      { "target": "Depuis que je participe, je connais davantage de personnes dans mon quartier.", "native": "Since I joined, I know more people in my neighbourhood." }
+    ],
+    "glossary": [
+      { "surface": "jardin partagé", "lemma": "jardin", "pos": "noun phrase", "meaning_native": "shared garden" },
+      { "surface": "Les habitants", "lemma": "habitant", "pos": "noun", "meaning_native": "residents" },
+      { "surface": "parcelles", "lemma": "parcelle", "pos": "noun", "meaning_native": "plots" },
+      { "surface": "protéger", "lemma": "protéger", "pos": "verb", "meaning_native": "to protect" }
+    ],
+    "questions": [
+      { "q_target": "Où se trouve le jardin ?", "q_native": "Where is the garden?", "choices": ["Derrière la bibliothèque", "Près de la gare", "Dans une école", "Au bord de la rivière"], "answer_index": 0, "explanation_native": "Il se trouve derrière la bibliothèque." },
+      { "q_target": "Qui peut cultiver dans le jardin ?", "q_native": "Who can grow things in the garden?", "choices": ["Les habitants sans balcon", "Les jardiniers professionnels", "Les enfants de l'école", "Les employés de la mairie"], "answer_index": 0, "explanation_native": "Les habitants sans balcon peuvent y cultiver des plantes." },
+      { "q_target": "Qu'est-ce qui a changé depuis que la personne participe ?", "q_native": "What has changed since the person joined?", "choices": ["Elle connaît plus de voisins", "Elle a déménagé", "Elle cultive des arbres", "Elle travaille à la bibliothèque"], "answer_index": 0, "explanation_native": "Elle connaît davantage de personnes dans le quartier." }
+    ],
+    "writing_prompt": { "target": "Décrivez un lieu de votre quartier où les gens se rencontrent.", "native": "Describe a place in your neighbourhood where people meet.", "target_grammar": "Relative pronouns qui, que and dont" },
+    "speaking_prompt": { "target": "Aimeriez-vous participer à un jardin partagé ?", "native": "Would you like to join a shared garden?" }
+  },
+  {
+    "level": 3, "topic": "travel", "title_target": "Le train annulé",
+    "passage_target": "Nous avions réservé des billets pour un train qui devait partir à huit heures. En arrivant à la gare, nous avons appris qu'une panne avait bloqué la ligne. Plusieurs voyageurs, qui attendaient depuis longtemps, cherchaient une autre solution. Une employée nous a conseillé un bus qui passait par deux villages. Le trajet était plus lent, mais nous avons découvert un marché que nous n'aurions jamais visité autrement. Nous sommes arrivés tard, pourtant le détour a rendu la journée mémorable.",
+    "passage_native": "We had booked tickets for a train that was meant to leave at eight. When we arrived at the station, we learned that a breakdown had blocked the line. Several travellers, who had been waiting for a long time, were looking for another solution. An employee suggested a bus that went through two villages. The trip was slower, but we discovered a market we would never otherwise have visited. We arrived late, yet the detour made the day memorable.",
+    "sentences": [
+      { "target": "Nous avions réservé des billets pour un train qui devait partir à huit heures.", "native": "We had booked tickets for a train that was meant to leave at eight." },
+      { "target": "Une employée nous a conseillé un bus qui passait par deux villages.", "native": "An employee suggested a bus that went through two villages." },
+      { "target": "Nous sommes arrivés tard, pourtant le détour a rendu la journée mémorable.", "native": "We arrived late, yet the detour made the day memorable." }
+    ],
+    "glossary": [
+      { "surface": "avions réservé", "lemma": "réserver", "pos": "verb", "meaning_native": "had booked" },
+      { "surface": "une panne", "lemma": "panne", "pos": "noun", "meaning_native": "a breakdown" },
+      { "surface": "conseillé", "lemma": "conseiller", "pos": "verb", "meaning_native": "suggested" },
+      { "surface": "pourtant", "lemma": "pourtant", "pos": "conjunction", "meaning_native": "yet" }
+    ],
+    "questions": [
+      { "q_target": "Pourquoi le train ne pouvait-il pas partir ?", "q_native": "Why could the train not leave?", "choices": ["Une panne avait bloqué la ligne", "Le conducteur était malade", "Il n'y avait plus de billets", "La gare était fermée"], "answer_index": 0, "explanation_native": "Une panne avait bloqué la ligne." },
+      { "q_target": "Quel autre transport l'employée a-t-elle conseillé ?", "q_native": "What other transport did the employee suggest?", "choices": ["Un bus", "Un taxi", "Un bateau", "Un autre train"], "answer_index": 0, "explanation_native": "Elle leur a conseillé un bus." },
+      { "q_target": "Qu'ont-ils découvert pendant le trajet ?", "q_native": "What did they discover on the way?", "choices": ["Un marché", "Un musée", "Une plage", "Un restaurant"], "answer_index": 0, "explanation_native": "Ils ont découvert un marché." }
+    ],
+    "writing_prompt": { "target": "Racontez un voyage où un problème a changé vos plans.", "native": "Describe a trip when a problem changed your plans.", "target_grammar": "Plus-que-parfait, relative clauses, and conditional past" },
+    "speaking_prompt": { "target": "Que faites-vous quand un voyage ne se passe pas comme prévu ?", "native": "What do you do when a trip does not go as planned?" }
+  },
+  {
+    "level": 3, "topic": "food", "title_target": "Le petit café",
+    "passage_target": "Le café où je travaille parfois a changé de propriétaire. La nouvelle gérante, qui avait dirigé un restaurant, a gardé les tables en bois mais a ajouté une grande étagère de livres. Les clients qui viennent tôt peuvent lire le journal en attendant leur commande. J'avais l'habitude de prendre mon café rapidement, debout près de la porte. Maintenant, je reste plus longtemps parce que l'endroit est devenu un lieu de rencontre. La gérante dit que les voisins se parlent davantage depuis le changement.",
+    "passage_native": "The café where I sometimes work has changed owners. The new manager, who had run a restaurant, kept the wooden tables but added a large bookcase. Customers who come early can read the newspaper while waiting for their order. I used to drink my coffee quickly, standing near the door. Now I stay longer because the place has become a meeting point. The manager says the neighbours talk more since the change.",
+    "sentences": [
+      { "target": "La nouvelle gérante, qui avait dirigé un restaurant, a gardé les tables en bois mais a ajouté une grande étagère de livres.", "native": "The new manager, who had run a restaurant, kept the wooden tables but added a large bookcase." },
+      { "target": "Les clients qui viennent tôt peuvent lire le journal en attendant leur commande.", "native": "Customers who come early can read the newspaper while waiting for their order." },
+      { "target": "Maintenant, je reste plus longtemps parce que l'endroit est devenu un lieu de rencontre.", "native": "Now I stay longer because the place has become a meeting point." }
+    ],
+    "glossary": [
+      { "surface": "a changé de propriétaire", "lemma": "propriétaire", "pos": "expression", "meaning_native": "has changed owners" },
+      { "surface": "La nouvelle gérante", "lemma": "gérant", "pos": "noun", "meaning_native": "the new manager" },
+      { "surface": "en attendant", "lemma": "attendre", "pos": "expression", "meaning_native": "while waiting" },
+      { "surface": "un lieu de rencontre", "lemma": "lieu", "pos": "noun phrase", "meaning_native": "a meeting place" }
+    ],
+    "questions": [
+      { "q_target": "Qu'a ajouté la nouvelle gérante ?", "q_native": "What did the new manager add?", "choices": ["Une étagère de livres", "Des chaises rouges", "Une terrasse", "Un nouveau menu"], "answer_index": 0, "explanation_native": "Elle a ajouté une grande étagère de livres." },
+      { "q_target": "Que peuvent faire les clients qui arrivent tôt ?", "q_native": "What can early customers do?", "choices": ["Lire le journal", "Rencontrer la gérante", "Choisir un livre à emporter", "Travailler dans la cuisine"], "answer_index": 0, "explanation_native": "Ils peuvent lire le journal en attendant." },
+      { "q_target": "Pourquoi la personne reste-t-elle plus longtemps ?", "q_native": "Why does the person stay longer?", "choices": ["Le café est devenu un lieu de rencontre", "Le café ferme tard", "Le café est moins cher", "La porte est fermée"], "answer_index": 0, "explanation_native": "L'endroit est devenu un lieu de rencontre." }
+    ],
+    "writing_prompt": { "target": "Décrivez un endroit qui a changé et la façon dont les gens l'utilisent maintenant.", "native": "Describe a place that changed and how people use it now.", "target_grammar": "Relative pronouns and plus-que-parfait" },
+    "speaking_prompt": { "target": "Avez-vous un café ou un lieu où vous aimez rester ?", "native": "Do you have a café or place where you like to spend time?" }
+  },
+  {
+    "level": 3, "topic": "habits", "title_target": "Une nouvelle habitude",
+    "passage_target": "Pendant des années, je rentrais du travail et je regardais les informations jusqu'au dîner. Un soir, une collègue qui faisait une promenade chaque jour m'a proposé de l'accompagner. J'avais pensé que je serais trop fatigué, mais l'air frais m'a fait du bien. Depuis ce soir-là, nous marchons trois fois par semaine. Quand il pleut, nous faisons un tour dans le centre commercial couvert. Cette habitude m'aide à mieux dormir et nous donne le temps de parler.",
+    "passage_native": "For years, I came home from work and watched the news until dinner. One evening, a colleague who walked every day invited me to join her. I had thought I would be too tired, but the fresh air made me feel better. Since that evening, we walk three times a week. When it rains, we take a walk in the covered shopping centre. This habit helps me sleep better and gives us time to talk.",
+    "sentences": [
+      { "target": "Un soir, une collègue qui faisait une promenade chaque jour m'a proposé de l'accompagner.", "native": "One evening, a colleague who walked every day invited me to join her." },
+      { "target": "J'avais pensé que je serais trop fatigué, mais l'air frais m'a fait du bien.", "native": "I had thought I would be too tired, but the fresh air made me feel better." },
+      { "target": "Cette habitude m'aide à mieux dormir et nous donne le temps de parler.", "native": "This habit helps me sleep better and gives us time to talk." }
+    ],
+    "glossary": [
+      { "surface": "jusqu'au dîner", "lemma": "jusqu'à", "pos": "expression", "meaning_native": "until dinner" },
+      { "surface": "m'a proposé", "lemma": "proposer", "pos": "verb", "meaning_native": "invited me" },
+      { "surface": "l'air frais", "lemma": "air", "pos": "noun phrase", "meaning_native": "the fresh air" },
+      { "surface": "couvert", "lemma": "couvrir", "pos": "adjective", "meaning_native": "covered" }
+    ],
+    "questions": [
+      { "q_target": "Que faisait la personne après le travail auparavant ?", "q_native": "What did the person used to do after work?", "choices": ["Regarder les informations", "Faire une promenade", "Cuisiner avec une collègue", "Aller au centre commercial"], "answer_index": 0, "explanation_native": "Elle regardait les informations jusqu'au dîner." },
+      { "q_target": "Pourquoi la personne a-t-elle hésité ?", "q_native": "Why did the person hesitate?", "choices": ["Elle pensait être trop fatiguée", "Il faisait trop chaud", "Elle n'aimait pas marcher", "Elle devait travailler"], "answer_index": 0, "explanation_native": "Elle avait pensé qu'elle serait trop fatiguée." },
+      { "q_target": "Où marchent-elles quand il pleut ?", "q_native": "Where do they walk when it rains?", "choices": ["Dans un centre commercial couvert", "Dans un parc", "Près de la gare", "Chez leur collègue"], "answer_index": 0, "explanation_native": "Elles marchent dans le centre commercial couvert." }
+    ],
+    "writing_prompt": { "target": "Racontez une habitude que vous avez changée et expliquez pourquoi.", "native": "Describe a habit you changed and explain why.", "target_grammar": "Imparfait, passé composé, and relative clauses" },
+    "speaking_prompt": { "target": "Quelle habitude vous aide à vous sentir bien ?", "native": "What habit helps you feel well?" }
+  },
+  {
+    "level": 3, "topic": "culture", "title_target": "Une exposition locale",
+    "passage_target": "Le musée, qui était gratuit le premier dimanche du mois, présentait une exposition sur les métiers du quartier. Une guide dont le grand-père avait travaillé dans l'ancienne usine nous a raconté son histoire. J'avais déjà vu les machines, mais je n'avais jamais entendu parler des familles qui y travaillaient. Les visiteurs pouvaient écouter des témoignages enregistrés près de chaque objet. À la sortie, nous avons discuté de la façon dont la ville avait changé. Je suis rentré avec l'envie d'en apprendre davantage sur mon quartier.",
+    "passage_native": "The museum, which was free on the first Sunday of the month, presented an exhibition about local jobs. A guide whose grandfather had worked in the old factory told us its story. I had already seen the machines, but I had never heard about the families who worked there. Visitors could listen to recorded accounts near each object. On the way out, we discussed how the town had changed. I went home wanting to learn more about my neighbourhood.",
+    "sentences": [
+      { "target": "Le musée, qui était gratuit le premier dimanche du mois, présentait une exposition sur les métiers du quartier.", "native": "The museum, which was free on the first Sunday of the month, presented an exhibition about local jobs." },
+      { "target": "Une guide dont le grand-père avait travaillé dans l'ancienne usine nous a raconté son histoire.", "native": "A guide whose grandfather had worked in the old factory told us its story." },
+      { "target": "Je suis rentré avec l'envie d'en apprendre davantage sur mon quartier.", "native": "I went home wanting to learn more about my neighbourhood." }
+    ],
+    "glossary": [
+      { "surface": "une exposition", "lemma": "exposition", "pos": "noun", "meaning_native": "an exhibition" },
+      { "surface": "les métiers", "lemma": "métier", "pos": "noun", "meaning_native": "jobs, trades" },
+      { "surface": "l'ancienne usine", "lemma": "usine", "pos": "noun phrase", "meaning_native": "the old factory" },
+      { "surface": "témoignages enregistrés", "lemma": "témoignage", "pos": "noun phrase", "meaning_native": "recorded accounts" }
+    ],
+    "questions": [
+      { "q_target": "De quoi parlait l'exposition ?", "q_native": "What was the exhibition about?", "choices": ["Les métiers du quartier", "La vie à la campagne", "Les transports modernes", "La famille de la guide"], "answer_index": 0, "explanation_native": "Elle présentait les métiers du quartier." },
+      { "q_target": "Pourquoi la guide connaissait-elle l'usine ?", "q_native": "Why did the guide know about the factory?", "choices": ["Son grand-père y avait travaillé", "Elle y travaillait encore", "Elle habitait dans le musée", "Elle avait construit les machines"], "answer_index": 0, "explanation_native": "Son grand-père avait travaillé dans l'ancienne usine." },
+      { "q_target": "Qu'a voulu faire la personne après la visite ?", "q_native": "What did the person want to do after the visit?", "choices": ["En apprendre davantage sur son quartier", "Devenir guide", "Retourner à l'usine", "Écouter une autre exposition"], "answer_index": 0, "explanation_native": "La visite lui a donné envie d'en apprendre davantage." }
+    ],
+    "writing_prompt": { "target": "Décrivez une exposition ou un lieu culturel qui vous a appris quelque chose.", "native": "Describe an exhibition or cultural place that taught you something.", "target_grammar": "Relative pronouns qui, que, and dont" },
+    "speaking_prompt": { "target": "Quel lieu de votre ville aimeriez-vous mieux connaître ?", "native": "Which place in your town would you like to know better?" }
+  }
+]

@@ -138,7 +138,7 @@ function ReadAloudPractice({ pack, rate, voiceUri, lang }: { pack: import('../ty
         <span className="target-text grow">{target}</span>
         <SpeakToggle text={target} rate={rate} voiceUri={voiceUri} lang={lang} />
       </div>
-      <div className="row">
+      <div className="row practice-record-controls">
         <button
           className="primary"
           onClick={() => {

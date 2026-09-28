@@ -80,16 +80,21 @@ export class ReviewService {
    * start, before anybody is logged in — so the language has to be a property of
    * the data. That is why every graded table carries `enrollment_id`.
    */
-  private langForEnrollment(enrollmentId: number): string {
-    const row = this.db.prepare('SELECT target_lang FROM enrollments WHERE id=?').get(enrollmentId) as
-      | { target_lang: string }
+  private languagesForEnrollment(enrollmentId: number): { targetLang: string; nativeLang: string } {
+    const row = this.db.prepare('SELECT target_lang, native_lang FROM enrollments WHERE id=?').get(enrollmentId) as
+      | { target_lang: string; native_lang: string }
       | undefined;
     if (!row) throw new Error(`no enrollment ${enrollmentId}`);
-    return row.target_lang;
+    return { targetLang: row.target_lang, nativeLang: row.native_lang };
   }
 
-  private promptCtx(targetLang: string): PromptContext {
-    return { profile: this.profileFor(targetLang) };
+  private promptCtx(enrollmentId: number): PromptContext {
+    const { targetLang, nativeLang } = this.languagesForEnrollment(enrollmentId);
+    const nativeProfile = this.langs.get(nativeLang);
+    return {
+      profile: this.profileFor(targetLang),
+      native: { code: nativeLang, name: nativeProfile?.name ?? (nativeLang === 'en' ? 'English' : nativeLang) },
+    };
   }
 
   // ---- Writing (§8.2) ----
@@ -134,7 +139,7 @@ export class ReviewService {
     };
     const text = entry.user_text;
     if (!this.callManager) return false;
-    const ctx = this.promptCtx(this.langForEnrollment(entry.enrollment_id));
+    const ctx = this.promptCtx(entry.enrollment_id);
     const feedback = await this.callManager.generateJSON({
       system: writingGradeSystem(ctx, prompt.level ?? 1),
       prompt: writingGradePrompt(ctx, prompt.level ?? 1, prompt.target, prompt.native, text),
@@ -225,7 +230,7 @@ export class ReviewService {
     const ext = path.extname(audioPath).slice(1) || 'webm';
     const wav = await convertToWav16k(fs.readFileSync(audioPath), ext, this.ffmpegPath);
     if (!this.callManager) return false;
-    const ctx = this.promptCtx(this.langForEnrollment(attempt.enrollment_id));
+    const ctx = this.promptCtx(attempt.enrollment_id);
     const feedback = await this.callManager.generateJSONFromAudio({
       system: speakingFeedbackSystem(ctx, prompt.level ?? 1),
       prompt: speakingFeedbackPrompt(ctx, prompt.level ?? 1, prompt.target, prompt.native),

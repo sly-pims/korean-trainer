@@ -165,8 +165,11 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
       return reply.code(400).send(errorBody('language_not_supported', `target language "${target_lang}" is not offered by this deployment`));
     }
     const native = native_lang ?? cfg.defaultUiLang;
-    const ui = ui_lang ?? native;
-    if (!cfg.supportedUiLangs.includes(native) || !cfg.supportedUiLangs.includes(ui)) {
+    const ui = ui_lang ?? (cfg.supportedUiLangs.includes(native) ? native : cfg.defaultUiLang);
+    if (!cfg.langs.has(native) && !cfg.supportedUiLangs.includes(native)) {
+      return reply.code(400).send(errorBody('language_not_supported', `native language "${native}" is not offered`));
+    }
+    if (!cfg.supportedUiLangs.includes(ui)) {
       return reply.code(400).send(errorBody('language_not_supported', `interface language is not offered (have: ${cfg.supportedUiLangs.join(', ')})`));
     }
 
@@ -485,7 +488,7 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
     const result = content.completeSession(e.id, row.id as number, parsed.data.duration_s);
     const level = readSettings(db, cfg, content.profileFor(e.targetLang), e.id).level;
     if (ctx.callManager) {
-      content.prefetchTomorrow(e.id, e.targetLang, level).catch((err) =>
+      content.prefetchTomorrow(e.id, e.targetLang, level, e.nativeLang).catch((err) =>
         console.warn('[session] prefetch failed:', err),
       );
     }
@@ -568,7 +571,14 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
     const known = content.knownLemmas(e.id);
     const knownLower = new Set(known.map((l) => l.toLowerCase()));
     try {
-      const promptCtx = { profile: content.profileFor(e.targetLang) };
+      const nativeProfile = cfg.langs.get(e.nativeLang);
+      const promptCtx = {
+        profile: content.profileFor(e.targetLang),
+        native: {
+          code: e.nativeLang,
+          name: nativeProfile?.name ?? (e.nativeLang === 'en' ? 'English' : e.nativeLang === 'ko' ? 'Korean' : e.nativeLang),
+        },
+      };
       const suggestions = await ctx.callManager.generateJSON({
         system: wordSuggestSystem(promptCtx, parsed.data.level ?? settings.level),
         prompt: wordSuggestPrompt(promptCtx, parsed.data.count ?? 5, parsed.data.topic ?? null, known),

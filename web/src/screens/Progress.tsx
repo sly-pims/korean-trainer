@@ -78,7 +78,7 @@ onKeyDown={(e) => {
   if (e.key === 'Enter') navto(`/history/${s.id}`);
 }}
           >
-            <div className="row">hol
+            <div className="row">
               <span className="session-date grow">
                 {formatDate(s.date)}
                 {s.date === todayIso && <em className="today-tag">{t('common.today')}</em>}

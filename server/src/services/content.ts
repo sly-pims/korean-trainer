@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { addDays, nowIso, todayString } from '../dates.js';
-import type { LanguageProfile, Langs } from '../lang.js';
+import type { LanguageProfile, Langs, NativeLang } from '../lang.js';
 import { DailyCapReachedError } from '../llm/errors.js';
 import { CallManager } from '../llm/callManager.js';
 import { validateContentPack } from '../prompts/contentPack.js';
@@ -777,11 +777,20 @@ export class ContentService {
     requestedTopic?: string,
     recentTopics?: string[],
     targetLang?: string,
+    nativeLang?: string,
   ): Promise<{ pack: import('../schema/content.js').ContentPack; source: 'llm' }> {
     if (!this.callManager) throw new Error('No LLM provider configured');
     const { contentPackSystem, contentPackWithTopicPrompt } = await import('../prompts/contentPack.js');
     const lang = targetLang ?? [...this.langs.keys()][0] ?? 'ko';
-    const ctx = { profile: this.profileFor(lang) };
+    const nativeCode = nativeLang ?? 'en';
+    const nativeProfile = this.langs.get(nativeCode);
+    const ctx = {
+      profile: this.profileFor(lang),
+      native: {
+        code: nativeCode,
+        name: nativeProfile?.name ?? (nativeCode === 'en' ? 'English' : nativeCode),
+      } satisfies NativeLang,
+    };
     const topicList = ctx.profile.topics;
     const recent = recentTopics ?? this.recentTopics(lang, 6);
     const pool =
@@ -804,7 +813,7 @@ export class ContentService {
    * about a person: one person's prefetch is not evidence that another's is
    * ready, and the old global check reported the wrong answer half the time.
    */
-  async prefetchTomorrow(enrollmentId: number, targetLang: string, level: number): Promise<void> {
+  async prefetchTomorrow(enrollmentId: number, targetLang: string, level: number, nativeLang: string): Promise<void> {
     if (!this.callManager) return;
     try {
       const tomorrow = addDays(this.today(enrollmentId), 1);
@@ -817,7 +826,7 @@ export class ContentService {
         )
         .get(enrollmentId, targetLang, tomorrow);
       if (existing) return;
-      const { pack } = await this.generatePack(level, undefined, undefined, targetLang);
+      const { pack } = await this.generatePack(level, undefined, undefined, targetLang, nativeLang);
       const res = this.db
         .prepare(
           'INSERT INTO passages (target_lang, level, topic, payload_json, source, used, created_at) VALUES (?,?,?,?,?,0,?)',

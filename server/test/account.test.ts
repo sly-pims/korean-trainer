@@ -169,6 +169,36 @@ describe('adding a language', () => {
       (app.db.prepare('SELECT COUNT(*) c FROM enrollments WHERE user_id=?').get(siblingId) as { c: number }).c,
     ).toBe(2);
   });
+
+  it('supports the requested English, French, and Korean learning/native combinations', async () => {
+    const triad = await makeTestApp({ targetLangs: 'ko,fr,en', uiLangs: 'en,ko' });
+    const pairs = [
+      { native: 'en', target: 'ko' },
+      { native: 'en', target: 'fr' },
+      { native: 'fr', target: 'ko' },
+      { native: 'fr', target: 'en' },
+      { native: 'ko', target: 'en' },
+      { native: 'ko', target: 'fr' },
+    ];
+
+    for (const pair of pairs) {
+      let enrollmentId = triad.enrollmentId;
+      if (pair.native !== 'en' || pair.target !== 'ko') {
+        const created = await triad.post('/api/enrollments', {
+          target_lang: pair.target,
+          native_lang: pair.native,
+        });
+        expect(created.statusCode, `${pair.native} learning ${pair.target}: ${created.body}`).toBe(201);
+        enrollmentId = created.json().enrollment.id;
+        expect(created.json().enrollment.nativeLang).toBe(pair.native);
+        expect(created.json().enrollment.uiLang).toBe(pair.native === 'ko' ? 'ko' : 'en');
+      }
+
+      const started = await triad.post('/api/session/start', {}, triad.switchTo(enrollmentId));
+      expect(started.statusCode, `${pair.native} learning ${pair.target}: ${started.body}`).toBe(200);
+      expect(started.json().session.passage.target_lang).toBe(pair.target);
+    }
+  });
 });
 
 describe('switching language', () => {
