@@ -100,6 +100,14 @@ describe('UI copy', () => {
     for (const l of langs) expect(loadCopy(repoRoot, l).appName).toBeTruthy();
   });
 
+  it('preserves the complete translation tree when loading a locale', () => {
+    const copy = loadCopy(repoRoot, 'en') as unknown as Record<string, unknown>;
+    const home = copy.home as Record<string, unknown> | undefined;
+    const common = copy.common as Record<string, unknown> | undefined;
+    expect(home?.greeting).toBe('Hello 👋');
+    expect(common?.level).toBe('Level');
+  });
+
   it('all copy sets have identical key sets, so no locale can drift', () => {
     const [ref, ...rest] = langs.map((l) => ({ l, keys: copyKeys(loadCopy(repoRoot, l)).sort() }));
     for (const other of rest) {

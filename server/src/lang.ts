@@ -102,21 +102,21 @@ export const copySchema = z.object({
     passwordPlaceholder: z.string().min(1),
     submit: z.string().min(1),
     signingIn: z.string().min(1),
-  }),
+  }).passthrough(),
   nav: z.object({
     home: z.string().min(1),
     practice: z.string().min(1),
     words: z.string().min(1),
     progress: z.string().min(1),
     settings: z.string().min(1),
-  }),
+  }).passthrough(),
   common: z.object({
     saved: z.string().min(1),
     close: z.string().min(1),
     done: z.string().min(1),
     error: z.string().min(1),
-  }),
-});
+  }).passthrough(),
+}).passthrough();
 
 export type Copy = z.infer<typeof copySchema>;
 

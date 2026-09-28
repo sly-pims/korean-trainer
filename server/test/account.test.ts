@@ -237,9 +237,13 @@ describe('/api/meta', () => {
   });
 
   it('does not leak the accounts on the deployment', async () => {
-    const text = JSON.stringify((await app.anon('/api/meta')).json());
+    const body = (await app.anon('/api/meta')).json();
+    const text = JSON.stringify(body);
     expect(text).not.toContain('sibling');
-    // No usernames, no enrollments, no ids — only what a login form needs.
-    expect(text).not.toMatch(/"username"|"enrollments"|"password_hash"/);
+    expect(text).not.toContain('owner');
+    expect(body.copy.login.username).toBe('Username');
+    expect(body).not.toHaveProperty('user');
+    expect(body).not.toHaveProperty('enrollments');
+    expect(text).not.toMatch(/"password_hash"|"activeEnrollmentId"/);
   });
 });
