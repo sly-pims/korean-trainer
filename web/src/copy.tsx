@@ -106,6 +106,11 @@ export interface CopyValue {
  */
 export type ServerErrorCode =
   | 'invalid_password'
+  | 'invalid_credentials'
+  | 'unauthorized'
+  | 'not_found'
+  | 'language_not_supported'
+  | 'enrollment_exists'
   | 'validation_failed'
   | 'unknown_voice'
   | 'sentence_index_required'
@@ -122,6 +127,13 @@ export type ServerErrorCode =
 
 export const SERVER_ERROR_KEYS: Record<ServerErrorCode, CopyKey> = {
   invalid_password: 'error.invalidPassword',
+  // A wrong username and a wrong password get the same sentence, so the login
+  // form cannot be used to find out which accounts exist.
+  invalid_credentials: 'error.invalidCredentials',
+  unauthorized: 'error.unauthorized',
+  not_found: 'error.notFound',
+  language_not_supported: 'error.languageNotSupported',
+  enrollment_exists: 'error.enrollmentExists',
   validation_failed: 'error.validationFailed',
   unknown_voice: 'error.unknownVoice',
   sentence_index_required: 'error.sentenceIndexRequired',
@@ -171,10 +183,34 @@ interface Meta {
   copy: Tree;
 }
 
-export function CopyProvider({ children }: { children: ReactNode }) {
+/**
+ * Which language the interface is in.
+ *
+ * Signed out, that is the deployment default from `/api/meta`. Signed in, it is
+ * the active enrollment's `uiLang` and its copy comes from `/api/account`
+ * instead — the same tree, but chosen per person rather than per box. Passing
+ * both in is what lets one provider serve the login screen and the app without
+ * either of them knowing which state it is in.
+ */
+export interface CopyProviderProps {
+  children: ReactNode;
+  /** The active enrollment's copy. Omitted means "signed out": use the default. */
+  copy?: Tree;
+  /** The active enrollment's interface language, alongside `copy`. */
+  uiLang?: string;
+  /** App name for the current language, from the account payload. */
+  appName?: string;
+  appTagline?: string;
+}
+
+export function CopyProvider({ children, copy, uiLang, appName, appTagline }: CopyProviderProps) {
   const [meta, setMeta] = useState<Meta | null>(null);
 
+  // Only when signed out. Signed in, the copy is already in hand and a second
+  // fetch would be both redundant and a chance for the two to disagree.
+  const needsDefault = copy === undefined;
   useEffect(() => {
+    if (!needsDefault) return;
     let live = true;
     void (async () => {
       try {
@@ -190,18 +226,19 @@ export function CopyProvider({ children }: { children: ReactNode }) {
     return () => {
       live = false;
     };
-  }, []);
+  }, [needsDefault]);
 
   const value = useMemo<CopyValue>(() => {
-    const t = makeT(meta ? meta.copy : (en as Tree));
+    const tree = copy ?? (needsDefault && meta ? meta.copy : undefined) ?? (en as Tree);
+    const t = makeT(tree);
     return {
       t,
       serverError: makeServerError(t),
-      uiLang: meta ? meta.defaultUiLang : 'en',
-      appName: meta ? meta.appName : en.appName,
-      appTagline: meta ? meta.appTagline : en.appTagline,
+      uiLang: uiLang ?? (needsDefault && meta ? meta.defaultUiLang : 'en'),
+      appName: appName ?? (needsDefault && meta ? meta.appName : en.appName),
+      appTagline: appTagline ?? (needsDefault && meta ? meta.appTagline : en.appTagline),
     };
-  }, [meta]);
+  }, [copy, uiLang, appName, appTagline, meta, needsDefault]);
 
   return <CopyContext.Provider value={value}>{children}</CopyContext.Provider>;
 }

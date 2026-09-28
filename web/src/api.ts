@@ -1,5 +1,6 @@
 import type {
   HomeData,
+  LanguageDescriptor as LanguageProfile,
   LevelSuggestion,
   ListeningResult,
   LlmStatus,
@@ -61,12 +62,74 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return (await res.json()) as T;
 }
 
+export interface LanguageDescriptor {
+  code: string;
+  name: string;
+  endonym: string;
+  htmlLang: string;
+  levels?: Record<string, { name: string }>;
+}
+
+export interface EnrollmentSummary {
+  id: number;
+  targetLang: string;
+  nativeLang: string;
+  uiLang: string;
+  displayName: string;
+  lang: LanguageDescriptor;
+}
+
+/**
+ * `/api/account`: who is signed in, and which language they are currently in.
+ *
+ * The whole point of the type is that `activeEnrollmentId` and `settings.lang`
+ * always describe the *same* enrollment. A client that renders copy from one and
+ * saves settings to the other is how a French learner ends up writing their
+ * settings into the Korean row.
+ */
+export interface AccountPayload {
+  user: { id: number; username: string; display_name: string };
+  activeEnrollmentId: number;
+  enrollments: EnrollmentSummary[];
+  /** Target languages this deployment offers that this account has not added. */
+  availableTargetLangs: string[];
+  targetLangs: LanguageDescriptor[];
+  uiLangs: string[];
+  /**
+   * The active language's *full* profile, not the short descriptor the
+   * enrollment list carries: this is `languageDescriptor(profile)` server-side,
+   * so it has the level names, the voice allowlist and the locale that
+   * `Settings.lang` does. Typing it as the short one let a caller reach for
+   * `voices` and get a compile error for something the server does send.
+   */
+  lang: LanguageProfile;
+  copy: Record<string, unknown>;
+  settings: Settings;
+}
+
+export interface MetaPayload {
+  defaultUiLang: string;
+  supportedTargetLangs: string[];
+  supportedUiLangs: string[];
+  targetLangs: LanguageDescriptor[];
+  uiLangs: string[];
+  appName: string;
+  appTagline: string;
+  copy: Record<string, unknown>;
+}
+
 export const api = {
-  login: (password: string) =>
-    request<{ ok: boolean }>('/api/login', { method: 'POST', body: JSON.stringify({ password }) }),
+  login: (username: string, password: string) =>
+    request<{ ok: boolean; account: AccountPayload }>('/api/login', {
+      method: 'POST',
+      body: JSON.stringify({ username, password }),
+    }),
   logout: () => request<{ ok: boolean }>('/api/logout', { method: 'POST', body: '{}' }),
-  me: () => request<{ authenticated: boolean }>('/api/me'),
+  me: () => request<{ authenticated: boolean; username: string; enrollment_id: number; target_lang: string }>('/api/me'),
   health: () => request<{ ok: boolean; tz: string }>('/api/health'),
+  /** Reachable without a session: a login screen needs the language list. */
+  meta: () => request<MetaPayload>('/api/meta'),
+  account: () => request<AccountPayload>('/api/account'),
 
   home: () => request<HomeData>('/api/home'),
   sessionToday: () => request<{ session: SessionWithPack | null }>('/api/session/today'),
@@ -177,6 +240,22 @@ export const api = {
   getSettings: () => request<Settings>('/api/settings'),
   updateSettings: (patch: Partial<Settings>) =>
     request<Settings>('/api/settings', { method: 'PUT', body: JSON.stringify(patch) }),
+
+  /**
+   * Add a language. Returns `account` describing the enrollment that is *still*
+   * active, plus the new one separately: adding is not switching, and
+   * `activateEnrollment` is the only call that moves the session.
+   */
+  createEnrollment: (input: { target_lang: string; native_lang?: string; ui_lang?: string }) =>
+    request<{ created: boolean; enrollment: EnrollmentSummary; account: AccountPayload }>('/api/enrollments', {
+      method: 'POST',
+      body: JSON.stringify(input),
+    }),
+  activateEnrollment: (id: number) =>
+    request<{ ok: boolean; account: AccountPayload }>(`/api/enrollments/${id}/activate`, {
+      method: 'POST',
+      body: '{}',
+    }),
 };
 
 /**

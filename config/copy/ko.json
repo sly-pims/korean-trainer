@@ -3,6 +3,11 @@
   "appTagline": "매일 하는 읽기 · 쓰기 · 말하기 연습",
   "error": {
     "invalidPassword": "비밀번호가 올바르지 않습니다.",
+    "invalidCredentials": "아이디와 비밀번호가 일치하는 계정이 없습니다.",
+    "unauthorized": "계속하려면 로그인해 주세요.",
+    "notFound": "그 항목은 더 이상 존재하지 않습니다.",
+    "languageNotSupported": "이 앱에서는 아직 그 언어를 제공하지 않습니다.",
+    "enrollmentExists": "이미 추가한 언어입니다.",
     "validationFailed": "서버가 요청을 처리하지 못했습니다. 입력값을 확인한 뒤 다시 시도해 주세요.",
     "unknownVoice": "이 언어에서 사용할 수 없는 목소리입니다. 설정에서 다른 목소리를 선택해 주세요.",
     "sentenceIndexRequired": "녹음에 어느 문장에 대한 것인지 정보가 없었습니다.",
@@ -18,10 +23,28 @@
     "ttsUnavailable": "현재 음성 출력을 사용할 수 없습니다."
   },
   "login": {
+    "username": "아이디",
+    "usernamePlaceholder": "아이디",
     "password": "비밀번호",
     "submit": "로그인",
-    "passwordPlaceholder": "트레이너 비밀번호",
+    "passwordPlaceholder": "비밀번호",
     "signingIn": "로그인 중…"
+  },
+  "account": {
+    "title": "계정",
+    "signedInAs": "{username} 계정으로 로그인됨",
+    "signOut": "로그아웃",
+    "languages": "내 언어",
+    "learning": "학습 중",
+    "current": "현재",
+    "switchTo": "{language}(으)로 전환",
+    "switching": "전환 중…",
+    "addLanguage": "언어 추가",
+    "addLanguageHint": "언어마다 레벨, 단어장, 학습 기록, 설정이 따로 저장됩니다.",
+    "alreadyAdded": "이미 추가한 언어입니다.",
+    "noMoreLanguages": "이 앱에서 제공하는 언어를 모두 추가했습니다.",
+    "added": "{language}을(를) 추가했습니다. 준비되면 전환하세요.",
+    "nativeLanguage": "이미 모국어"
   },
   "nav": {
     "home": "홈",

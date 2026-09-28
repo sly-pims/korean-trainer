@@ -4,9 +4,10 @@ import Fastify, { FastifyInstance } from 'fastify';
 import fs from 'node:fs';
 import path from 'node:path';
 import { Auth } from './auth.js';
-import { Config, copyFor, REPO_ROOT } from './config.js';
+import { Config, copyFor, langFor, REPO_ROOT } from './config.js';
 import { Ctx } from './ctx.js';
 import { openDb } from './db.js';
+import { ensureSettingsRow, enrollmentById } from './enrollments.js';
 import { CallManager } from './llm/callManager.js';
 import { GeminiProvider } from './llm/gemini.js';
 import { registerRoutes } from './routes.js';
@@ -19,6 +20,29 @@ export interface BuildOptions {
   logger?: boolean;
 }
 
+/**
+ * Routes reachable without a session: they cannot know whose data to return.
+ *
+ * Logout belongs here. If it did not, the one moment a client most needs to
+ * clear a cookie — after it has expired, or after the account behind it is
+ * gone — would be the one moment the request is refused, and the stale cookie
+ * would stick around to be replayed.
+ */
+const PUBLIC_ROUTES = ['/api/login', '/api/health', '/api/meta', '/api/logout'];
+
+/**
+ * Exact match, not `startsWith`.
+ *
+ * A prefix test quietly exempts anything that merely begins with a public
+ * route's name, so adding `/api/meta` would open `/api/meta-debug` to the
+ * unauthenticated world the day somebody wrote it. Query strings are stripped
+ * because callers do not get to smuggle a path in as a parameter.
+ */
+const isPublicRoute = (url: string): boolean => {
+  const path = url.split('?')[0] ?? url;
+  return PUBLIC_ROUTES.includes(path.replace(/\/+$/, '') || '/');
+};
+
 export async function buildApp(opts: BuildOptions): Promise<{ app: FastifyInstance; ctx: Ctx }> {
   const { config } = opts;
   const app = Fastify({ logger: opts.logger ?? false, bodyLimit: 64 * 1024 * 1024 });
@@ -27,48 +51,59 @@ export async function buildApp(opts: BuildOptions): Promise<{ app: FastifyInstan
   const recordingsDir = path.join(config.dataDir, 'recordings');
   fs.mkdirSync(recordingsDir, { recursive: true });
 
-  const primaryLang = config.supportedTargetLangs[0];
-  const primaryProfile = config.langs.get(primaryLang)!;
-  const db = openDb(config.dbPath, primaryProfile.defaultVoice);
-  const seedTz = db.prepare('SELECT timezone FROM settings WHERE id=1').get() as
-    | { timezone: string | null }
-    | undefined;
-  if (!seedTz?.timezone) {
-    db.prepare('UPDATE settings SET timezone=?, created_at=? WHERE id=1').run(
-      config.tz,
-      new Date().toISOString(),
-    );
-  }
+  const primaryLang = config.supportedTargetLangs[0]!;
+  const primaryProfile = langFor(config, primaryLang);
 
-  const getTz = () => {
-    const row = db.prepare('SELECT timezone FROM settings WHERE id=1').get() as
+  const db = openDb(config.dbPath, {
+    defaultVoice: primaryProfile.defaultVoice,
+    bootstrapUser: {
+      username: config.bootstrapUsername,
+      password: config.authPassword,
+      displayName: config.bootstrapDisplayName,
+    },
+    // The account this deployment has always had: the deployment's primary
+    // target language, explained in the default UI language. Phase 8 and the
+    // add-language flow are what move anyone off these two.
+    bootstrapEnrollment: {
+      targetLang: primaryLang,
+      nativeLang: config.defaultUiLang,
+      uiLang: config.defaultUiLang,
+    },
+  });
+
+  // The timezone belongs to the person, not the box: two people in different
+  // countries must not share one "today", or a session rolls over at the wrong
+  // hour for one of them. Every date calculation takes an enrollment id.
+  const getTz = (enrollmentId: number): string => {
+    const row = db.prepare('SELECT timezone FROM settings WHERE enrollment_id=?').get(enrollmentId) as
       | { timezone: string | null }
       | undefined;
     return row?.timezone || config.tz;
   };
 
+  // A brand-new account has no settings row yet, and every screen assumes one.
+  for (const e of db.prepare('SELECT id, target_lang FROM enrollments').all() as {
+    id: number;
+    target_lang: string;
+  }[]) {
+    ensureSettingsRow(db, e.id, langFor(config, e.target_lang).defaultVoice, config.tz);
+  }
+
   let callManager: CallManager | null = null;
   if (config.llmProvider === 'gemini' && config.geminiApiKey) {
     const provider = new GeminiProvider(config.geminiApiKey, config.geminiModel);
-    callManager = new CallManager(provider, db, config.llmDailyCap, getTz);
+    callManager = new CallManager(provider, db, config.llmDailyCap, () => config.tz);
   } else {
     console.warn(
       `[config] LLM disabled${config.llmProvider === 'gemini' ? ' (no GEMINI_API_KEY set)' : ` (unknown LLM_PROVIDER "${config.llmProvider}")`} — seed content only.`,
     );
   }
 
-  const auth = new Auth(config.sessionSecret, config.authPassword, config.cookieSecure);
+  const auth = new Auth(config.sessionSecret, config.cookieSecure);
   const content = new ContentService(db, getTz, callManager, config.langs, REPO_ROOT);
-  const review = new ReviewService(
-    db,
-    callManager,
-    recordingsDir,
-    config.ffmpegPath,
-    config.langs,
-    primaryLang,
-  );
+  const review = new ReviewService(db, callManager, recordingsDir, config.ffmpegPath, config.langs);
 
-  // ffmpeg health check (§8.3): needed to convert recordings before Gemini grading.
+  // ffmpeg health check: needed to convert recordings before Gemini grading.
   checkFfmpeg(config.ffmpegPath).catch((err) => {
     console.warn(
       `[audio] ffmpeg not found at ${config.ffmpegPath} — speaking feedback disabled. ${err instanceof Error ? err.message : ''}`,
@@ -77,7 +112,7 @@ export async function buildApp(opts: BuildOptions): Promise<{ app: FastifyInstan
 
   const ctx: Ctx = { db, cfg: config, auth, content, review, callManager };
 
-  // Seed content bank (§9): validate and import any new entries, per language.
+  // Seed content bank: validate and import any new entries, per language.
   try {
     const result = content.loadSeed();
     console.log(
@@ -88,7 +123,9 @@ export async function buildApp(opts: BuildOptions): Promise<{ app: FastifyInstan
     console.error('[seed] failed to load seed bank:', err instanceof Error ? err.message : err);
   }
 
-  // Retry queued grading from previous opens (§4.2 #5, #6).
+  // Retry queued grading from previous opens. Instance-global on purpose: the
+  // queue is a property of the deployment's LLM budget, not of a person, and a
+  // queued attempt has to be graded in its own language either way.
   if (callManager && callManager.stats().callsToday < config.llmDailyCap) {
     review.retryQueued().then((r) => {
       console.log(
@@ -106,33 +143,49 @@ export async function buildApp(opts: BuildOptions): Promise<{ app: FastifyInstan
     (_req, body, done) => done(null, body),
   );
 
-  // Auth middleware (§10): signed cookie on everything except login, health,
-  // and the two unauthenticated meta endpoints. The login page needs UI copy
-  // and the manifest needs the app name, but neither has a session yet, so
-  // they get deployment-level defaults instead of enrollment-level data.
+  /**
+   * Identity, resolved once per request.
+   *
+   * The cookie is HMAC-signed and carries both the user and the active
+   * enrollment, so nothing here trusts a request parameter. The enrollment is
+   * re-read from the database rather than taken from the token payload, so a
+   * token that outlives a deleted account or enrollment stops working instead of
+   * resolving to a row that no longer exists.
+   *
+   * The manifest is deliberately *not* exempt: it is a static asset, but naming
+   * the installed app in the learner's own language is worth having a session
+   * for, and it falls back to the deployment default when there isn't one.
+   */
   app.addHook('preHandler', async (req, reply) => {
     const url = req.raw.url ?? '';
-    if (
-      url.startsWith('/api/login') ||
-      url.startsWith('/api/health') ||
-      url.startsWith('/api/meta') ||
-      url.startsWith('/manifest.webmanifest')
-    ) {
+    if (isPublicRoute(url)) return;
+
+    const token = req.cookies?.[auth.cookieName];
+    const identity = auth.verifyToken(token);
+    if (!identity) {
+      if (url.startsWith('/api/')) {
+        return reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' });
+      }
+      return; // the manifest: fall back to deployment defaults below
+    }
+    const enrollment = enrollmentById(db, identity.enrollmentId);
+    if (!enrollment || enrollment.userId !== identity.userId) {
+      // A valid signature for an account or enrollment that is gone.
+      reply.clearCookie(auth.cookieName, auth.clearCookieOptions());
+      if (url.startsWith('/api/')) {
+        return reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' });
+      }
       return;
     }
-    if (url.startsWith('/api/')) {
-      const token = req.cookies?.[auth.cookieName];
-      if (!auth.verifyToken(token)) {
-        return reply.code(401).send({ error: 'unauthorized' });
-      }
-    }
+    req.enrollment = enrollment;
   });
 
   // Registered before @fastify/static so it wins over the built manifest file.
-  // Phase 7 makes this enrollment-aware: the token will carry uiLang/targetLang
-  // so an installed PWA is named in the learner's own languages.
-  app.get('/manifest.webmanifest', async (_req, reply) => {
-    const copy = copyFor(config, config.defaultUiLang);
+  // Named from the session when there is one, so an installed PWA carries the
+  // learner's own language, and from the deployment default otherwise.
+  app.get('/manifest.webmanifest', async (req, reply) => {
+    const uiLang = req.enrollment?.uiLang ?? config.defaultUiLang;
+    const copy = copyFor(config, uiLang);
     return reply
       .header('content-type', 'application/manifest+json')
       .send({
@@ -144,7 +197,7 @@ export async function buildApp(opts: BuildOptions): Promise<{ app: FastifyInstan
         orientation: 'portrait',
         background_color: '#f7f7f8',
         theme_color: '#0b57d0',
-        lang: primaryProfile.htmlLang,
+        lang: langFor(config, req.enrollment?.targetLang ?? primaryLang).htmlLang,
         icons: [
           { src: '/icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
           { src: '/icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'maskable' },
@@ -160,7 +213,7 @@ export async function buildApp(opts: BuildOptions): Promise<{ app: FastifyInstan
     await app.register(fastifyStatic, { root: webDist, wildcard: false });
     app.setNotFoundHandler((req, reply) => {
       if (req.raw.url?.startsWith('/api/')) {
-        return reply.code(404).send({ error: 'not found' });
+        return reply.code(404).send({ code: 'not_found', error: 'not found' });
       }
       return reply.sendFile('index.html');
     });

@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
-import { openDb } from '../src/db.js';
+import { openTestDb } from './fixtures.js';
 import { ContentPackSchema } from '../src/schema/content.js';
 
 // The field rename is not only a column rename: passages, prompts and feedback
@@ -12,9 +12,9 @@ import { ContentPackSchema } from '../src/schema/content.js';
 // columns and the stored payloads across, and that doing it again changes
 // nothing.
 
-// A stand-in for the active language's default voice. These tests are about the
-// field rename, not speech, so it deliberately names no language.
-const TEST_VOICE = 'test-voice';
+// The default voice and bootstrap account come from `openTestDb`: these tests
+// are about the field rename, not speech, so the fixture deliberately names no
+// language.
 
 let dir: string;
 let file: string;
@@ -169,7 +169,7 @@ const readJson = (db: DatabaseSync, sql: string): Record<string, unknown> =>
 describe('field rename migration', () => {
   it('renames the columns that held language-coded names', () => {
     buildLegacyDb();
-    const db = openDb(file, TEST_VOICE);
+    const db = openTestDb(file);
 
     const words = columnNames(db, 'words');
     expect(words).toContain('meaning_native');
@@ -188,7 +188,7 @@ describe('field rename migration', () => {
 
   it('keeps the data in the renamed columns', () => {
     buildLegacyDb();
-    const db = openDb(file, TEST_VOICE);
+    const db = openTestDb(file);
 
     const word = db.prepare('SELECT lemma, meaning_native, example_target, example_native FROM words').get() as Record<
       string,
@@ -209,7 +209,7 @@ describe('field rename migration', () => {
 
   it('rewrites the field names stored inside the passage payload', () => {
     buildLegacyDb();
-    const db = openDb(file, TEST_VOICE);
+    const db = openTestDb(file);
     const pack = readJson(db, 'SELECT payload_json AS body FROM passages');
 
     expect(pack).toMatchObject({
@@ -242,7 +242,7 @@ describe('field rename migration', () => {
 
   it('produces a payload the current schema accepts', () => {
     buildLegacyDb();
-    const db = openDb(file, TEST_VOICE);
+    const db = openTestDb(file);
     const pack = readJson(db, 'SELECT payload_json AS body FROM passages');
     db.close();
 
@@ -253,7 +253,7 @@ describe('field rename migration', () => {
 
   it('rewrites prompt and feedback payloads', () => {
     buildLegacyDb();
-    const db = openDb(file, TEST_VOICE);
+    const db = openTestDb(file);
 
     expect(readJson(db, 'SELECT prompt_json AS body FROM writing_entries')).toEqual({
       target: '가족을 소개하세요.',
@@ -290,7 +290,7 @@ describe('field rename migration', () => {
 
   it('changes nothing on a second run', () => {
     buildLegacyDb();
-    const first = openDb(file, TEST_VOICE);
+    const first = openTestDb(file);
     const afterFirst = {
       pack: (first.prepare('SELECT payload_json AS body FROM passages').get() as { body: string }).body,
       rows: {
@@ -302,7 +302,7 @@ describe('field rename migration', () => {
     };
     first.close();
 
-    const second = openDb(file, TEST_VOICE);
+    const second = openTestDb(file);
     expect((second.prepare('SELECT payload_json AS body FROM passages').get() as { body: string }).body).toBe(
       afterFirst.pack,
     );
@@ -322,7 +322,7 @@ describe('field rename migration', () => {
     raw.prepare('UPDATE writing_entries SET prompt_json=?').run('{not json');
     raw.close();
 
-    const db = openDb(file, TEST_VOICE);
+    const db = openTestDb(file);
     expect((db.prepare('SELECT prompt_json AS body FROM writing_entries').get() as { body: string }).body).toBe(
       '{not json',
     );

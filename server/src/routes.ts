@@ -3,9 +3,17 @@ import path from 'node:path';
 import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { DatabaseSync } from 'node:sqlite';
 import { z } from 'zod';
-import { Ctx } from './ctx.js';
+import { Ctx, Enrollment } from './ctx.js';
 import { copyFor, langFor } from './config.js';
-import { addDays } from './dates.js';
+import { badId, idParam, notFound, ownedRow } from './authz.js';
+import {
+  availableTargetLangs,
+  createEnrollment,
+  enrollmentForUser,
+  enrollmentsForUser,
+  ensureSettingsRow,
+  userById,
+} from './enrollments.js';
 import { mimeToExt } from './services/audio.js';
 import { compareReadAloud, compareStrings } from './services/diff.js';
 import * as tts from './services/tts.js';
@@ -27,56 +35,182 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
   const { db, cfg, auth, content, review } = ctx;
 
   /**
-   * The language the learner is currently being taught.
+   * The enrollment for this request, or a hard failure.
    *
-   * Pre-enrollment this is the deployment's primary target language, because
-   * there is nothing else to resolve it from. Phase 7 replaces it with the
-   * enrollment's `target_lang`; every caller below is written to keep working
-   * unchanged when that happens, which is why it is a function rather than a
-   * value captured at boot.
+   * The auth preHandler guarantees it for every route except the handful of
+   * public ones, and those never call this. Throwing rather than defaulting is
+   * the point: the pre-enrollment version of this file had
+   * `const activeProfile = () => content.profileFor()`, which quietly used the
+   * deployment's primary language whenever the answer was not known. A missing
+   * enrollment is a bug, and a bug that throws is better than one that teaches
+   * somebody the wrong language.
    */
-  const activeProfile = () => content.profileFor();
+  const enrollmentOf = (req: FastifyRequest): Enrollment => {
+    if (!req.enrollment) throw new Error('no enrollment on an authenticated route');
+    return req.enrollment;
+  };
 
-  app.get('/api/health', async () => ({ ok: true, tz: effectiveTz(db, cfg) }));
+  /** The language profile of whoever is asking. */
+  const activeProfile = (req: FastifyRequest): LanguageProfile =>
+    content.profileFor(enrollmentOf(req).targetLang);
 
-  // Deployment-level meta. Unauthenticated on purpose: the login page and the
-  // PWA manifest both need it before anyone has a session, so this cannot depend
-  // on an enrollment. Enrollment-aware data lives on /api/account (phase 7).
-  app.get('/api/meta', async () => {
-    const defaultUiLang = cfg.defaultUiLang;
-    return {
-      defaultUiLang,
-      supportedTargetLangs: cfg.supportedTargetLangs,
-      supportedUiLangs: cfg.supportedUiLangs,
-      targetLangs: [...cfg.langs.values()].map((p) => ({
-        code: p.code,
-        name: p.name,
-        endonym: p.endonym,
-        htmlLang: p.htmlLang,
-      })),
-      uiLangs: [...cfg.copies.keys()],
-      appName: copyFor(cfg, defaultUiLang).appName,
-      appTagline: copyFor(cfg, defaultUiLang).appTagline,
-      copy: cfg.copies.get(defaultUiLang),
-    };
-  });
+  /**
+   * The session named in the path, or a reply already sent.
+   *
+   * Two failure modes, two answers, and the difference matters:
+   * a malformed id is the caller's mistake (400) and a well-formed id that is
+   * not theirs is deliberately indistinguishable from one that does not exist
+   * (404). Returning `undefined` after sending the reply is what keeps a caller
+   * from forgetting to return and then writing to somebody else's row.
+   */
+  const ownSession = (
+    req: FastifyRequest,
+    raw: string,
+    reply: FastifyReply,
+  ): Record<string, unknown> | undefined => {
+    const id = idParam(raw);
+    if (id === null) {
+      badId(reply);
+      return undefined;
+    }
+    const row = ownedRow(db, 'sessions', id, enrollmentOf(req).id);
+    if (!row) {
+      notFound(reply);
+      return undefined;
+    }
+    return row;
+  };
+
+  app.get('/api/health', async () => ({ ok: true, tz: cfg.tz }));
+
+  // Deployment-level meta. Unauthenticated on purpose: the login page needs it
+  // before anyone has a session. Anything enrollment-aware lives on /api/account.
+  app.get('/api/meta', async () => ({
+    defaultUiLang: cfg.defaultUiLang,
+    supportedTargetLangs: cfg.supportedTargetLangs,
+    supportedUiLangs: cfg.supportedUiLangs,
+    targetLangs: [...cfg.langs.values()].map(describeLanguage),
+    uiLangs: [...cfg.copies.keys()],
+    appName: copyFor(cfg, cfg.defaultUiLang).appName,
+    appTagline: copyFor(cfg, cfg.defaultUiLang).appTagline,
+    copy: cfg.copies.get(cfg.defaultUiLang),
+  }));
 
   // ---------- Auth (§10) ----------
-  app.post('/api/login', async (req: FastifyRequest<{ Body: { password?: string } }>, reply) => {
-    const parsed = z.object({ password: z.string() }).safeParse(req.body ?? {});
-    if (!parsed.success || !auth.checkPassword(parsed.data.password)) {
-      return reply.code(401).send(errorBody('invalid_password', 'invalid password'));
+  app.post('/api/login', async (req: FastifyRequest<{ Body: { username?: string; password?: string } }>, reply) => {
+    const parsed = z.object({ username: z.string().min(1).max(64), password: z.string().min(1).max(256) }).safeParse(req.body ?? {});
+    if (!parsed.success) {
+      return reply.code(400).send(errorBody('validation_failed', parsed.error.message));
     }
-    reply.setCookie(auth.cookieName, auth.createToken(), auth.cookieOptions());
-    return { ok: true };
+    // One code for "no such user" and "wrong password": telling them apart is a
+    // free account-enumeration oracle, and neither gets a successful login.
+    if (!auth.checkCredentials(db, parsed.data.username, parsed.data.password)) {
+      return reply.code(401).send(errorBody('invalid_credentials', 'invalid username or password'));
+    }
+    const user = db.prepare('SELECT id FROM users WHERE username=?').get(parsed.data.username) as { id: number };
+    const account = userById(db, user.id);
+    if (!account) return reply.code(401).send(errorBody('invalid_credentials', 'invalid username or password'));
+
+    // The first enrollment is the default landing spot. A user with none cannot
+    // happen (every account gets one), but if it ever did, refusing is better
+    // than handing back a session that resolves to nothing.
+    const [first] = enrollmentsForUser(db, account.id);
+    if (!first) return reply.code(500).send(errorBody('unauthorized', 'account has no enrollment'));
+
+    reply.setCookie(auth.cookieName, auth.createToken(account.id, first.id), auth.cookieOptions());
+    return { ok: true, account: accountPayload(db, cfg, content, account, first) };
   });
 
   app.post('/api/logout', async (_req, reply) => {
-    reply.clearCookie(auth.cookieName, { path: '/' });
+    reply.clearCookie(auth.cookieName, auth.clearCookieOptions());
     return { ok: true };
   });
 
-  app.get('/api/me', async (_req) => ({ authenticated: true }));
+  app.get('/api/me', async (req) => {
+    const e = enrollmentOf(req);
+    return { authenticated: true, username: e.username, enrollment_id: e.id, target_lang: e.targetLang };
+  });
+
+  // ---------- Account & enrollments ----------
+  app.get('/api/account', async (req) => {
+    const e = enrollmentOf(req);
+    const user = userById(db, e.userId);
+    if (!user) throw new Error(`enrollment ${e.id} has no user`);
+    return accountPayload(db, cfg, content, user, e);
+  });
+
+  /**
+   * Add a language to the caller's own account.
+   *
+   * The username and the owner come from the session, never from the body, so
+   * this cannot create an account for somebody else no matter what is posted.
+   *
+   * Adding is not switching. The returned account still describes the enrollment
+   * the cookie points at, and the new one is reported alongside it, because a
+   * payload claiming to be in French while the cookie still says Korean is how a
+   * client ends up rendering the wrong language's copy and saving settings into
+   * the wrong row. `/api/enrollments/:id/activate` is the only thing that moves.
+   */
+  app.post('/api/enrollments', async (req: FastifyRequest<{ Body: unknown }>, reply) => {
+    const parsed = z
+      .object({
+        target_lang: z.string().min(2).max(8),
+        native_lang: z.string().min(2).max(8).optional(),
+        ui_lang: z.string().min(2).max(8).optional(),
+      })
+      .safeParse(req.body ?? {});
+    if (!parsed.success) return reply.code(400).send(errorBody('validation_failed', parsed.error.message));
+    const { target_lang, native_lang, ui_lang } = parsed.data;
+    if (!cfg.supportedTargetLangs.includes(target_lang)) {
+      return reply.code(400).send(errorBody('language_not_supported', `target language "${target_lang}" is not offered by this deployment`));
+    }
+    const native = native_lang ?? cfg.defaultUiLang;
+    const ui = ui_lang ?? native;
+    if (!cfg.supportedUiLangs.includes(native) || !cfg.supportedUiLangs.includes(ui)) {
+      return reply.code(400).send(errorBody('language_not_supported', `interface language is not offered (have: ${cfg.supportedUiLangs.join(', ')})`));
+    }
+
+    const me = enrollmentOf(req);
+    const { enrollment, created } = createEnrollment(db, me.userId, {
+      targetLang: target_lang,
+      nativeLang: native,
+      uiLang: ui,
+    });
+    ensureSettingsRow(db, enrollment.id, langFor(cfg, target_lang).defaultVoice, cfg.tz);
+    reply.code(created ? 201 : 200);
+    const user = userById(db, me.userId);
+    return {
+      created,
+      enrollment: {
+        id: enrollment.id,
+        targetLang: enrollment.targetLang,
+        nativeLang: enrollment.nativeLang,
+        uiLang: enrollment.uiLang,
+        displayName: enrollment.displayName,
+        lang: describeLanguage(content.profileFor(enrollment.targetLang)),
+      },
+      // `me`, not `enrollment`: the session has not moved yet.
+      account: accountPayload(db, cfg, content, user!, me),
+    };
+  });
+
+  /**
+   * Switch the active language.
+   *
+   * Re-signs the cookie rather than storing an "active enrollment" column: the
+   * choice then lives only in the client, cannot get out of sync between two
+   * devices, and a stale cookie is harmless.
+   */
+  app.post('/api/enrollments/:id/activate', async (req: PReq, reply) => {
+    const me = enrollmentOf(req);
+    const id = idParam(req.params.id);
+    if (id === null) return badId(reply);
+    const target = enrollmentForUser(db, me.userId, id);
+    if (!target) return notFound(reply);
+    reply.setCookie(auth.cookieName, auth.createToken(me.userId, target.id), auth.cookieOptions());
+    const user = userById(db, me.userId);
+    return { ok: true, account: accountPayload(db, cfg, content, user!, target) };
+  });
 
   // ---------- Settings ----------
   const settingsSchema = z.object({
@@ -88,18 +222,21 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
     timezone: z.string().min(2).max(64).optional(),
   });
 
-  app.get('/api/settings', async () => readSettings(db, cfg, activeProfile()));
+  app.get('/api/settings', async (req) =>
+    readSettings(db, cfg, activeProfile(req), enrollmentOf(req).id),
+  );
 
   app.put('/api/settings', async (req: FastifyRequest<{ Body: unknown }>, reply) => {
     const parsed = settingsSchema.safeParse(req.body ?? {});
     if (!parsed.success) return reply.code(400).send(errorBody('validation_failed', parsed.error.message));
+    const e = enrollmentOf(req);
     const s = parsed.data;
     // Reject a voice from another language rather than storing it: /api/tts
     // refuses it, so persisting it would only leave the settings screen showing
     // a selection the server will not honour.
     if (s.tts_voice) {
       try {
-        resolveVoice(activeProfile(), s.tts_voice);
+        resolveVoice(content.profileFor(e.targetLang), s.tts_voice);
       } catch (err) {
         if (err instanceof UnknownVoiceError) return reply.code(400).send(errorBody('unknown_voice', err.message));
         throw err;
@@ -114,53 +251,75 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
     if (s.keep_recordings_days !== undefined) { sets.push('keep_recordings_days=?'); params.push(s.keep_recordings_days); }
     if (s.timezone !== undefined && s.timezone !== null) { sets.push('timezone=?'); params.push(s.timezone); }
     if (sets.length) {
-      params.push(1);
-      db.prepare(`UPDATE settings SET ${sets.join(',')} WHERE id=?`).run(...params);
+      params.push(e.id);
+      db.prepare(`UPDATE settings SET ${sets.join(',')} WHERE enrollment_id=?`).run(...params);
     }
-    return readSettings(db, cfg, activeProfile());
+    return readSettings(db, cfg, activeProfile(req), e.id);
   });
 
   // ---------- Home ----------
-  app.get('/api/home', async () => {
-    const tomorrowReady = db
-      .prepare("SELECT 1 FROM passages WHERE source='llm' AND used=0 AND intended_date=? LIMIT 1")
-      .get(addDays(content.today(), 1))
-      ? true
-      : false;
+  app.get('/api/home', async (req) => {
+    const e = enrollmentOf(req);
     return {
-      tz: effectiveTz(db, cfg),
-      todaySession: content.getTodaySession(),
-      settings: readSettings(db, cfg, activeProfile()),
-      tomorrowPackReady: tomorrowReady,
+      tz: effectiveTz(db, cfg, e.id),
+      todaySession: content.getTodaySession(e.id),
+      settings: readSettings(db, cfg, content.profileFor(e.targetLang), e.id),
+      tomorrowPackReady: content.tomorrowReady(e.id, e.targetLang),
     };
   });
 
   // ---------- Session (§6) ----------
-  app.get('/api/session/today', async () => ({ session: content.getTodaySession() }));
+  app.get('/api/session/today', async (req) => ({ session: content.getTodaySession(enrollmentOf(req).id) }));
 
-  app.post('/api/session/start', async () => ({ session: content.startTodaySession() }));
+  app.post('/api/session/start', async (req) => {
+    const e = enrollmentOf(req);
+    return { session: content.startTodaySession(e.id, e.targetLang) };
+  });
 
   app.post('/api/session/:id/step', async (req: PReq<{ step?: string }>, reply) => {
     const parsed = z.object({ step: z.string().min(1).max(40) }).safeParse(req.body ?? {});
     if (!parsed.success) return reply.code(400).send(errorBody('validation_failed', parsed.error.message));
-    content.setStep(Number(req.params.id), parsed.data.step);
+    const row = ownSession(req, req.params.id, reply);
+    if (!row) return reply;
+    content.setStep(row.id as number, parsed.data.step);
     return { ok: true };
   });
 
   app.post('/api/session/:id/word-tap', async (req: PReq<{ surface?: string }>, reply) => {
     const parsed = z.object({ surface: z.string().min(1) }).safeParse(req.body ?? {});
     if (!parsed.success) return reply.code(400).send(errorBody('validation_failed', parsed.error.message));
-    return content.addWord(Number(req.params.id), parsed.data.surface);
+    const e = enrollmentOf(req);
+    const row = ownSession(req, req.params.id, reply);
+    if (!row) return reply;
+    return content.addWord(e.id, row.id as number, parsed.data.surface);
   });
 
-  app.get('/api/session/:id/warmup', async (req: PReq) => ({ cards: content.dueCards(10) }));
+  /**
+   * The warm-up deck shown at the start of a session.
+   *
+   * The cards are the caller's either way, so this never needed a lookup to stay
+   * private — but the path names a session, and a route that accepts an id it
+   * then ignores is one more id for somebody to expect to be checked. Verify it
+   * so that the answer for another person's session is the same 404 as every
+   * other session route, rather than a 200 that quietly suggests the id means
+   * something.
+   */
+  app.get('/api/session/:id/warmup', async (req: PReq, reply) => {
+    if (!ownSession(req, req.params.id, reply)) return reply;
+    return { cards: content.dueCards(enrollmentOf(req).id, 10) };
+  });
 
   app.post('/api/srs/review', async (req: FastifyRequest<{ Body: { word_id?: number; rating?: string } }>, reply) => {
     const parsed = z
       .object({ word_id: z.number().int(), rating: z.enum(['again', 'hard', 'good', 'easy']) })
       .safeParse(req.body ?? {});
     if (!parsed.success) return reply.code(400).send(errorBody('validation_failed', parsed.error.message));
-    return content.reviewCard(parsed.data.word_id, parsed.data.rating);
+    const e = enrollmentOf(req);
+    // reviewCard filters through the word's own enrollment, so a foreign
+    // word_id is a miss rather than a write to somebody else's card.
+    const card = content.reviewCard(e.id, parsed.data.word_id, parsed.data.rating);
+    if (!card) return notFound(reply);
+    return card;
   });
 
   app.post('/api/session/:id/read', async (req: PReq<{ answers?: number[] }>, reply) => {
@@ -168,22 +327,27 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
       .object({ answers: z.array(z.number().int().min(0).max(3)).length(3) })
       .safeParse(req.body ?? {});
     if (!parsed.success) return reply.code(400).send(errorBody('validation_failed', parsed.error.message));
-    return content.gradeQuestions(Number(req.params.id), parsed.data.answers);
+    const row = ownSession(req, req.params.id, reply);
+    if (!row) return reply;
+    return content.gradeQuestions(row.id as number, parsed.data.answers);
   });
 
   // ---------- Writing (M3) ----------
   app.post('/api/session/:id/writing', async (req: PReq<{ text?: string }>, reply) => {
     const parsed = z.object({ text: z.string().min(1).max(4000) }).safeParse(req.body ?? {});
     if (!parsed.success) return reply.code(400).send(errorBody('validation_failed', parsed.error.message));
-    const sessionId = Number(req.params.id);
+    const e = enrollmentOf(req);
+    const row = ownSession(req, req.params.id, reply);
+    if (!row) return reply;
+    const sessionId = row.id as number;
     const pack = content.packForSession(sessionId) as Pack;
-    const entryId = review.createWritingEntry(sessionId, pack, parsed.data.text);
+    const entryId = review.createWritingEntry(e.id, sessionId, pack, parsed.data.text);
     let feedback: unknown = null;
     let queued = true;
     if (ctx.callManager) {
       try {
-        queued = !(await review.gradeWritingEntry(entryId));
-        if (!queued) feedback = JSON.parse(review.getWritingEntry(entryId)!.feedback_json as string);
+        queued = !(await review.gradeWritingEntry(entryId, e.id));
+        if (!queued) feedback = JSON.parse(review.getWritingEntry(entryId, e.id)!.feedback_json as string);
       } catch {
         queued = true;
       }
@@ -191,9 +355,12 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
     return { entry_id: entryId, queued, feedback };
   });
 
-  app.get('/api/writing/:id', async (req: PReq) => {
-    const entry = review.getWritingEntry(Number(req.params.id));
-    if (!entry) return { entry: null };
+  app.get('/api/writing/:id', async (req: PReq, reply) => {
+    const e = enrollmentOf(req);
+    const id = idParam(req.params.id);
+    if (id === null) return badId(reply);
+    const entry = review.getWritingEntry(id, e.id);
+    if (!entry) return notFound(reply);
     return { entry };
   });
 
@@ -203,7 +370,10 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
       .object({ transcripts: z.array(z.string().max(500)).min(1).max(10) })
       .safeParse(req.body ?? {});
     if (!parsed.success) return reply.code(400).send(errorBody('validation_failed', parsed.error.message));
-    const sessionId = Number(req.params.id);
+    const e = enrollmentOf(req);
+    const row = ownSession(req, req.params.id, reply);
+    if (!row) return reply;
+    const sessionId = row.id as number;
     const pack = content.packForSession(sessionId) as Pack;
     const targets = pack.sentences.slice(0, 3);
     const perSentence = parsed.data.transcripts.slice(0, 3).map((typed, i) => {
@@ -213,13 +383,16 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
     });
     const score = content.listenScore(sessionId, perSentence.map((p) => p.percent));
     const entries = perSentence.map((p, i) => ({ index: i, target: p.target, typed: p.typed, score: p.percent }));
-    if (entries.length) content.saveDictationEntries(sessionId, entries);
+    if (entries.length) content.saveDictationEntries(e.id, sessionId, entries);
     return { score, perSentence };
   });
 
   // ---------- Speaking (M5) ----------
-  app.post('/api/session/:id/speaking/read-aloud', async (req: FastifyRequest<{ Params: { id: string } }>, reply) => {
-    const sessionId = Number(req.params.id);
+  app.post('/api/session/:id/speaking/read-aloud', async (req: PReq, reply) => {
+    const e = enrollmentOf(req);
+    const row = ownSession(req, req.params.id, reply);
+    if (!row) return reply;
+    const sessionId = row.id as number;
     const pack = content.packForSession(sessionId) as Pack;
     const ct = (req.headers['content-type'] ?? '').toLowerCase();
     // Typed transcript (desktop/keyboard): compare client text directly.
@@ -230,7 +403,7 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
       if (!parsed.success) return reply.code(400).send(errorBody('validation_failed', parsed.error.message));
       const target = pack.sentences[parsed.data.sentence_index]?.target ?? '';
       const diff = compareReadAloud(target, parsed.data.transcript);
-      const attemptId = review.createReadAloudAttempt(sessionId, target, parsed.data.transcript, diff.percent);
+      const attemptId = review.createReadAloudAttempt(e.id, sessionId, target, parsed.data.transcript, diff.percent);
       return reply.send({
         target,
         ...diff,
@@ -258,7 +431,7 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
       return reply.code(502).send(errorBody('transcription_failed', e instanceof Error ? e.message : 'transcription failed'));
     }
     const diff = compareReadAloud(target, transcript);
-    const attemptId = review.createReadAloudAttempt(sessionId, target, transcript, diff.percent);
+    const attemptId = review.createReadAloudAttempt(e.id, sessionId, target, transcript, diff.percent);
     return {
       target,
       ...diff,
@@ -269,14 +442,19 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
   });
 
   app.post('/api/session/:id/speaking/free-response', async (req: PReq, reply) => {
-    const sessionId = Number(req.params.id);
-    const pack = content.packForSession(sessionId) as Pack;
-    return handleFreeResponse(req, reply, ctx, sessionId, pack);
+    const e = enrollmentOf(req);
+    const row = ownSession(req, req.params.id, reply);
+    if (!row) return reply;
+    const pack = content.packForSession(row.id as number) as Pack;
+    return handleFreeResponse(req, reply, ctx, e.id, row.id as number, pack);
   });
 
-  app.get('/api/speaking/:id', async (req: PReq) => {
-    const attempt = review.getSpeakingAttempt(Number(req.params.id));
-    if (!attempt) return { attempt: null };
+  app.get('/api/speaking/:id', async (req: PReq, reply) => {
+    const e = enrollmentOf(req);
+    const id = idParam(req.params.id);
+    if (id === null) return badId(reply);
+    const attempt = review.getSpeakingAttempt(id, e.id);
+    if (!attempt) return notFound(reply);
     const feedback = attempt.feedback_json ? JSON.parse(attempt.feedback_json as string) : null;
     return { attempt, feedback };
   });
@@ -289,7 +467,7 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
     const mime = (req.headers['content-type'] ?? 'audio/webm').toLowerCase();
     let transcript: string;
     try {
-      transcript = await review.transcribeAudio(buf, mimeToExt(mime));
+      transcript = await review.transcribeAudio(buf, mimeToExt(mime), enrollmentOf(req).targetLang);
     } catch (e) {
       req.log.warn({ err: e }, 'transcription failed');
       return reply.code(502).send(errorBody('transcription_failed', e instanceof Error ? e.message : 'transcription failed'));
@@ -301,22 +479,33 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
   app.post('/api/session/:id/complete', async (req: PReq<{ duration_s?: number }>, reply) => {
     const parsed = z.object({ duration_s: z.number().int().min(0).default(0) }).safeParse(req.body ?? {});
     if (!parsed.success) return reply.code(400).send(errorBody('validation_failed', parsed.error.message));
-    const result = content.completeSession(Number(req.params.id), parsed.data.duration_s);
-    if (ctx.callManager) content.prefetchTomorrow().catch((e) => console.warn('[session] prefetch failed:', e));
-    cleanupRecordings(db, cfg);
+    const e = enrollmentOf(req);
+    const row = ownSession(req, req.params.id, reply);
+    if (!row) return reply;
+    const result = content.completeSession(e.id, row.id as number, parsed.data.duration_s);
+    const level = readSettings(db, cfg, content.profileFor(e.targetLang), e.id).level;
+    if (ctx.callManager) {
+      content.prefetchTomorrow(e.id, e.targetLang, level).catch((err) =>
+        console.warn('[session] prefetch failed:', err),
+      );
+    }
+    sweepRecordings(db, cfg, e.id);
     return result;
   });
 
   app.post('/api/level', async (req: FastifyRequest<{ Body: { action?: string } }>, reply) => {
     const parsed = z.object({ action: z.enum(['up', 'down']) }).safeParse(req.body ?? {});
     if (!parsed.success) return reply.code(400).send(errorBody('validation_failed', parsed.error.message));
-    return content.applyLevelChange(parsed.data.action);
+    return content.applyLevelChange(enrollmentOf(req).id, parsed.data.action);
   });
 
+  // Deployment-wide: the queue is a property of this instance's LLM budget, and
+  // a queued attempt is graded in its own enrollment's language.
   app.post('/api/retry-queue', async () => ({ result: await review.retryQueued() }));
 
   // ---------- Words ----------
   app.get('/api/words', async (req) => {
+    const e = enrollmentOf(req);
     const q = typeof (req.query as { q?: unknown }).q === 'string' ? (req.query as { q: string }).q : '';
     const rows = q
       ? db
@@ -324,18 +513,19 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
             `SELECT w.id, w.lemma, w.surface_example, w.meaning_native, w.pos, w.level, w.source, w.example_target, w.example_native,
                     c.ease, c.interval_days, c.due_date, c.reps, c.lapses
              FROM words w LEFT JOIN srs_cards c ON c.word_id = w.id
-             WHERE w.lemma LIKE ? OR w.meaning_native LIKE ? OR w.surface_example LIKE ?
+             WHERE w.enrollment_id=? AND (w.lemma LIKE ? OR w.meaning_native LIKE ? OR w.surface_example LIKE ?)
              ORDER BY w.first_seen_at DESC, w.id DESC LIMIT 200`,
           )
-          .all(`%${q}%`, `%${q}%`, `%${q}%`)
+          .all(e.id, `%${q}%`, `%${q}%`, `%${q}%`)
       : db
           .prepare(
             `SELECT w.id, w.lemma, w.surface_example, w.meaning_native, w.pos, w.level, w.source, w.example_target, w.example_native,
                     c.ease, c.interval_days, c.due_date, c.reps, c.lapses
              FROM words w LEFT JOIN srs_cards c ON c.word_id = w.id
+             WHERE w.enrollment_id=?
              ORDER BY w.first_seen_at DESC, w.id DESC LIMIT 200`,
           )
-          .all();
+          .all(e.id);
     return { words: rows };
   });
 
@@ -353,13 +543,13 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
       })
       .safeParse(req.body ?? {});
     if (!parsed.success) return reply.code(400).send(errorBody('validation_failed', parsed.error.message));
-    return content.addWordManually(parsed.data);
+    return content.addWordManually(enrollmentOf(req).id, parsed.data);
   });
 
-  app.get('/api/srs/due', async () => ({
-    cards: content.dueCards(10),
-    due_total: content.countDueCards(),
-  }));
+  app.get('/api/srs/due', async (req) => {
+    const e = enrollmentOf(req);
+    return { cards: content.dueCards(e.id, 10), due_total: content.countDueCards(e.id) };
+  });
 
   app.post('/api/words/suggest', async (req: FastifyRequest<{ Body: unknown }>, reply) => {
     const parsed = z
@@ -371,23 +561,20 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
       .safeParse(req.body ?? {});
     if (!parsed.success) return reply.code(400).send(errorBody('validation_failed', parsed.error.message));
     if (!ctx.callManager) return reply.code(503).send(errorBody('llm_not_configured', 'LLM not configured'));
-    const settings = db.prepare('SELECT level FROM settings WHERE id=1').get() as { level: number };
+    const e = enrollmentOf(req);
+    const settings = readSettings(db, cfg, content.profileFor(e.targetLang), e.id);
+    // Only this enrollment's own words are "already known", and only in this
+    // enrollment's language profile.
+    const known = content.knownLemmas(e.id);
+    const knownLower = new Set(known.map((l) => l.toLowerCase()));
     try {
-      const promptCtx = { profile: content.profileFor() };
+      const promptCtx = { profile: content.profileFor(e.targetLang) };
       const suggestions = await ctx.callManager.generateJSON({
         system: wordSuggestSystem(promptCtx, parsed.data.level ?? settings.level),
-        prompt: wordSuggestPrompt(
-          promptCtx,
-          parsed.data.count ?? 5,
-          parsed.data.topic ?? null,
-          (db.prepare('SELECT lemma FROM words').all() as { lemma: string }[]).map((r) => r.lemma),
-        ),
+        prompt: wordSuggestPrompt(promptCtx, parsed.data.count ?? 5, parsed.data.topic ?? null, known),
         schema: WordSuggestionsSchema,
       });
-      const known = new Set(
-        (db.prepare('SELECT lemma FROM words').all() as { lemma: string }[]).map((r) => r.lemma.toLowerCase()),
-      );
-      return { suggestions: suggestions.words.filter((w) => !known.has(w.lemma.toLowerCase())) };
+      return { suggestions: suggestions.words.filter((w) => !knownLower.has(w.lemma.toLowerCase())) };
     } catch (err) {
       if (err instanceof DailyCapReachedError)
         return reply.code(429).send(errorBody('daily_cap_reached', err.message));
@@ -396,91 +583,80 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
   });
 
   // ---------- Session history ----------
-  app.get('/api/sessions', async () => ({ sessions: content.listDoneSessions() }));
+  app.get('/api/sessions', async (req) => ({ sessions: content.listDoneSessions(enrollmentOf(req).id) }));
 
   app.get('/api/sessions/:id/detail', async (req: PReq, reply) => {
-    const detail = content.sessionDetail(Number(req.params.id));
+    const row = ownSession(req, req.params.id, reply);
+    if (!row) return reply;
+    const detail = content.sessionDetail(row.id as number);
     if (!detail) return reply.code(404).send(errorBody('no_completed_session', 'no completed session found'));
     return { detail };
   });
 
   // ---------- Progress (M6) ----------
-  app.get('/api/progress', async () => {
+  app.get('/api/progress', async (req) => {
+    const e = enrollmentOf(req);
     const sessions = db
       .prepare(
-        "SELECT id, date, read_score, write_score, listen_score, speak_score, vocab_score, duration_s FROM sessions WHERE status='done' ORDER BY date",
+        "SELECT id, date, read_score, write_score, listen_score, speak_score, vocab_score, duration_s FROM sessions WHERE enrollment_id=? AND status='done' ORDER BY date",
       )
-      .all() as Array<Record<string, unknown>>;
+      .all(e.id) as Array<Record<string, unknown>>;
     return {
-      settings: readSettings(db, cfg, activeProfile()),
+      settings: readSettings(db, cfg, content.profileFor(e.targetLang), e.id),
       sessions,
-      streakCalendar: (db.prepare("SELECT date FROM sessions WHERE status='done' ORDER BY date").all() as Array<{ date: string }>).map((r) => r.date),
-      history: content.history(),
+      streakCalendar: (db
+        .prepare("SELECT date FROM sessions WHERE enrollment_id=? AND status='done' ORDER BY date")
+        .all(e.id) as Array<{ date: string }>).map((r) => r.date),
+      history: content.history(e.id),
     };
   });
 
-  // Wipe all learning-derived state and start over (keeps settings like TTS).
+  /**
+   * Wipe this enrollment's learning history, and only this enrollment's.
+   *
+   * This used to be `DELETE FROM <table>` with no WHERE at all, which meant one
+   * person pressing "reset progress" destroyed every account's. The recordings
+   * on disk go with it, because a DELETE does not reach the filesystem.
+   */
   app.delete('/api/progress', async (req: FastifyRequest, reply) => {
     const parsed = z.object({ confirm: z.literal('reset') }).safeParse(req.body ?? {});
     if (!parsed.success) return reply.code(400).send(errorBody('reset_confirm_required', 'must send {"confirm":"reset"}'));
-    const del = (t: string) => Number(db.prepare(`DELETE FROM ${t}`).run().changes ?? 0);
-    const deleted = {
-      writing_entries: del('writing_entries'),
-      speaking_attempts: del('speaking_attempts'),
-      dictation_entries: del('dictation_entries'),
-      srs_cards: del('srs_cards'),
-      sessions: del('sessions'),
-      words: del('words'),
-      level_history: del('level_history'),
-    };
-    db.prepare('UPDATE settings SET level=1, streak=0, last_session_date=NULL WHERE id=1').run();
-    // Scoped to the caller's language: another language's passages belong to a
-    // different enrollment and must survive this reset.
-    db.prepare('UPDATE passages SET used=0, intended_date=NULL WHERE target_lang=?').run(
-      content.primaryLang,
-    );
-    return { ok: true, deleted };
+    const e = enrollmentOf(req);
+    const recordings = review.cleanupRecordings(e.id);
+    const deleted = content.resetEnrollment(e.id);
+    return { ok: true, deleted, recordings };
   });
 
   // ---------- Speaking practice (standalone screen) ----------
-  // A random pack, but only ever from the caller's own language: one database
-  // holds every supported language's passages.
-  const randomPack = (targetLang: string) =>
-    db
-      .prepare('SELECT payload_json FROM passages WHERE target_lang=? ORDER BY RANDOM() LIMIT 1')
-      .get(targetLang) as { payload_json: string } | undefined;
-
-  app.get('/api/practice/read', async () => {
-    const p = randomPack(content.primaryLang);
-    if (!p) return { pack: null };
-    return { pack: JSON.parse(p.payload_json) };
+  app.get('/api/practice/read', async (req) => {
+    const pack = content.randomPack(enrollmentOf(req).targetLang);
+    return { pack };
   });
 
   app.post('/api/practice/read-aloud', async (req: FastifyRequest<{ Body: { target?: string; transcript?: string } }>, reply) => {
     const parsed = z.object({ target: z.string().min(1), transcript: z.string().max(500) }).safeParse(req.body ?? {});
     if (!parsed.success) return reply.code(400).send(errorBody('validation_failed', parsed.error.message));
+    const e = enrollmentOf(req);
     const diff = compareReadAloud(parsed.data.target, parsed.data.transcript);
-    review.createReadAloudAttempt(null, parsed.data.target, parsed.data.transcript, diff.percent);
+    review.createReadAloudAttempt(e.id, null, parsed.data.target, parsed.data.transcript, diff.percent);
     return { target: parsed.data.target, ...diff };
   });
 
   app.post('/api/practice/free-response', async (req: FastifyRequest, reply) => {
-    const targetLang = content.primaryLang;
-    const settings = readSettings(db, cfg, activeProfile());
-    const p = randomPack(targetLang);
-    const pack: SpeakingPackLike = p
-      ? (JSON.parse(p.payload_json) as SpeakingPackLike)
-      : {
-          level: settings.level,
-          speaking_prompt: langFor(cfg, targetLang).fallbacks.speakingPrompt,
-        };
-    return handleFreeResponse(req, reply, ctx, null, pack);
+    const e = enrollmentOf(req);
+    const profile = content.profileFor(e.targetLang);
+    const settings = readSettings(db, cfg, profile, e.id);
+    const p = content.randomPack(e.targetLang);
+    const pack: SpeakingPackLike = p ?? {
+      level: settings.level,
+      speaking_prompt: profile.fallbacks.speakingPrompt,
+    };
+    return handleFreeResponse(req, reply, ctx, e.id, null, pack);
   });
 
   // ---------- Neural TTS (listen buttons) ----------
-  // The voice must belong to the active target language: TTS only ever speaks
-  // target-language text, so the voice and the text have to be the same
-  // language. `activeProfile()` becomes enrollment-derived in phase 7.
+  // The voice must belong to the caller's target language: TTS only ever speaks
+  // target-language text, so the voice and the text have to be the same language.
   app.get('/api/tts', async (req: FastifyRequest<{ Querystring: { text?: string; voice?: string; rate?: string } }>, reply) => {
     const text = (req.query.text ?? '').trim();
     if (!text) return reply.code(400).send(errorBody('text_required', 'text is required'));
@@ -489,12 +665,12 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
     try {
       const stream = await tts.synthesize({
         text,
-        profile: activeProfile(),
+        profile: activeProfile(req),
         voice: req.query.voice,
         rate,
       });
       reply.header('content-type', 'audio/mpeg');
-      reply.header('cache-control', 'public, max-age=3600');
+      reply.header('cache-control', 'private, max-age=3600');
       return reply.send(stream);
     } catch (err) {
       // A voice from another language is the caller's mistake, not an outage.
@@ -505,6 +681,8 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
   });
 
   // ---------- LLM status (Settings screen) ----------
+  // Deployment-wide, like the retry queue: the key, the model and today's call
+  // count belong to the instance, not to a learner.
   app.get('/api/llm/status', async () => {
     if (!ctx.callManager) {
       return {
@@ -530,8 +708,49 @@ export async function registerRoutes(app: FastifyInstance, ctx: Ctx): Promise<vo
 
 // ---------- helpers ----------
 
-function effectiveTz(db: DatabaseSync, cfg: Ctx['cfg']): string {
-  const s = db.prepare('SELECT timezone FROM settings WHERE id=1').get() as
+function describeLanguage(p: LanguageProfile) {
+  return { code: p.code, name: p.name, endonym: p.endonym, htmlLang: p.htmlLang };
+}
+
+/**
+ * Everything the client needs to render "who am I, and what am I learning".
+ *
+ * One endpoint rather than six: the client would otherwise have to stitch this
+ * together from calls whose answers could disagree with each other mid-load, and
+ * a page that half-renders with the wrong language profile is the exact bug this
+ * phase exists to remove.
+ */
+function accountPayload(
+  db: DatabaseSync,
+  cfg: Ctx['cfg'],
+  content: Ctx['content'],
+  user: { id: number; username: string; displayName: string },
+  active: Enrollment,
+) {
+  const profile = content.profileFor(active.targetLang);
+  return {
+    user: { id: user.id, username: user.username, display_name: user.displayName },
+    activeEnrollmentId: active.id,
+    enrollments: enrollmentsForUser(db, user.id).map((e) => ({
+      id: e.id,
+      targetLang: e.targetLang,
+      nativeLang: e.nativeLang,
+      uiLang: e.uiLang,
+      displayName: e.displayName,
+      lang: describeLanguage(content.profileFor(e.targetLang)),
+    })),
+    /** Target languages this deployment offers that this account has not added. */
+    availableTargetLangs: availableTargetLangs(db, user.id, cfg.supportedTargetLangs),
+    targetLangs: [...cfg.langs.values()].map(describeLanguage),
+    uiLangs: [...cfg.copies.keys()],
+    lang: languageDescriptor(profile),
+    copy: copyFor(cfg, active.uiLang),
+    settings: readSettings(db, cfg, profile, active.id),
+  };
+}
+
+function effectiveTz(db: DatabaseSync, cfg: Ctx['cfg'], enrollmentId: number): string {
+  const s = db.prepare('SELECT timezone FROM settings WHERE enrollment_id=?').get(enrollmentId) as
     | { timezone: string | null }
     | undefined;
   return s?.timezone || cfg.tz;
@@ -557,16 +776,14 @@ function storedVoice(profile: LanguageProfile, stored: string | null): string {
 }
 
 /**
- * The client-facing description of the active target language.
+ * The client-facing description of a target language.
  *
  * The web app used to hardcode all of this: a three-entry list of Korean voices
  * in Settings, `"Beginner 2"` where the profile says `TOPIK 2`, and a `ko-KR`
  * fallback in useTts. Everything needed to render the language correctly is
- * already in the profile, so it travels with the settings the screens fetch.
- *
- * Phase 7 replaces this with the enrollment's language, at which point the
- * client stops assuming one language per deployment and starts following
- * whichever enrollment is active.
+ * already in the profile, so it travels with the settings the screens fetch —
+ * and now describes whichever enrollment is active rather than one global
+ * language.
  */
 export function languageDescriptor(profile: LanguageProfile) {
   return {
@@ -582,6 +799,7 @@ export function languageDescriptor(profile: LanguageProfile) {
     /** The complete allowlist; /api/tts will refuse anything else. */
     voices: profile.voices,
     levelScaleName: profile.levelScaleName,
+    topics: profile.topics,
     /** Level number to its name on this language's scale, e.g. `3` -> `TOPIK 3`. */
     levels: Object.fromEntries(
       Object.entries(profile.levels).map(([level, entry]) => [
@@ -592,8 +810,13 @@ export function languageDescriptor(profile: LanguageProfile) {
   };
 }
 
-export function readSettings(db: DatabaseSync, cfg: Ctx['cfg'], profile: LanguageProfile) {
-  const s = db.prepare('SELECT * FROM settings WHERE id=1').get() as Record<string, unknown>;
+export function readSettings(
+  db: DatabaseSync,
+  cfg: Ctx['cfg'],
+  profile: LanguageProfile,
+  enrollmentId: number,
+) {
+  const s = db.prepare('SELECT * FROM settings WHERE enrollment_id=?').get(enrollmentId) as Record<string, unknown>;
   return {
     level: Number(s.level) || 1,
     tts_rate: Number(s.tts_rate) || 1,
@@ -602,7 +825,7 @@ export function readSettings(db: DatabaseSync, cfg: Ctx['cfg'], profile: Languag
     keep_recordings_days: Number(s.keep_recordings_days) || 14,
     streak: Number(s.streak) || 0,
     last_session_date: (s.last_session_date as string | null) ?? null,
-    timezone: effectiveTz(db, cfg),
+    timezone: effectiveTz(db, cfg, enrollmentId),
     lang: languageDescriptor(profile),
   };
 }
@@ -611,6 +834,7 @@ async function handleFreeResponse(
   req: FastifyRequest,
   reply: FastifyReply,
   ctx: Ctx,
+  enrollmentId: number,
   sessionId: number | null,
   pack: SpeakingPackLike,
 ) {
@@ -620,19 +844,23 @@ async function handleFreeResponse(
   if (buf.length > 50 * 1024 * 1024) return reply.code(413).send(errorBody('recording_too_large', 'recording too large'));
 
   const ext = mimeToExt(mime);
-  const attemptId = ctx.review.createFreeSpeechAttempt(sessionId, pack);
+  const attemptId = ctx.review.createFreeSpeechAttempt(enrollmentId, sessionId, pack);
   const dir = path.join(ctx.cfg.dataDir, 'recordings');
   fs.mkdirSync(dir, { recursive: true });
-  const audioPath = path.join(dir, `freespeech_${Date.now()}_${attemptId}.${ext}`);
+  // The enrollment id is in the filename so the retention sweep below can stay
+  // per-person: with two accounts sharing one data directory, a filename that
+  // only carried a timestamp would make one account's setting delete the other
+  // account's audio.
+  const audioPath = path.join(dir, `freespeech_e${enrollmentId}_${Date.now()}_${attemptId}.${ext}`);
   fs.writeFileSync(audioPath, buf, { flag: 'wx' });
-  ctx.review.setAttemptAudioPath(attemptId, audioPath);
+  ctx.review.setAttemptAudioPath(attemptId, enrollmentId, audioPath);
 
   let feedback: unknown = null;
   let queued = true;
   if (ctx.callManager) {
     try {
-      queued = !(await ctx.review.gradeSpeakingAttempt(attemptId));
-      if (!queued) feedback = JSON.parse(ctx.review.getSpeakingAttempt(attemptId)!.feedback_json as string);
+      queued = !(await ctx.review.gradeSpeakingAttempt(attemptId, enrollmentId));
+      if (!queued) feedback = JSON.parse(ctx.review.getSpeakingAttempt(attemptId, enrollmentId)!.feedback_json as string);
     } catch (err) {
       if (!(err instanceof DailyCapReachedError)) {
         console.warn('[speaking] grading failed, will retry later:', err instanceof Error ? err.message : err);
@@ -643,15 +871,21 @@ async function handleFreeResponse(
   return { attempt_id: attemptId, queued, feedback };
 }
 
-function cleanupRecordings(db: DatabaseSync, cfg: Ctx['cfg']): void {
-  const days = (db.prepare('SELECT keep_recordings_days FROM settings WHERE id=1').get() as {
+/**
+ * Age out one enrollment's recordings, per that enrollment's own retention
+ * setting. `keep_recordings_days === 0` means keep forever, as before.
+ */
+function sweepRecordings(db: DatabaseSync, cfg: Ctx['cfg'], enrollmentId: number): void {
+  const days = (db.prepare('SELECT keep_recordings_days FROM settings WHERE enrollment_id=?').get(enrollmentId) as {
     keep_recordings_days: number;
   }).keep_recordings_days;
   if (days === 0) return;
   const dir = path.join(cfg.dataDir, 'recordings');
   if (!fs.existsSync(dir)) return;
+  const prefix = `freespeech_e${enrollmentId}_`;
   const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
   for (const f of fs.readdirSync(dir)) {
+    if (!f.startsWith(prefix)) continue;
     const full = path.join(dir, f);
     try {
       if (fs.statSync(full).mtimeMs < cutoff) fs.unlinkSync(full);

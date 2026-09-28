@@ -1,6 +1,8 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import type { DatabaseSync } from 'node:sqlite';
 import { z } from 'zod';
+import { verifyPassword } from './auth.js';
 import { Copies, Langs, loadCopy, loadLanguageProfile } from './lang.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -22,6 +24,10 @@ const envSchema = z.object({
   DATA_DIR: z.string().default('data'),
   DB_PATH: z.string().default('data/korean.db'),
   AUTH_PASSWORD: z.string().default('korean'),
+  // D15: AUTH_PASSWORD is the *bootstrap* password — read once, when the first
+  // account is created, and inert from then on. These two name that account.
+  BOOTSTRAP_USERNAME: z.string().default('default'),
+  BOOTSTRAP_DISPLAY_NAME: z.string().default('Learner'),
   SESSION_SECRET: z.string().min(8).default('dev-secret-change-me'),
   COOKIE_SECURE: z.preprocess(toBool, z.boolean()).default(false),
   LLM_PROVIDER: z.string().default('gemini'),
@@ -49,6 +55,9 @@ export interface Config {
   dataDir: string;
   dbPath: string;
   authPassword: string;
+  /** Username of the account created from `authPassword` on an empty database. */
+  bootstrapUsername: string;
+  bootstrapDisplayName: string;
   sessionSecret: string;
   cookieSecure: boolean;
   llmProvider: string;
@@ -108,6 +117,8 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
     dataDir: path.resolve(REPO_ROOT, parsed.DATA_DIR),
     dbPath: path.resolve(REPO_ROOT, parsed.DB_PATH),
     authPassword: parsed.AUTH_PASSWORD,
+    bootstrapUsername: parsed.BOOTSTRAP_USERNAME,
+    bootstrapDisplayName: parsed.BOOTSTRAP_DISPLAY_NAME,
     sessionSecret: parsed.SESSION_SECRET,
     cookieSecure: parsed.COOKIE_SECURE,
     llmProvider: parsed.LLM_PROVIDER,
@@ -146,10 +157,36 @@ export function copyFor(cfg: Config, uiLang: string) {
   return c;
 }
 
-export function warnAboutDefaults(cfg: Config): void {
-  if (cfg.authPassword === 'korean' && cfg.nodeEnv !== 'test') {
+/**
+ * Warns about settings that are fine in development and dangerous in production.
+ *
+ * The password warning is about the *bootstrap* account rather than the env var:
+ * once the first account exists, `AUTH_PASSWORD` does nothing at all, so the
+ * question worth asking on a later boot is whether that account is still sitting
+ * on the shipped default.
+ */
+export function warnAboutDefaults(cfg: Config, db?: Pick<DatabaseSync, 'prepare'>): void {
+  const bootstrap = (): { username: string; password_hash: string; is_bootstrap: number } | undefined => {
+    if (!db) return undefined;
+    return db
+      .prepare('SELECT username, password_hash, is_bootstrap FROM users WHERE is_bootstrap=1 LIMIT 1')
+      .get() as { username: string; password_hash: string; is_bootstrap: number } | undefined;
+  };
+
+  const row = bootstrap();
+  if (cfg.nodeEnv === 'test') {
+    // fall through to the other checks
+  } else if (row) {
+    if (verifyPassword(cfg.authPassword, row.password_hash)) {
+      console.warn(
+        `[config] The bootstrap account "${row.username}" still uses the AUTH_PASSWORD from .env. ` +
+          'Change it there, or run: node scripts/create-user.js --username <name> --password <secret>',
+      );
+    }
+  } else if (cfg.authPassword === 'korean') {
     console.warn('[config] Using default AUTH_PASSWORD. Set a real one in .env before exposing the app.');
   }
+
   if (cfg.sessionSecret === 'dev-secret-change-me' && cfg.nodeEnv !== 'test') {
     console.warn('[config] Using default SESSION_SECRET. Set a random value in .env before exposing the app.');
   }

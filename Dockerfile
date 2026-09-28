@@ -6,6 +6,7 @@ COPY server server
 COPY web web
 COPY seed seed
 COPY config config
+COPY scripts scripts
 RUN npm ci --no-audit --no-fund
 RUN npm run build
 
@@ -31,6 +32,13 @@ COPY --from=build /app/server/dist ./server/dist
 COPY --from=build /app/web/dist ./web/dist
 COPY --from=build /app/seed ./seed
 COPY --from=build /app/config ./config
+# Phase 7: `scripts/create-user.js` is how the second account gets made, and it
+# imports the built server, so it has to sit next to `server/dist` in the image.
+# It runs *inside* the container because the Pi host is Node 20, which has no
+# `node:sqlite`:
+#   docker compose exec korean-trainer node scripts/create-user.js \
+#     --username sister --password '…' --target-lang fr
+COPY --from=build /app/scripts ./scripts
 
 EXPOSE 8787
 CMD ["node", "server/dist/index.js"]

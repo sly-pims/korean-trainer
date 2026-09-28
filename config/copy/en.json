@@ -3,6 +3,11 @@
   "appTagline": "Daily reading, writing and speaking practice",
   "error": {
     "invalidPassword": "That password is not right.",
+    "invalidCredentials": "That username and password do not match an account.",
+    "unauthorized": "Sign in to continue.",
+    "notFound": "That is not there any more.",
+    "languageNotSupported": "This app does not offer that language yet.",
+    "enrollmentExists": "You have already added that language.",
     "validationFailed": "The server could not accept that. Check the values and try again.",
     "unknownVoice": "That voice is not available for this language. Pick another one in Settings.",
     "sentenceIndexRequired": "The recording was missing which sentence it belongs to.",
@@ -18,10 +23,28 @@
     "ttsUnavailable": "Speech is unavailable right now."
   },
   "login": {
+    "username": "Username",
+    "usernamePlaceholder": "Username",
     "password": "Password",
     "submit": "Sign in",
-    "passwordPlaceholder": "Trainer password",
+    "passwordPlaceholder": "Password",
     "signingIn": "Signing in…"
+  },
+  "account": {
+    "title": "Account",
+    "signedInAs": "Signed in as {username}",
+    "signOut": "Sign out",
+    "languages": "Your languages",
+    "learning": "Learning",
+    "current": "Current",
+    "switchTo": "Switch to {language}",
+    "switching": "Switching…",
+    "addLanguage": "Add a language",
+    "addLanguageHint": "Each language keeps its own level, vocabulary, history and settings.",
+    "alreadyAdded": "You have already added that language.",
+    "noMoreLanguages": "You have added every language this app offers.",
+    "added": "Added {language}. Switch to it when you are ready.",
+    "nativeLanguage": "I already speak"
   },
   "nav": {
     "home": "Home",

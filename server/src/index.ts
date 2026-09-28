@@ -9,10 +9,14 @@ if (fs.existsSync(envFile)) {
 }
 
 const config = loadConfig();
-warnAboutDefaults(config);
 
 async function main() {
-  const { app } = await buildApp({ config, logger: true });
+  const { app, ctx } = await buildApp({ config, logger: true });
+  // After buildApp: the bootstrap-account check needs the database, which is
+  // opened (and migrated) inside buildApp. It is the check worth having on
+  // every boot, because AUTH_PASSWORD goes inert the moment the first account
+  // exists and nobody editing .env months later will know that.
+  warnAboutDefaults(config, ctx.db);
   try {
     await app.listen({ host: config.host, port: config.port });
   } catch (err) {

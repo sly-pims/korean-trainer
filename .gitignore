@@ -12,3 +12,4 @@ coverage/
 web/public/sw.js
 web/public/manifest.webmanifest
 backups/
+.rehearsal-*.db

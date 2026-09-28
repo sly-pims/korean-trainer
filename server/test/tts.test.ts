@@ -151,14 +151,26 @@ async function signedInApp(primaryFirst: string) {
   // app.inject() does not keep a cookie jar between calls, so the session cookie
   // is captured once and replayed. Without this every request below 401s and the
   // tests would pass for the wrong reason.
-  const login = await app.inject({ method: 'POST', url: '/api/login', payload: { password: 'korean' } });
+  const login = await app.inject({
+    method: 'POST',
+    url: '/api/login',
+    payload: { username: 'default', password: 'korean' },
+  });
   expect(login.statusCode).toBe(200);
   const cookie = login.cookies.map((c) => `${c.name}=${c.value}`).join('; ');
   expect(cookie).not.toBe('');
 
+  // The settings row is keyed by enrollment now, not by `id = 1`. A test that
+  // wrote to `id=1` would update no rows and then pass for the wrong reason.
+  const enrollmentId = (ctx.db.prepare('SELECT id FROM enrollments ORDER BY id LIMIT 1').get() as {
+    id: number;
+  }).id;
+
   return {
     app,
     db: ctx.db,
+    cookie,
+    enrollmentId,
     get: (url: string) => app.inject({ method: 'GET', url, headers: { cookie } }),
     put: (url: string, payload: unknown) =>
       app.inject({ method: 'PUT', url, payload, headers: { cookie } }),
@@ -235,24 +247,66 @@ describe('GET /api/settings', () => {
     // An older build wrote a hardcoded Korean voice into settings regardless of
     // the deployment's language. The client would then be handed a voice
     // /api/tts refuses, so the read has to fall back to the profile default.
-    const { get, db } = await signedInApp('fr');
-    db.prepare('UPDATE settings SET tts_voice=? WHERE id=1').run(ko.voices[0]);
+    const { get, db, enrollmentId } = await signedInApp('fr');
+    db.prepare('UPDATE settings SET tts_voice=? WHERE enrollment_id=?').run(ko.voices[0], enrollmentId);
     expect((await get('/api/settings')).json().tts_voice).toBe(fr.defaultVoice);
   });
 
   it('keeps a valid stored voice', async () => {
-    const { get, db } = await signedInApp('fr');
-    db.prepare('UPDATE settings SET tts_voice=? WHERE id=1').run(fr.voices[2]);
+    const { get, db, enrollmentId } = await signedInApp('fr');
+    db.prepare('UPDATE settings SET tts_voice=? WHERE enrollment_id=?').run(fr.voices[2], enrollmentId);
     expect((await get('/api/settings')).json().tts_voice).toBe(fr.voices[2]);
   });
 });
 
 describe('the profile the route resolves', () => {
-  it('is the primary configured language, and phase 7 will make it the enrollment', async () => {
-    // Pins the pre-enrollment behaviour so the phase 7 swap is a deliberate,
-    // visible change rather than a silent one.
-    const { get } = await signedInApp('fr');
-    expect((await get('/api/settings')).json().tts_voice).toBe(fr.defaultVoice);
+  it('follows the enrollment, not the deployment primary', async () => {
+    // The point of the enrollment: a French learner on a deployment whose primary
+    // language is Korean still gets French prompts and a French voice. This used
+    // to read the deployment's first configured language, which meant the answer
+    // depended on the order of an env var rather than on who was asking.
+    const { app, db, cookie, enrollmentId, get } = await signedInApp('ko');
+    expect((await get('/api/settings')).json().lang.code).toBe('ko');
+
+    const created = await app.inject({
+      method: 'POST',
+      url: '/api/enrollments',
+      payload: { target_lang: 'fr', native_lang: 'en', ui_lang: 'en' },
+      headers: { cookie },
+    });
+    expect(created.statusCode).toBe(201);
+    // The new enrollment is reported in its own field; `account` still describes
+    // the one the cookie points at, because creating does not switch.
+    const frenchId = created.json().enrollment.id as number;
+    expect(frenchId).not.toBe(enrollmentId);
+    expect(created.json().account.activeEnrollmentId).toBe(enrollmentId);
+
+    // Creating an enrollment does not switch to it: activation is a separate,
+    // explicit act, and it re-signs the cookie.
+    const activated = await app.inject({
+      method: 'POST',
+      url: `/api/enrollments/${frenchId}/activate`,
+      payload: {},
+      headers: { cookie },
+    });
+    expect(activated.statusCode).toBe(200);
+    const asFrench = activated.cookies.map((c) => `${c.name}=${c.value}`).join('; ');
+    expect(asFrench).not.toBe('');
+
+    const settings = await app.inject({ method: 'GET', url: '/api/settings', headers: { cookie: asFrench } });
+    expect(settings.statusCode).toBe(200);
+    expect(settings.json().lang.code).toBe('fr');
+    expect(settings.json().tts_voice).toBe(fr.defaultVoice);
+
+    // And the other enrollment's settings are untouched by the switch. The
+    // stored voice may be NULL on a fresh database — `readSettings` repairs that
+    // on read — so what matters is that switching did not *overwrite* the row.
+    const korean = db.prepare('SELECT tts_voice FROM settings WHERE enrollment_id=?').get(enrollmentId) as {
+      tts_voice: string | null;
+    };
+    expect(korean.tts_voice).toBeNull();
+    const asKorean = await app.inject({ method: 'GET', url: '/api/settings', headers: { cookie } });
+    expect(asKorean.json().tts_voice).toBe(ko.defaultVoice);
   });
 });
 
@@ -274,6 +328,7 @@ describe('the language descriptor sent to the client', () => {
       defaultVoice: fr.defaultVoice,
       voices: fr.voices,
       levelScaleName: fr.levelScaleName,
+      topics: fr.topics,
       levels: Object.fromEntries(
         Object.entries(fr.levels).map(([l, e]) => [l, { name: e.name, note: e.note }]),
       ),

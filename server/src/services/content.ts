@@ -22,6 +22,7 @@ export interface SeedLoadResult {
 
 export interface SessionRow {
   id: number;
+  enrollment_id: number;
   date: string;
   passage_id: number | null;
   status: 'in_progress' | 'done';
@@ -37,12 +38,11 @@ export interface SessionRow {
 
 export interface PassageRow {
   id: number;
+  target_lang: string;
   level: number;
   topic: string;
   payload_json: string;
   source: 'llm' | 'seed';
-  used: number;
-  intended_date: string | null;
   created_at: string;
 }
 
@@ -60,25 +60,28 @@ export interface LevelSuggestion {
 
 /**
  * Owns passages (seed + llm), the daily-session lifecycle, pack generation
- * and prefetch (§8.1, §6.2) and the level suggestion.
+ * and prefetch, and the level suggestion.
+ *
+ * ## Why nearly every method takes an enrollmentId
+ *
+ * This class is a process singleton holding one `DatabaseSync`, so it cannot
+ * hold per-person state. Every method that touches a learner's rows therefore
+ * takes the id and passes it into the query rather than remembering it: a stored
+ * `this.enrollmentId` would be whichever request happened to arrive last, and
+ * two people using the app at once would read each other's history.
+ *
+ * The two exceptions are deliberate and documented at their definitions:
+ * `loadSeed` and `prefetchSweep` are properties of the shared content pool
+ * rather than of any one learner.
  */
 export class ContentService {
   constructor(
     private db: DatabaseSync,
-    private getTz: () => string,
+    private getTz: (enrollmentId: number) => string,
     private callManager: CallManager | null = null,
     private langs: Langs = new Map(),
     private repoRoot: string = '',
   ) {}
-
-  /**
-   * The language used when a caller has not yet told us which one it wants.
-   * Every passage read is language-scoped; this only exists until enrollments
-   * (phase 7) make the caller's language explicit.
-   */
-  get primaryLang(): string {
-    return [...this.langs.keys()][0] ?? 'ko';
-  }
 
   /**
    * The profile for a target language, or a hard failure.
@@ -87,13 +90,13 @@ export class ContentService {
    * being taught from a Korean prompt, so an unconfigured language stops the
    * request instead.
    */
-  profileFor(targetLang: string = this.primaryLang): LanguageProfile {
+  profileFor(targetLang: string): LanguageProfile {
     const profile = this.langs.get(targetLang);
     if (!profile) throw new Error(`no language profile configured for "${targetLang}"`);
     return profile;
   }
 
-  // ---- Seed bank (§9) ----
+  // ---- Seed bank ----
 
   /**
    * Import every supported language's seed bank. Passages are a shared content
@@ -156,49 +159,92 @@ export class ContentService {
 
   // ---- Session lifecycle ----
 
-  today() {
-    return todayString(this.getTz());
+  today(enrollmentId: number): string {
+    return todayString(this.getTz(enrollmentId));
   }
 
-  getTodaySession(): SessionWithPack | null {
-    const today = this.today();
-    const s = this.db.prepare('SELECT * FROM sessions WHERE date = ?').get(today) as
-      | SessionRow
-      | undefined;
+  getTodaySession(enrollmentId: number): SessionWithPack | null {
+    const today = this.today(enrollmentId);
+    const s = this.db
+      .prepare('SELECT * FROM sessions WHERE enrollment_id=? AND date = ?')
+      .get(enrollmentId, today) as SessionRow | undefined;
     if (!s) return null;
     return this.sessionWithPack(s);
   }
 
-  /** Start (idempotent) today's session: pick a passage, mark it used. */
-  startTodaySession(targetLang = this.primaryLang): SessionWithPack {
-    const existing = this.getTodaySession();
+  /**
+   * Start (idempotent) today's session: pick a passage, mark it used.
+   *
+   * Passage *availability* is per-enrollment (`enrollment_passages`), not the
+   * old global `passages.used` flag. Two people learning Korean in the same
+   * database must each get their own day one; a shared flag would hand the same
+   * passage to both and then starve the second one.
+   *
+   * The preference order is: a pack already prefetched for today, then any
+   * passage in this enrollment's language not yet consumed, and only if there is
+   * genuinely nothing left, recycle *this enrollment's* rows so the app never
+   * shows an empty day. Recycling is scoped, because freeing another
+   * enrollment's consumed rows would silently rewind their history.
+   */
+  startTodaySession(enrollmentId: number, targetLang: string): SessionWithPack {
+    const existing = this.getTodaySession(enrollmentId);
     if (existing) return existing;
 
-    const today = this.today();
+    const today = this.today(enrollmentId);
+    const assignment = (date: string | null, used: boolean) => ({
+      used_at: used ? nowIso() : null,
+      intended_date: used ? null : date,
+    });
+
+    // 1. A pack already generated for this person, for today.
     let p = this.db
       .prepare(
-        'SELECT * FROM passages WHERE target_lang=? AND used=0 AND intended_date=? ORDER BY id LIMIT 1',
+        `SELECT p.* FROM passages p
+         JOIN enrollment_passages ep ON ep.passage_id = p.id
+         WHERE ep.enrollment_id=? AND p.target_lang=? AND ep.used_at IS NULL AND ep.intended_date=?
+         ORDER BY p.id LIMIT 1`,
       )
-      .get(targetLang, today) as unknown as PassageRow | undefined;
+      .get(enrollmentId, targetLang, today) as unknown as PassageRow | undefined;
+
+    // 2. Anything in this language they have not consumed.
     if (!p) {
       p = this.db
-        .prepare('SELECT * FROM passages WHERE target_lang=? AND used=0 ORDER BY created_at, id LIMIT 1')
-        .get(targetLang) as unknown as PassageRow | undefined;
-    }
-    if (!p) {
-      // Recycle this language's seed bank so the app never shows an empty day.
-      // Scoped to target_lang: recycling must not free up another language's
-      // passages, which a different enrollment may be relying on.
-      this.db.prepare('UPDATE passages SET used=0 WHERE target_lang=?').run(targetLang);
-      p = this.db
-        .prepare('SELECT * FROM passages WHERE target_lang=? ORDER BY id LIMIT 1')
-        .get(targetLang) as unknown as PassageRow;
+        .prepare(
+          `SELECT p.* FROM passages p
+           LEFT JOIN enrollment_passages ep ON ep.passage_id = p.id AND ep.enrollment_id=?
+           WHERE p.target_lang=? AND ep.passage_id IS NULL
+           ORDER BY p.created_at, p.id LIMIT 1`,
+        )
+        .get(enrollmentId, targetLang) as unknown as PassageRow | undefined;
     }
 
-    this.db.prepare('UPDATE passages SET used=1 WHERE id=?').run(p.id);
+    // 3. Out of content: start this enrollment's bank over.
+    if (!p) {
+      this.db
+        .prepare('UPDATE enrollment_passages SET used_at=NULL, intended_date=NULL WHERE enrollment_id=? AND used_at IS NOT NULL')
+        .run(enrollmentId);
+      p = this.db
+        .prepare(
+          `SELECT p.* FROM passages p
+           JOIN enrollment_passages ep ON ep.passage_id = p.id AND ep.enrollment_id=?
+           WHERE p.target_lang=? ORDER BY p.id LIMIT 1`,
+        )
+        .get(enrollmentId, targetLang) as unknown as PassageRow | undefined;
+      if (!p) throw new Error(`no ${targetLang} passages available; import a seed bank for that language`);
+    }
+
+    const { used_at, intended_date } = assignment(today, true);
+    this.db
+      .prepare(
+        `INSERT INTO enrollment_passages (enrollment_id, passage_id, intended_date, used_at)
+         VALUES (?,?,?,?)
+         ON CONFLICT(enrollment_id, passage_id) DO UPDATE SET intended_date=excluded.intended_date, used_at=excluded.used_at`,
+      )
+      .run(enrollmentId, p.id, intended_date, used_at);
+
     const res = this.db
-      .prepare('INSERT INTO sessions (date, passage_id, status) VALUES (?,?,?)')
-      .run(today, p.id, 'in_progress');
+      .prepare('INSERT INTO sessions (enrollment_id, date, passage_id, status) VALUES (?,?,?,?)')
+      .run(enrollmentId, today, p.id, 'in_progress');
     const s = this.db
       .prepare('SELECT * FROM sessions WHERE id=?')
       .get(Number(res.lastInsertRowid)) as unknown as SessionRow;
@@ -233,12 +279,12 @@ export class ContentService {
     return p.target_lang;
   }
 
-  // ---- §6.2 level suggestion ----
+  // ---- level suggestion ----
 
-  suggestLevel(): LevelSuggestion | null {
+  suggestLevel(enrollmentId: number): LevelSuggestion | null {
     const sessions = this.db
-      .prepare("SELECT * FROM sessions WHERE status='done' ORDER BY date DESC LIMIT 3")
-      .all() as unknown as SessionRow[];
+      .prepare("SELECT * FROM sessions WHERE enrollment_id=? AND status='done' ORDER BY date DESC LIMIT 3")
+      .all(enrollmentId) as unknown as SessionRow[];
     if (sessions.length < 3) return null;
     const perSession = sessions.map((s) => {
       const scores = [s.read_score, s.write_score, s.listen_score, s.speak_score].filter(
@@ -250,8 +296,9 @@ export class ContentService {
     const present = perSession.filter((x): x is number => x !== null);
     if (present.length < 3) return null;
     const overall = present.reduce((a, b) => a + b, 0) / present.length;
-    const level = (this.db.prepare('SELECT level FROM settings WHERE id=1').get() as { level: number })
-      .level;
+    const level = (this.db.prepare('SELECT level FROM settings WHERE enrollment_id=?').get(enrollmentId) as {
+      level: number;
+    }).level;
     if (overall >= 80 && level < 6) {
       return { action: 'up', suggestedLevel: level + 1, overall };
     }
@@ -261,37 +308,41 @@ export class ContentService {
     return { action: 'stay', suggestedLevel: level, overall };
   }
 
-  applyLevelChange(action: 'up' | 'down'): { level: number } {
-    const row = this.db.prepare('SELECT level FROM settings WHERE id=1').get() as { level: number };
+  applyLevelChange(enrollmentId: number, action: 'up' | 'down'): { level: number } {
+    const row = this.db.prepare('SELECT level FROM settings WHERE enrollment_id=?').get(enrollmentId) as {
+      level: number;
+    };
     const from = row.level;
     const to = action === 'up' ? Math.min(6, from + 1) : Math.max(1, from - 1);
-    this.db.prepare('UPDATE settings SET level=? WHERE id=1').run(to);
+    this.db.prepare('UPDATE settings SET level=? WHERE enrollment_id=?').run(to, enrollmentId);
     this.db
-      .prepare('INSERT INTO level_history (change_date, from_level, to_level, reason) VALUES (?,?,?,?)')
-      .run(this.today(), from, to, action === 'up' ? 'score >= 80' : 'score < 50');
+      .prepare(
+        'INSERT INTO level_history (enrollment_id, change_date, from_level, to_level, reason) VALUES (?,?,?,?,?)',
+      )
+      .run(enrollmentId, this.today(enrollmentId), from, to, action === 'up' ? 'score >= 80' : 'score < 50');
     return { level: to };
   }
 
-  history() {
+  history(enrollmentId: number) {
     return this.db
-      .prepare('SELECT * FROM level_history ORDER BY change_date DESC')
-      .all() as Array<Record<string, unknown>>;
+      .prepare('SELECT * FROM level_history WHERE enrollment_id=? ORDER BY change_date DESC')
+      .all(enrollmentId) as Array<Record<string, unknown>>;
   }
 
-  // ---- Words & SRS (M1) ----
+  // ---- Words & SRS ----
 
-  addWord(sessionId: number, surface: string): {
-    found: boolean;
-    word?: Record<string, unknown>;
-    isNew?: boolean;
-  } {
+  addWord(
+    enrollmentId: number,
+    sessionId: number,
+    surface: string,
+  ): { found: boolean; word?: Record<string, unknown>; isNew?: boolean } {
     const pack = this.packForSession(sessionId) as import('../schema/content.js').ContentPack;
     const entry = pack.glossary.find((g) => g.surface === surface);
     if (!entry) return { found: false };
-    const today = this.today();
-    const existing = this.db.prepare('SELECT * FROM words WHERE lemma=?').get(entry.lemma) as
-      | Record<string, unknown>
-      | undefined;
+    const today = this.today(enrollmentId);
+    const existing = this.db
+      .prepare('SELECT * FROM words WHERE enrollment_id=? AND lemma=?')
+      .get(enrollmentId, entry.lemma) as Record<string, unknown> | undefined;
     let wordId: number;
     if (existing) {
       wordId = existing.id as number;
@@ -299,18 +350,10 @@ export class ContentService {
     } else {
       const res = this.db
         .prepare(
-          `INSERT INTO words (lemma, surface_example, meaning_native, pos, level, first_seen_at, source_passage_id, source, example_target, example_native)
-           VALUES (?,?,?,?,?,?,?,'reading',NULL,NULL)`,
+          `INSERT INTO words (enrollment_id, lemma, surface_example, meaning_native, pos, level, first_seen_at, source_passage_id, source, example_target, example_native)
+           VALUES (?,?,?,?,?,?,?,?,'reading',NULL,NULL)`,
         )
-        .run(
-          entry.lemma,
-          surface,
-          entry.meaning_native,
-          entry.pos,
-          pack.level,
-          today,
-          null,
-        );
+        .run(enrollmentId, entry.lemma, surface, entry.meaning_native, entry.pos, pack.level, today, null);
       wordId = Number(res.lastInsertRowid);
     }
     const card = this.db.prepare('SELECT * FROM srs_cards WHERE word_id=?').get(wordId) as
@@ -319,107 +362,146 @@ export class ContentService {
     const isNew = !existing;
     if (!card) {
       this.db
-        .prepare(
-          'INSERT INTO srs_cards (word_id, ease, interval_days, due_date, reps, lapses) VALUES (?,2.5,0,?,0,0)',
-        )
+        .prepare('INSERT INTO srs_cards (word_id, ease, interval_days, due_date, reps, lapses) VALUES (?,2.5,0,?,0,0)')
         .run(wordId, today);
     }
-    return { found: true, isNew, word: this.wordRow(wordId) };
+    return { found: true, isNew, word: this.wordRow(enrollmentId, wordId) };
   }
 
-  addWordManually(input: {
-    lemma: string;
-    surface_example?: string;
-    meaning_native: string;
-    pos?: string;
-    level?: number;
-    source?: 'manual' | 'suggested';
-    example_target?: string;
-    example_native?: string;
-  }): Record<string, unknown> {
-    const settings = this.db.prepare('SELECT level FROM settings WHERE id=1').get() as {
+  addWordManually(
+    enrollmentId: number,
+    input: {
+      lemma: string;
+      surface_example?: string;
+      meaning_native: string;
+      pos?: string;
+      level?: number;
+      source?: 'manual' | 'suggested';
+      example_target?: string;
+      example_native?: string;
+    },
+  ): Record<string, unknown> {
+    const settings = this.db.prepare('SELECT level FROM settings WHERE enrollment_id=?').get(enrollmentId) as {
       level: number;
     };
     const level = input.level ?? settings.level;
-    const existing = this.db.prepare('SELECT * FROM words WHERE lemma=?').get(input.lemma) as
-      | Record<string, unknown>
-      | undefined;
+    const existing = this.db
+      .prepare('SELECT * FROM words WHERE enrollment_id=? AND lemma=?')
+      .get(enrollmentId, input.lemma) as Record<string, unknown> | undefined;
     if (existing) {
-      return { word: this.wordRow(existing.id as number), isNew: false };
+      return { word: this.wordRow(enrollmentId, existing.id as number), isNew: false };
     }
     const res = this.db
       .prepare(
-        `INSERT INTO words (lemma, surface_example, meaning_native, pos, level, first_seen_at, source, example_target, example_native)
-         VALUES (?,?,?,?,?,?,?,?,?)`,
+        `INSERT INTO words (enrollment_id, lemma, surface_example, meaning_native, pos, level, first_seen_at, source, example_target, example_native)
+         VALUES (?,?,?,?,?,?,?,?,?,?)`,
       )
       .run(
+        enrollmentId,
         input.lemma,
         input.surface_example ?? input.lemma,
         input.meaning_native,
         input.pos ?? 'noun',
         level,
-        this.today(),
+        this.today(enrollmentId),
         input.source ?? 'manual',
         input.example_target ?? null,
         input.example_native ?? null,
       );
     const wordId = Number(res.lastInsertRowid);
     this.db
-      .prepare(
-        'INSERT INTO srs_cards (word_id, ease, interval_days, due_date, reps, lapses) VALUES (?,2.5,0,?,0,0)',
-      )
-      .run(wordId, this.today());
-    return { word: this.wordRow(wordId), isNew: true };
+      .prepare('INSERT INTO srs_cards (word_id, ease, interval_days, due_date, reps, lapses) VALUES (?,2.5,0,?,0,0)')
+      .run(wordId, this.today(enrollmentId));
+    return { word: this.wordRow(enrollmentId, wordId), isNew: true };
   }
 
-  wordRow(id: number): Record<string, unknown> {
-    const w = this.db.prepare('SELECT * FROM words WHERE id=?').get(id) as Record<string, unknown>;
+  wordRow(enrollmentId: number, id: number): Record<string, unknown> {
+    const w = this.db.prepare('SELECT * FROM words WHERE id=? AND enrollment_id=?').get(id, enrollmentId) as Record<
+      string,
+      unknown
+    >;
     const c = this.db.prepare('SELECT * FROM srs_cards WHERE word_id=?').get(id) as
       | Record<string, unknown>
       | undefined;
     return { ...w, card: c ?? null };
   }
 
-  dueCards(limit = 10): Array<Record<string, unknown>> {
-    const today = this.today();
+  /**
+   * A random pack in the caller's language, for the standalone practice screen.
+   *
+   * Language-scoped because one database now holds every language's content: an
+   * unscoped `ORDER BY RANDOM()` hands a French learner a Korean passage half
+   * the time, and then grades the speaking prompt against the wrong language.
+   */
+  randomPack(targetLang: string): import('../schema/content.js').ContentPack | null {
+    const p = this.db
+      .prepare('SELECT payload_json FROM passages WHERE target_lang=? ORDER BY RANDOM() LIMIT 1')
+      .get(targetLang) as { payload_json: string } | undefined;
+    return p ? (JSON.parse(p.payload_json) as import('../schema/content.js').ContentPack) : null;
+  }
+
+  /** Every lemma this enrollment has, so suggestions never repeat a known word. */
+  knownLemmas(enrollmentId: number): string[] {
+    return (this.db.prepare('SELECT lemma FROM words WHERE enrollment_id=?').all(enrollmentId) as { lemma: string }[]).map(
+      (r) => r.lemma,
+    );
+  }
+
+  dueCards(enrollmentId: number, limit = 10): Array<Record<string, unknown>> {
+    const today = this.today(enrollmentId);
     return this.db
       .prepare(
         `SELECT w.id as word_id, w.lemma, w.surface_example, w.meaning_native, w.pos, w.level,
                 c.ease, c.interval_days, c.due_date, c.reps, c.lapses
          FROM srs_cards c JOIN words w ON w.id = c.word_id
-         WHERE c.due_date <= ?
+         WHERE w.enrollment_id=? AND c.due_date <= ?
          ORDER BY c.due_date, c.word_id
          LIMIT ?`,
       )
-      .all(today, limit) as Array<Record<string, unknown>>;
+      .all(enrollmentId, today, limit) as Array<Record<string, unknown>>;
   }
 
-  countDueCards(): number {
-    const today = this.today();
-    return (this.db.prepare('SELECT COUNT(*) AS c FROM srs_cards WHERE due_date <= ?').get(today) as {
-      c: number;
-    }).c;
+  countDueCards(enrollmentId: number): number {
+    const today = this.today(enrollmentId);
+    return (
+      this.db
+        .prepare(
+          'SELECT COUNT(*) AS c FROM srs_cards c JOIN words w ON w.id=c.word_id WHERE w.enrollment_id=? AND c.due_date <= ?',
+        )
+        .get(enrollmentId, today) as { c: number }
+    ).c;
   }
 
-  reviewCard(wordId: number, rating: import('./srs.js').Rating): Record<string, unknown> {
-    const today = this.today();
-    const card = this.db.prepare('SELECT * FROM srs_cards WHERE word_id=?').get(wordId) as {
-      ease: number;
-      interval_days: number;
-      reps: number;
-      lapses: number;
-    };
+  /**
+   * Grade one card. Null when the word is not this enrollment's.
+   *
+   * The lookup goes through `words.enrollment_id` rather than trusting the id,
+   * so a POST naming somebody else's word is a miss the caller can 404 rather
+   * than a write to another account's schedule.
+   */
+  reviewCard(
+    enrollmentId: number,
+    wordId: number,
+    rating: import('./srs.js').Rating,
+  ): Record<string, unknown> | null {
+    const today = this.today(enrollmentId);
+    const card = this.db
+      .prepare(
+        'SELECT c.* FROM srs_cards c JOIN words w ON w.id=c.word_id WHERE c.word_id=? AND w.enrollment_id=?',
+      )
+      .get(wordId, enrollmentId) as
+      | { ease: number; interval_days: number; reps: number; lapses: number }
+      | undefined;
+    if (!card) return null;
     const next = sm2Review(
       { ease: card.ease, intervalDays: card.interval_days, reps: card.reps, lapses: card.lapses },
       rating,
       today,
     );
     this.db
-      .prepare(
-        'UPDATE srs_cards SET ease=?, interval_days=?, due_date=?, reps=?, lapses=? WHERE word_id=?',
-      )
+      .prepare('UPDATE srs_cards SET ease=?, interval_days=?, due_date=?, reps=?, lapses=? WHERE word_id=?')
       .run(next.ease, next.intervalDays, next.dueDate, next.reps, next.lapses, wordId);
-    return this.wordRow(wordId);
+    return this.wordRow(enrollmentId, wordId);
   }
 
   // ---- Grade comprehension questions (read step) ----
@@ -437,30 +519,31 @@ export class ContentService {
   // ---- Dictation persistence (history) ----
 
   saveDictationEntries(
+    enrollmentId: number,
     sessionId: number,
     entries: { index: number; target: string; typed: string; score: number }[],
   ): void {
     this.db.prepare('DELETE FROM dictation_entries WHERE session_id=?').run(sessionId);
     const ins = this.db.prepare(
-      'INSERT INTO dictation_entries (session_id, sentence_index, target_text, typed_text, score, created_at) VALUES (?,?,?,?,?,?)',
+      'INSERT INTO dictation_entries (enrollment_id, session_id, sentence_index, target_text, typed_text, score, created_at) VALUES (?,?,?,?,?,?,?)',
     );
     for (const e of entries) {
-      ins.run(sessionId, e.index, e.target, e.typed, e.score, new Date().toISOString());
+      ins.run(enrollmentId, sessionId, e.index, e.target, e.typed, e.score, new Date().toISOString());
     }
   }
 
   // ---- Session history ----
 
-  listDoneSessions() {
+  listDoneSessions(enrollmentId: number) {
     const rows = this.db
       .prepare(
         `SELECT s.id, s.date, s.read_score, s.write_score, s.listen_score, s.speak_score, s.vocab_score, s.duration_s,
                 p.topic, p.payload_json
          FROM sessions s JOIN passages p ON p.id = s.passage_id
-         WHERE s.status='done'
+         WHERE s.enrollment_id=? AND s.status='done'
          ORDER BY s.date DESC, s.id DESC`,
       )
-      .all() as Array<Record<string, unknown>>;
+      .all(enrollmentId) as Array<Record<string, unknown>>;
     return rows.map((r) => {
       const { payload_json, ...rest } = r;
       let title_target: string | null = null;
@@ -576,7 +659,11 @@ export class ContentService {
 
   // ---- Completion (wrap-up) ----
 
-  completeSession(sessionId: number, durationS: number): {
+  completeSession(
+    enrollmentId: number,
+    sessionId: number,
+    durationS: number,
+  ): {
     streak: number;
     suggestion: LevelSuggestion | null;
     scores: {
@@ -587,34 +674,35 @@ export class ContentService {
       vocab: number | null;
     };
   } {
-    const s = this.db.prepare('SELECT * FROM sessions WHERE id=?').get(sessionId) as unknown as SessionRow;
-    const today = this.today();
+    const today = this.today(enrollmentId);
     const vocab = (
-      this.db.prepare('SELECT COUNT(*) c FROM words WHERE first_seen_at=?').get(today) as { c: number }
+      this.db
+        .prepare('SELECT COUNT(*) c FROM words WHERE enrollment_id=? AND first_seen_at=?')
+        .get(enrollmentId, today) as { c: number }
     ).c;
     const speak = (
       this.db
         .prepare(
-          `SELECT AVG(score) a FROM speaking_attempts WHERE session_id=? AND mode='free_speech' AND score IS NOT NULL`,
+          `SELECT AVG(score) a FROM speaking_attempts
+           WHERE session_id=? AND mode='free_speech' AND score IS NOT NULL`,
         )
         .get(sessionId) as { a: number | null }
     ).a;
     const speakScore = speak === null ? null : Math.round((speak / 5) * 100);
 
     this.db
-      .prepare(
-        'UPDATE sessions SET status=?, duration_s=?, vocab_score=?, speak_score=? WHERE id=?',
-      )
+      .prepare('UPDATE sessions SET status=?, duration_s=?, vocab_score=?, speak_score=? WHERE id=?')
       .run('done', durationS, vocab, speakScore, sessionId);
 
-    const settings = this.db.prepare('SELECT * FROM settings WHERE id=1').get() as {
-      streak: number;
-      last_session_date: string | null;
-    };
+    const settings = this.db.prepare('SELECT streak, last_session_date FROM settings WHERE enrollment_id=?').get(
+      enrollmentId,
+    ) as { streak: number; last_session_date: string | null };
     const streak = computeStreak(settings.streak, settings.last_session_date, today);
-    this.db.prepare('UPDATE settings SET streak=?, last_session_date=? WHERE id=1').run(streak, today);
+    this.db
+      .prepare('UPDATE settings SET streak=?, last_session_date=? WHERE enrollment_id=?')
+      .run(streak, today, enrollmentId);
 
-    const suggestion = this.suggestLevel();
+    const suggestion = this.suggestLevel(enrollmentId);
     const done = this.db.prepare('SELECT * FROM sessions WHERE id=?').get(sessionId) as unknown as SessionRow;
     return {
       streak,
@@ -629,9 +717,47 @@ export class ContentService {
     };
   }
 
-  // ---- LLM pack generation (M2) ----
+  /**
+   * Wipe one enrollment's learning history, and only that enrollment's.
+   *
+   * This used to be `DELETE FROM <table>` with no WHERE, which meant one person
+   * pressing "reset progress" destroyed everybody's. Every statement is now
+   * scoped, and the returned counts are the caller's own.
+   */
+  resetEnrollment(enrollmentId: number): Record<string, number> {
+    const del = (sql: string, ...p: (string | number)[]) =>
+      Number(this.db.prepare(sql).run(...p).changes ?? 0);
+    const deleted = {
+      writing_entries: del('DELETE FROM writing_entries WHERE enrollment_id=?', enrollmentId),
+      speaking_attempts: del('DELETE FROM speaking_attempts WHERE enrollment_id=?', enrollmentId),
+      dictation_entries: del('DELETE FROM dictation_entries WHERE enrollment_id=?', enrollmentId),
+      // Cards are reached through the words they grade, so scoping by word is
+      // the only way to delete "this person's cards" without a subquery per card.
+      srs_cards: del(
+        'DELETE FROM srs_cards WHERE word_id IN (SELECT id FROM words WHERE enrollment_id=?)',
+        enrollmentId,
+      ),
+      sessions: del('DELETE FROM sessions WHERE enrollment_id=?', enrollmentId),
+      words: del('DELETE FROM words WHERE enrollment_id=?', enrollmentId),
+      level_history: del('DELETE FROM level_history WHERE enrollment_id=?', enrollmentId),
+      enrollment_passages: del('DELETE FROM enrollment_passages WHERE enrollment_id=?', enrollmentId),
+    };
+    this.db
+      .prepare('UPDATE settings SET level=1, streak=0, last_session_date=NULL WHERE enrollment_id=?')
+      .run(enrollmentId);
+    return deleted;
+  }
 
-  recentTopics(limit = 6, targetLang = this.primaryLang): string[] {
+  // ---- LLM pack generation ----
+
+  /**
+   * Topics this enrollment's language has already produced, newest first.
+   *
+   * Scoped to the language as well as the enrollment: feeding French topics into
+   * a Korean pack generator as "avoid these" silently biases topic selection
+   * toward whatever the *other* language happens to have covered.
+   */
+  recentTopics(targetLang: string, limit = 6): string[] {
     const rows = this.db
       .prepare(
         'SELECT topic, MAX(created_at) AS newest FROM passages WHERE target_lang = ? GROUP BY topic ORDER BY newest DESC',
@@ -645,23 +771,19 @@ export class ContentService {
     return { callsToday: this.callManager.callsToday(), cap: this.callManager.stats().cap };
   }
 
-  /** §8.1 content-pack generation via the LLM; falls back to a seed pack. */
+  /** Content-pack generation via the LLM. */
   async generatePack(
     level: number,
     requestedTopic?: string,
     recentTopics?: string[],
-    targetLang = this.primaryLang,
-  ): Promise<{
-    pack: import('../schema/content.js').ContentPack;
-    source: 'llm';
-  }> {
+    targetLang?: string,
+  ): Promise<{ pack: import('../schema/content.js').ContentPack; source: 'llm' }> {
     if (!this.callManager) throw new Error('No LLM provider configured');
-    const { contentPackSystem, contentPackWithTopicPrompt } = await import(
-      '../prompts/contentPack.js'
-    );
-    const ctx = { profile: this.profileFor(targetLang) };
+    const { contentPackSystem, contentPackWithTopicPrompt } = await import('../prompts/contentPack.js');
+    const lang = targetLang ?? [...this.langs.keys()][0] ?? 'ko';
+    const ctx = { profile: this.profileFor(lang) };
     const topicList = ctx.profile.topics;
-    const recent = recentTopics ?? this.recentTopics(6, targetLang);
+    const recent = recentTopics ?? this.recentTopics(lang, 6);
     const pool =
       requestedTopic && requestedTopic !== 'any'
         ? [requestedTopic]
@@ -675,26 +797,35 @@ export class ContentService {
     return { pack: filterGlossaryByPassage(pack), source: 'llm' };
   }
 
-  /** Generate tomorrow's pack in the background; never duplicate; never fail loudly. */
-  async prefetchTomorrow(targetLang = this.primaryLang): Promise<void> {
+  /**
+   * Generate tomorrow's pack for one enrollment, in the background.
+   *
+   * Scoped per enrollment, because "does tomorrow's pack exist" is a question
+   * about a person: one person's prefetch is not evidence that another's is
+   * ready, and the old global check reported the wrong answer half the time.
+   */
+  async prefetchTomorrow(enrollmentId: number, targetLang: string, level: number): Promise<void> {
     if (!this.callManager) return;
     try {
-      const tomorrow = addDays(this.today(), 1);
+      const tomorrow = addDays(this.today(enrollmentId), 1);
       const existing = this.db
         .prepare(
-          "SELECT id FROM passages WHERE target_lang=? AND source='llm' AND used=0 AND intended_date=?",
+          `SELECT p.id FROM passages p
+           JOIN enrollment_passages ep ON ep.passage_id = p.id
+           WHERE ep.enrollment_id=? AND p.target_lang=? AND p.source='llm'
+             AND ep.used_at IS NULL AND ep.intended_date=?`,
         )
-        .get(targetLang, tomorrow);
+        .get(enrollmentId, targetLang, tomorrow);
       if (existing) return;
-      const settings = this.db.prepare('SELECT level FROM settings WHERE id=1').get() as {
-        level: number;
-      };
-      const { pack } = await this.generatePack(settings.level, undefined, undefined, targetLang);
-      this.db
+      const { pack } = await this.generatePack(level, undefined, undefined, targetLang);
+      const res = this.db
         .prepare(
-          'INSERT INTO passages (target_lang, level, topic, payload_json, source, used, intended_date, created_at) VALUES (?,?,?,?,?,0,?,?)',
+          'INSERT INTO passages (target_lang, level, topic, payload_json, source, used, created_at) VALUES (?,?,?,?,?,0,?)',
         )
-        .run(targetLang, pack.level, pack.topic, JSON.stringify(pack), 'llm', tomorrow, nowIso());
+        .run(targetLang, pack.level, pack.topic, JSON.stringify(pack), 'llm', nowIso());
+      this.db
+        .prepare('INSERT OR IGNORE INTO enrollment_passages (enrollment_id, passage_id, intended_date, used_at) VALUES (?,?,?,NULL)')
+        .run(enrollmentId, Number(res.lastInsertRowid), tomorrow);
     } catch (err) {
       if (err instanceof DailyCapReachedError) {
         console.warn('[content] prefetch skipped (daily cap)');
@@ -702,5 +833,18 @@ export class ContentService {
       }
       console.warn('[content] prefetch failed, seed will be used:', err instanceof Error ? err.message : err);
     }
+  }
+
+  /** Whether this enrollment already has a pack waiting for tomorrow. */
+  tomorrowReady(enrollmentId: number, targetLang: string): boolean {
+    const tomorrow = addDays(this.today(enrollmentId), 1);
+    return !!this.db
+      .prepare(
+        `SELECT p.id FROM passages p
+         JOIN enrollment_passages ep ON ep.passage_id = p.id
+         WHERE ep.enrollment_id=? AND p.target_lang=? AND p.source='llm'
+           AND ep.used_at IS NULL AND ep.intended_date=? LIMIT 1`,
+      )
+      .get(enrollmentId, targetLang, tomorrow);
   }
 }

@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api, humanizeLevel } from '../api';
+import { useAccount } from '../account';
+import { AccountPanel } from '../components/AccountPanel';
 import type { Settings } from '../types';
 import { useCopy } from '../copy';
 
@@ -36,7 +38,7 @@ function voiceOptions(voices: string[]): { id: string; label: string }[] {
   return voices.map((id) => ({ id, label: id.replace(/^[a-z]{2,3}-[A-Z]{2,3}-/, '').replace(/Neural$/, '') }));
 }
 
-export function SettingsScreen() {
+export function SettingsScreen({ onSignedOut }: { onSignedOut: () => void }) {
   const { serverError } = useCopy();
   const [s, setS] = useState<Settings | null>(null);
   const [err, setErr] = useState('');
@@ -45,16 +47,38 @@ export function SettingsScreen() {
   const [resetting, setResetting] = useState(false);
   const [resetMsg, setResetMsg] = useState<{ text: string; error: boolean } | null>(null);
   const { t } = useCopy();
+  /**
+   * Settings belong to the enrollment, not to the screen.
+   *
+   * Without this dependency, switching language from the account card above
+   * would leave this screen showing the *old* language's level names, voices
+   * and timezone — and a save would then write the Korean enrollment's values
+   * into whichever enrollment the cookie now points at. Tapping "save" after a
+   * switch silently overwriting the other course's settings is exactly the bug
+   * this screen must not have.
+   */
+  const enrollmentId = useAccount().active.id;
 
   useEffect(() => {
-    (async () => {
+    // Drop the previous enrollment's state before the fetch, so there is no
+    // moment where the form shows French labels over Korean values.
+    setS(null);
+    setErr('');
+    setSaved('');
+    setResetMsg(null);
+    let live = true;
+    void (async () => {
       try {
-        setS(await api.getSettings());
+        const next = await api.getSettings();
+        if (live) setS(next);
       } catch (e) {
-        setErr(serverError(e));
+        if (live) setErr(serverError(e));
       }
     })();
-  }, []);
+    return () => {
+      live = false;
+    };
+  }, [enrollmentId, serverError]);
 
   if (err && !s) return <div className="error-banner">{err}</div>;
   if (!s) return <div className="spinner" />;
@@ -106,6 +130,8 @@ export function SettingsScreen() {
     <>
       <h2>{t('settings.title')}</h2>
       {err && <div className="error-banner">{err}</div>}
+
+      <AccountPanel onSignedOut={onSignedOut} />
 
       <div className="card">
         <label htmlFor="level">{t('common.level')}</label>

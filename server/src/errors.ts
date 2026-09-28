@@ -22,6 +22,9 @@
  *   keeping the old entry mapped, so an old client keeps working.
  * - Codes are `snake_case` and describe *what happened*, not what to do about it.
  * - Do not put user content, tokens or file paths in a code.
+ * - `not_found` is also the answer for "that row is not yours". One code for both
+ *   is deliberate: a 403 for the second case and a 404 for the first turns
+ *   sequential ids into a working enumeration oracle.
  */
 
 /**
@@ -31,6 +34,9 @@
  */
 export const ERROR_CODES = [
   'invalid_password',
+  'invalid_credentials',
+  'unauthorized',
+  'not_found',
   'validation_failed',
   'unknown_voice',
   'sentence_index_required',
@@ -40,6 +46,8 @@ export const ERROR_CODES = [
   'daily_cap_reached',
   'no_completed_session',
   'reset_confirm_required',
+  'language_not_supported',
+  'enrollment_exists',
   'text_required',
   'text_too_long',
   'recording_too_large',

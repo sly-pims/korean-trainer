@@ -1,9 +1,10 @@
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
-import { api } from './api';
+import { api, ApiError, type AccountPayload } from './api';
+import { AccountProvider } from './account';
 import { TabBar } from './components/TabBar';
 import { Home } from './screens/Home';
-import { useCopy } from './copy';
+import { CopyProvider, useCopy } from './copy';
 
 const Session = lazy(() => import('./screens/Session').then((m) => ({ default: m.Session })));
 const Practice = lazy(() => import('./screens/Practice').then((m) => ({ default: m.Practice })));
@@ -17,28 +18,42 @@ type AuthState = 'checking' | 'logged-in' | 'logged-out';
 
 export function App() {
   const [auth, setAuth] = useState<AuthState>('checking');
+  /**
+   * The payload login handed back, so the first screen after signing in does
+   * not have to wait for a second round trip to learn which language it is in.
+   */
+  const [fresh, setFresh] = useState<AccountPayload | null>(null);
   const nav = useNavigate();
   const loc = useLocation();
 
   useEffect(() => {
+    let live = true;
     void (async () => {
       try {
         await api.me();
-        setAuth('logged-in');
+        if (live) setAuth('logged-in');
       } catch {
-        setAuth('logged-out');
+        if (live) setAuth('logged-out');
       }
     })();
+    return () => {
+      live = false;
+    };
   }, []);
 
+  const logout = useCallback(() => {
+    setFresh(null);
+    setAuth('logged-out');
+    nav('/login', { replace: true });
+  }, [nav]);
+
   useEffect(() => {
-    const onUnauthorized = () => {
-      setAuth('logged-out');
-      if (loc.pathname !== '/login') nav('/login', { replace: true });
-    };
+    // `api` raises this on any 401, including one caused by an enrollment that
+    // has been deleted underneath a still-signed-in session.
+    const onUnauthorized = () => logout();
     window.addEventListener('kt:unauthorized', onUnauthorized);
     return () => window.removeEventListener('kt:unauthorized', onUnauthorized);
-  }, [nav, loc.pathname]);
+  }, [logout]);
 
   const inSession = loc.pathname.startsWith('/session');
   const showTabs = auth === 'logged-in' && !inSession;
@@ -48,12 +63,20 @@ export function App() {
       {auth === 'checking' ? (
         <div className="spinner" />
       ) : auth === 'logged-out' ? (
-        <Routes>
-          <Route path="/login" element={<LoginGate onOk={() => setAuth('logged-in')} />} />
-          <Route path="*" element={<Navigate to="/login" replace />} />
-        </Routes>
+        // Signed out, the interface language is the deployment default, which is
+        // all `/api/meta` knows. A French learner gets French here and French
+        // after signing in, but the two are separate decisions.
+        <CopyProvider>
+          <Routes>
+            <Route
+              path="/login"
+              element={<LoginGate onOk={(account) => { setFresh(account); setAuth('logged-in'); }} />}
+            />
+            <Route path="*" element={<Navigate to="/login" replace />} />
+          </Routes>
+        </CopyProvider>
       ) : (
-        <>
+        <AccountProvider initial={fresh} onUnauthorized={logout}>
           <main className="content">
             <Suspense fallback={<div className="spinner" />}>
               <Routes>
@@ -64,36 +87,39 @@ export function App() {
                 <Route path="/progress" element={<Progress />} />
                 <Route path="/history" element={<History />} />
                 <Route path="/history/:id" element={<HistoryReplay />} />
-                <Route path="/settings" element={<SettingsScreen />} />
+                <Route path="/settings" element={<SettingsScreen onSignedOut={logout} />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </Suspense>
           </main>
           {showTabs && <TabBar />}
-        </>
+        </AccountProvider>
       )}
     </div>
   );
 }
 
-function LoginGate({ onOk }: { onOk: () => void }) {
-  const { serverError } = useCopy();
+function LoginGate({ onOk }: { onOk: (account: AccountPayload) => void }) {
+  const { serverError, t, appName, appTagline } = useCopy();
+  const [username, setUsername] = useState('');
   const [pw, setPw] = useState('');
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
   const nav = useNavigate();
-  const { t, appName, appTagline } = useCopy();
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErr('');
     setBusy(true);
     try {
-      await api.login(pw);
-      onOk();
+      const res = await api.login(username.trim(), pw);
+      onOk(res.account);
       nav('/', { replace: true });
     } catch (er) {
-      setErr(serverError(er));
+      // `invalid_credentials` is one sentence for both a wrong username and a
+      // wrong password, and it is the same sentence for both accounts, so the
+      // form cannot be used to find out who has an account here.
+      setErr(serverError(er instanceof ApiError ? er : new ApiError(0, String(er))));
     } finally {
       setBusy(false);
     }
@@ -107,15 +133,26 @@ function LoginGate({ onOk }: { onOk: () => void }) {
         <h2>{appName}</h2>
         <p className="muted small">{appTagline}</p>
         <input
+          type="text"
+          placeholder={t('login.usernamePlaceholder')}
+          aria-label={t('login.username')}
+          autoComplete="username"
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+        />
+        <input
           type="password"
           placeholder={t('login.passwordPlaceholder')}
           aria-label={t('login.password')}
-          autoFocus
+          autoComplete="current-password"
           value={pw}
           onChange={(e) => setPw(e.target.value)}
         />
         {err && <div className="error-banner">{err}</div>}
-        <button className="primary" type="submit" disabled={busy}>
+        <button className="primary" type="submit" disabled={busy || !username || !pw}>
           {busy ? t('login.signingIn') : t('login.submit')}
         </button>
       </form>
