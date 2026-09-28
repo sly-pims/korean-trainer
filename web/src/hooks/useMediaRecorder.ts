@@ -56,19 +56,19 @@ export function useMediaRecorder(onStartError?: (msg: string) => void): Recordin
       }
       rec.stop();
     }
-    mediaRef.current?.getTracks().forEach((t) => t.stop());
-    mediaRef.current = null;
-    setState((s) => ({ ...s, recording: false }));
   }, []);
 
   const start = useCallback(async () => {
     if (!navigator.mediaDevices?.getUserMedia) {
-      onStartError?.('Microphone not available (requires HTTPS).');
+      const message = 'Microphone not available (requires HTTPS).';
+      setState((s) => ({ ...s, error: message }));
+      onStartError?.(message);
       return;
     }
     const { mime, ext } = pickMime()!;
+    let stream: MediaStream | null = null;
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       // Hard cap at 60 s: if the user keeps talking, cut the recording.
       const rec = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
       chunksRef.current = [];
@@ -77,6 +77,8 @@ export function useMediaRecorder(onStartError?: (msg: string) => void): Recordin
       };
       rec.onstop = () => {
         const blob = chunksRef.current.length ? new Blob(chunksRef.current, { type: ext }) : null;
+        stream?.getTracks().forEach((track) => track.stop());
+        if (mediaRef.current === stream) mediaRef.current = null;
         setState((s) => ({
           ...s,
           recording: false,
@@ -87,6 +89,8 @@ export function useMediaRecorder(onStartError?: (msg: string) => void): Recordin
         }));
       };
       rec.onerror = () => {
+        stream?.getTracks().forEach((track) => track.stop());
+        if (mediaRef.current === stream) mediaRef.current = null;
         setState((s) => ({ ...s, recording: false, error: 'Recording failed.' }));
       };
       recRef.current = rec;
@@ -97,7 +101,10 @@ export function useMediaRecorder(onStartError?: (msg: string) => void): Recordin
       rec.start(250);
       setState((s) => ({ ...s, recording: true }));
     } catch (err) {
-      onStartError?.(err instanceof Error ? err.message : 'Could not open the microphone.');
+      stream?.getTracks().forEach((track) => track.stop());
+      const message = err instanceof Error ? err.message : 'Could not open the microphone.';
+      setState((s) => ({ ...s, recording: false, error: message }));
+      onStartError?.(message);
     }
   }, [onStartError]);
 

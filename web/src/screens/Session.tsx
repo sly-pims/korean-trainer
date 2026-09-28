@@ -583,6 +583,11 @@ function ReadAloudSentence({
       setErr('');
       try {
         const r = await api.readAloudAudio(sessionId, index, rec.blob!, rec.mimeType);
+        if (!r.transcript.trim()) {
+          setTranscript('');
+          setErr(t('error.transcriptionFailed'));
+          return;
+        }
         setTranscript(r.transcript);
         setPercent(r.percent);
         setSegments(buildSegments(target, r.transcript));
