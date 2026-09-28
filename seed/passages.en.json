@@ -1,0 +1,424 @@
+[
+  {
+    "level": 1,
+    "topic": "family",
+    "title_target": "My Family",
+    "passage_target": "My name is Kim Minjun. There are four people in my family: my father, my mother, my older sister and me. We live in a small flat in Seoul. My father works at a hospital and my mother teaches at a primary school. My sister is seventeen and she studies hard. I love my family very much.",
+    "passage_native": "저는 김민준이에요. 우리 가족은 네 명이에요. 아버지, 어머니, 누나, 그리고 저예요. 우리는 서울의 작은 아파트에 살아요. 아버지는 병원에서 일하고 어머니는 초등학교에서 가르쳐요. 누나는 스물 살일곱 살이고 공부 열심히 해요. 저는 가족을 아주 사랑해요.",
+    "sentences": [
+      { "target": "There are four people in my family.", "native": "우리 가족은 네 명이에요." },
+      { "target": "We live in a small flat in Seoul.", "native": "우리는 서울의 작은 아파트에 살아요." },
+      { "target": "My sister is seventeen and she studies hard.", "native": "누나는 스물 살일곱 살이고 공부 열심히 해요." }
+    ],
+    "glossary": [
+      { "surface": "flat", "lemma": "flat", "pos": "noun", "meaning_native": "아파트" },
+      { "surface": "hospital", "lemma": "hospital", "pos": "noun", "meaning_native": "병원" },
+      { "surface": "primary school", "lemma": "primary school", "pos": "noun", "meaning_native": "초등학교" },
+      { "surface": "teaches", "lemma": "teach", "pos": "verb", "meaning_native": "가르치다" },
+      { "surface": "hard", "lemma": "hard", "pos": "adverb", "meaning_native": "열심히" },
+      { "surface": "seventeen", "lemma": "seventeen", "pos": "numeral", "meaning_native": "스물일곱" },
+      { "surface": "very much", "lemma": "very much", "pos": "expression", "meaning_native": "아주" }
+    ],
+    "questions": [
+      {
+        "q_target": "How many people are in the writer's family?",
+        "q_native": "이 사람의 가족은 몇 명이에요?",
+        "choices": ["Three", "Four", "Five", "Six"],
+        "answer_index": 1,
+        "explanation_native": "지문이 'There are four people in my family'이라고 했어요. 네 명입니다."
+      },
+      {
+        "q_target": "Where do they live?",
+        "q_native": "이 가족은 어디에 살아요?",
+        "choices": ["In a small flat in Seoul", "In a house in Busan", "At a hospital", "At a primary school"],
+        "answer_index": 0,
+        "explanation_native": "'We live in a small flat in Seoul.'이라고 했어요."
+      },
+      {
+        "q_target": "What does the mother do?",
+        "q_native": "어머니는 무슨 일을 해요?",
+        "choices": ["She works at a hospital", "She teaches at a primary school", "She studies hard", "She is seventeen"],
+        "answer_index": 1,
+        "explanation_native": "'my mother teaches at a primary school'라고 했어요."
+      }
+    ],
+    "writing_prompt": {
+      "target": "Write three or four sentences about your family. Say how many people there are and what they do.",
+      "native": "가족에 대해 세 문장이나 네 문장으로 쓰세요. 가족이 몇 명인지, 그리고 각자 무슨 일을 하는지 쓰세요.",
+      "target_grammar": "there is / there are + 명사, and 일반 現在 (simple present) 동사"
+    },
+    "speaking_prompt": {
+      "target": "How many people are in your family, and what do they do?",
+      "native": "가족이 몇 명이에요? 그리고 각자 무슨 일을 해요?"
+    }
+  },
+  {
+    "level": 1,
+    "topic": "food",
+    "title_target": "Breakfast",
+    "passage_target": "Every morning I eat breakfast at seven o'clock. I usually have rice, soup and some vegetables. My mother makes bean soup because it is cheap and healthy. On Sunday we sometimes eat bread instead. I do not like coffee but I drink green tea. Breakfast is my favourite meal of the day.",
+    "passage_native": "저는 매일 아침 일곱 시에 아침 식사를 해요. 보통 밥과 국 그리고 채소를 먹어요. 어머니는 콩국이 값싸고 건강해서 만들어요. 일요일에는 가끔 빵을 먹어요. 저는 커피는 안 좋아하지만 녹차를 마셔요. 아침 식사는 하루 중에서 제가 제일 좋아하는 밥입니다.",
+    "sentences": [
+      { "target": "Every morning I eat breakfast at seven o'clock.", "native": "저는 매일 아침 일곱 시에 아침 식사를 해요." },
+      { "target": "My mother makes bean soup because it is cheap and healthy.", "native": "어머니는 콩국이 값싸고 건강해서 만들어요." },
+      { "target": "I do not like coffee but I drink green tea.", "native": "저는 커피는 안 좋아하지만 녹차를 마셔요." }
+    ],
+    "glossary": [
+      { "surface": "breakfast", "lemma": "breakfast", "pos": "noun", "meaning_native": "아침 식사" },
+      { "surface": "vegetables", "lemma": "vegetable", "pos": "noun", "meaning_native": "채소" },
+      { "surface": "bean soup", "lemma": "bean soup", "pos": "noun", "meaning_native": "콩국" },
+      { "surface": "cheap", "lemma": "cheap", "pos": "adjective", "meaning_native": "값싸다" },
+      { "surface": "healthy", "lemma": "healthy", "pos": "adjective", "meaning_native": "건강하다" },
+      { "surface": "instead", "lemma": "instead", "pos": "adverb", "meaning_native": "대신에" },
+      { "surface": "favourite", "lemma": "favourite", "pos": "adjective", "meaning_native": "가장 좋아하는" }
+    ],
+    "questions": [
+      {
+        "q_target": "What time does the writer eat breakfast?",
+        "q_native": "이 사람은 몇 시에 아침 식사를 해요?",
+        "choices": ["Six o'clock", "Seven o'clock", "Eight o'clock", "No fixed time"],
+        "answer_index": 1,
+        "explanation_native": "'at seven o'clock'이라고 했어요."
+      },
+      {
+        "q_target": "Why does the mother make bean soup?",
+        "q_native": "어머니는 왜 콩국을 만들어요?",
+        "choices": ["Because it is cheap and healthy", "Because the writer likes bread", "Because it is Sunday", "Because coffee is expensive"],
+        "answer_index": 0,
+        "explanation_native": "'because it is cheap and healthy'라고 이유를 직접 말했어요."
+      },
+      {
+        "q_target": "What does the writer drink?",
+        "q_native": "이 사람은 무엇을 마셔요?",
+        "choices": ["Coffee", "Green tea", "Bean soup", "Nothing"],
+        "answer_index": 1,
+        "explanation_native": "'I do not like coffee but I drink green tea.'라고 했어요."
+      }
+    ],
+    "writing_prompt": {
+      "target": "Describe what you ate yesterday. Say what time you ate and what was on the table.",
+      "native": "어제 무엇을 먹었는지 쓰세요. 몇 시에 먹었고 식탁에 무엇이 있었는지 쓰세요.",
+      "target_grammar": "과거형 동사 (simple past)와 명령문 (let's …)"
+    },
+    "speaking_prompt": {
+      "target": "What did you eat this morning?",
+      "native": "오늘 아침에 무엇을 먹었어요?"
+    }
+  },
+  {
+    "level": 1,
+    "topic": "weather",
+    "title_target": "A Rainy Week",
+    "passage_target": "It has rained every day this week. On Monday it was cold and windy, and my umbrella broke. On Wednesday the streets were so wet that I left my shoes at home and walked in socks. Yesterday the sun came out in the afternoon and everything felt new. Korean summers are very hot, but a rainy week in autumn is my favourite weather.",
+    "passage_native": "이번 주에는 매일 비가 왔어요. 월요일에는 춥고 바람이 불어서 우산이 고장 났어요. 수요일에는 거리가 너무 젖어서 신발을 두고 양말로 걸었어요. 어제 오후에는 해가 나고 모든 것이 새로워졌어요. 한국의 여름은 아주 덥지만 가을의 비 오는 한 주가 제가 제일 좋아하는 날씨예요.",
+    "sentences": [
+      { "target": "It has rained every day this week.", "native": "이번 주에는 매일 비가 왔어요." },
+      { "target": "On Monday it was cold and windy, and my umbrella broke.", "native": "월요일에는 춥고 바람이 불어서 우산이 고장 났어요." },
+      { "target": "Korean summers are very hot, but a rainy week in autumn is my favourite weather." , "native": "한국의 여름은 아주 덥지만 가을의 비 오는 한 주가 제가 제일 좋아하는 날씨예요." }
+    ],
+    "glossary": [
+      { "surface": "rainy", "lemma": "rainy", "pos": "adjective", "meaning_native": "비가 오는" },
+      { "surface": "windy", "lemma": "windy", "pos": "adjective", "meaning_native": "바람이 부는" },
+      { "surface": "umbrella", "lemma": "umbrella", "pos": "noun", "meaning_native": "우산" },
+      { "surface": "so wet", "lemma": "wet", "pos": "adjective", "meaning_native": "너무 젖은" },
+      { "surface": "in socks", "lemma": "sock", "pos": "noun", "meaning_native": "양말을 신은 채로" },
+      { "surface": "came out", "lemma": "come out", "pos": "verb", "meaning_native": "(해가) 나오다" },
+      { "surface": "autumn", "lemma": "autumn", "pos": "noun", "meaning_native": "가을" }
+    ],
+    "questions": [
+      {
+        "q_target": "What happened on Monday?",
+        "q_native": "월요일에는 무슨 일이 있었어요?",
+        "choices": ["The sun came out", "The umbrella broke", "The writer stayed home all day", "It was very hot"],
+        "answer_index": 1,
+        "explanation_native": "'it was cold and windy, and my umbrella broke'라고 했어요."
+      },
+      {
+        "q_target": "Why did the writer walk in socks?",
+        "q_native": "왜 양말을 신은 채로 걸었어요?",
+        "choices": ["The shoes were too small", "The streets were very wet", "The bus was late", "It was a holiday"],
+        "answer_index": 1,
+        "explanation_native": "'The streets were so wet that I left my shoes at home'라고 했어요."
+      },
+      {
+        "q_target": "Which season does the writer like best?",
+        "q_native": "이 사람은 어느 계절을 제일 좋아해요?",
+        "choices": ["Summer", "Spring", "A rainy week in autumn", "Winter mornings"],
+        "answer_index": 2,
+        "explanation_native": "'a rainy week in autumn is my favourite weather'라고 했어요."
+      }
+    ],
+    "writing_prompt": {
+      "target": "Describe the weather where you are today in two or three sentences.",
+      "native": "오늘 날씨가 어떤지 두 문장이나 세 문장으로 쓰세요.",
+      "target_grammar": "현재 진행형 (is/are + -ing)"
+    },
+    "speaking_prompt": {
+      "target": "What is the weather like where you live?",
+      "native": "살고 있는 곳의 날씨는 어때요?"
+    }
+  },
+  {
+    "level": 1,
+    "topic": "shopping",
+    "title_target": "The Busy Market",
+    "passage_target": "There is a small market near my station that opens at six every morning. Last Saturday I got up early and went there before the crowds. I bought apples, a bag of rice and two kinds of bread. The woman who sells vegetables gave me an extra pear because I was her first customer. On the way home I met a friend and we drank coffee together. I go to the market every weekend.",
+    "passage_native": "역 근처에 새벽 여섯마다 문을 여는 작은 시장이 있어요. 토요일 아침에 일찍 일어나 사람들로 붐비기 전에 갔어요. 사과, 쌀 한 봉지, 그리고 두 종류의 빵을 샀어요. 채소를 파는 아줌마가 오늘 첫 손님이라는 이유로 배를 하나 더 주셨어요. 돌아오는 길에 친구를 만나서 같이 커피를 마셨어요. 나는 매주 주말마다 그 시장에 가요.",
+    "sentences": [
+      { "target": "There is a small market near my station that opens at six every morning.", "native": "역 근처에 새벽 여섯마다 문을 여는 작은 시장이 있어요." },
+      { "target": "I bought apples, a bag of rice and two kinds of bread.", "native": "사과, 쌀 한 봉지, 그리고 두 종류의 빵을 샀어요." },
+      { "target": "I go to the market every weekend.", "native": "나는 매주 주말마다 그 시장에 가요." }
+    ],
+    "glossary": [
+      { "surface": "market", "lemma": "market", "pos": "noun", "meaning_native": "시장" },
+      { "surface": "station", "lemma": "station", "pos": "noun", "meaning_native": "역" },
+      { "surface": "crowds", "lemma": "crowd", "pos": "noun", "meaning_native": "사람들, 군중" },
+      { "surface": "a bag of", "lemma": "bag", "pos": "noun", "meaning_native": "한 봉지의" },
+      { "surface": "customer", "lemma": "customer", "pos": "noun", "meaning_native": "손님" },
+      { "surface": "on the way home", "lemma": "on the way", "pos": "expression", "meaning_native": "돌아오는 길에" },
+      { "surface": "every weekend", "lemma": "weekend", "pos": "noun", "meaning_native": "매주 주말" }
+    ],
+    "questions": [
+      {
+        "q_target": "What time does the market open?",
+        "q_native": "시장은 몇 시에 열려요?",
+        "choices": ["Five in the morning", "Six in the morning", "Seven in the morning", "It does not say"],
+        "answer_index": 1,
+        "explanation_native": "'opens at six every morning'이라고 했어요."
+      },
+      {
+        "q_target": "Why did the writer go early?",
+        "q_native": "왜 일찍 갔어요?",
+        "choices": ["The market was closed", "To go before the crowds", "To meet a friend", "The shop opened at six"],
+        "answer_index": 1,
+        "explanation_native": "'went there before the crowds'라고 했어요."
+      },
+      {
+        "q_target": "What did the writer do on the way home?",
+        "q_native": "돌아오는 길에는 무엇을 했어요?",
+        "choices": ["Bought more bread", "Drank coffee with a friend", "Broke the umbrella", "Opened a shop"],
+        "answer_index": 1,
+        "explanation_native": "'I met a friend and we drank coffee together'라고 했어요."
+      }
+    ],
+    "writing_prompt": {
+      "target": "Describe a shop or market you like. Say where it is and what you buy there.",
+      "native": "좋아하는 가게나 시장을 쓰세요. 어디에 있는지, 거기서 무엇을 사는지 쓰세요.",
+      "target_grammar": "상대절 (that / who)을 붙인 문장"
+    },
+    "speaking_prompt": {
+      "target": "Where do you usually buy food?",
+      "native": "보통 음식을 어디서 사요?"
+    }
+  },
+  {
+    "level": 1,
+    "topic": "work",
+    "title_target": "My First Office Job",
+    "passage_target": "I started my first office job in March. I work at a small company that makes kitchen equipment. I get up at six and take two buses to get there. My manager is kind and she explains things twice, so I still sometimes forget. I learned to answer the phone in English, which was difficult but useful. At the end of the month I get paid on the twenty-fifth.",
+    "passage_native": "저는 三월에 첫 회사 일을 시작했어요. 주방 기구를 만드는 작은 회사에 다녀요. 여섯 시에 일어나서 버스 두 번을 갈아타고 가요. 제 매니저는 친절하시고 두 번은 설명해 주셔서 그래도 가끔 잊어요. 영어로 전화 응대를 배우는 게 어려웠지만 도움이 됐어요. 달 말기에 이십오일에 월급을 받아요.",
+    "sentences": [
+      { "target": "I work at a small company that makes kitchen equipment.", "native": "주방 기구를 만드는 작은 회사에 다녀요." },
+      { "target": "My manager is kind and she explains things twice, so I still sometimes forget.", "native": "제 매니저는 친절하시고 두 번은 설명해 주셔서 그래도 가끔 잊어요." },
+      { "target": "At the end of the month I get paid on the twenty-fifth.", "native": "달 말기에 이십오일에 월급을 받아요." }
+    ],
+    "glossary": [
+      { "surface": "kitchen equipment", "lemma": "equipment", "pos": "noun", "meaning_native": "주방 기구" },
+      { "surface": "manager", "lemma": "manager", "pos": "noun", "meaning_native": "매니저" },
+      { "surface": "kind", "lemma": "kind", "pos": "adjective", "meaning_native": "친절한" },
+      { "surface": "answer the phone", "lemma": "answer", "pos": "verb", "meaning_native": "전화에 응대하다" },
+      { "surface": "useful", "lemma": "useful", "pos": "adjective", "meaning_native": "도움이 되는" },
+      { "surface": "get paid", "lemma": "get paid", "pos": "verb", "meaning_native": "월급을 받다" }
+    ],
+    "questions": [
+      {
+        "q_target": "What does the company make?",
+        "q_native": "그 회사는 무엇을 만들어요?",
+        "choices": ["Kitchen equipment", "Kitchen food", "Buses", "Phones"],
+        "answer_index": 0,
+        "explanation_native": "'a small company that makes kitchen equipment'라고 했어요."
+      },
+      {
+        "q_target": "Why does the writer still forget things?",
+        "q_native": "왜 그래도 가끔 잊어버려요?",
+        "choices": ["The manager explains things twice", "The writer is not listening", "The office is noisy", "The writer is new"],
+        "answer_index": 0,
+        "explanation_native": "지문은 매니저가 두 번 설명하기 때문에 잊는다고 했어요. '그래도'라는 표현이 핵심입니다."
+      },
+      {
+        "q_target": "When is the writer paid?",
+        "q_native": "언제 월급을 받아요?",
+        "choices": ["On the first", "On the fifteenth", "On the twenty-fifth", "At the end of the year"],
+        "answer_index": 2,
+        "explanation_native": "'I get paid on the twenty-fifth'라고 했어요."
+      }
+    ],
+    "writing_prompt": {
+      "target": "Describe your job, or a job you would like. Say what you do and what your day is like.",
+      "native": "당신의 직장, 또는 하고 싶은 직장을 쓰세요. 무슨 일을 하는지, 하루가 어떤지 쓰세요.",
+      "target_grammar": "3인칭 일반 현재 (he/she/it + 동사 -s)"
+    },
+    "speaking_prompt": {
+      "target": "What time do you start work or school?",
+      "native": "직장이나 학교를 몇 시에 시작해요?"
+    }
+  },
+  {
+    "level": 2,
+    "topic": "travel",
+    "title_target": "A Slow Train to the Coast",
+    "passage_target": "Last April my friend and I took the slow train to the coast instead of the bus. The bus would have taken two hours, but the train took five, and we sat by the window the whole way. We had not planned it, so we were a little nervous until we saw the sea. An old man on the train told us which station to get off at, and he was right. We spent the afternoon walking along the water and ate grilled fish from a small stall. We agreed that we would do it again, but in summer, when the trains are less full.",
+    "passage_native": "지난 四월에 친구와 버스 대신 느린 기차를 타고 바닷가에 갔어요. 버스면 두 시간 걸렸을 텐데 기차는 다섯 시간 걸렸고, 내내 창가에 앉았어요. 계획한 일이 아니어서 바다를 보기 전까지는 조금 걱정했어요. 기차에서 지나가던 할아버지가 어느 역에서 내릴지 알려 주셨는데, 그분이 맞았어요. 우리는 오후 내내 물가를 걸으며 소금 구워 생선집에서 먹었어요. 여름에 기차가 덜 붐빌 때 다시 가자고 약속했어요.",
+    "sentences": [
+      { "target": "Last April my friend and I took the slow train to the coast instead of the bus.", "native": "지난 四월에 친구와 버스 대신 느린 기차를 타고 바닷가에 갔어요." },
+      { "target": "We spent the afternoon walking along the water and ate grilled fish from a small stall.", "native": "우리는 오후 내내 물가를 걸으며 소금 구워 생선집에서 먹었어요." },
+      { "target": "We agreed that we would do it again, but in summer, when the trains are less full.", "native": " 여름에 기차가 덜 붐빌 때 다시 가자고 약속했어요." }
+    ],
+    "glossary": [
+      { "surface": "the coast", "lemma": "coast", "pos": "noun", "meaning_native": "해안" },
+      { "surface": "the whole way", "lemma": "way", "pos": "noun", "meaning_native": "내내, 한 내내" },
+      { "surface": "nervous", "lemma": "nervous", "pos": "adjective", "meaning_native": "긴장된" },
+      { "surface": "get off", "lemma": "get off", "pos": "verb", "meaning_native": "내리다" },
+      { "surface": "stall", "lemma": "stall", "pos": "noun", "meaning_native": "노점, 가게" },
+      { "surface": "grilled fish", "lemma": "grilled", "pos": "adjective", "meaning_native": "구워진" },
+      { "surface": "agreed", "lemma": "agree", "pos": "verb", "meaning_native": "합의하다, 동의하다" },
+      { "surface": "less full", "lemma": "full", "pos": "adjective", "meaning_native": "덜 붐비는" }
+    ],
+    "questions": [
+      {
+        "q_target": "How long did the train take?",
+        "q_native": "기차는 얼마나 걸렸어요?",
+        "choices": ["Two hours", "Three hours", "Five hours", "The whole day"],
+        "answer_index": 2,
+        "explanation_native": "'the train took five'이라고 했어요. hours는 생략되어 있어요."
+      },
+      {
+        "q_target": "How did they feel before they saw the sea?",
+        "q_native": "바다를 보기 전에는 어떻게 느꼈어요?",
+        "choices": ["Excited", "Bored", "A little nervous", "Angry"],
+        "answer_index": 2,
+        "explanation_native": "'we were a little nervous until we saw the sea'라고 했어요."
+      },
+      {
+        "q_target": "What have they agreed to do?",
+        "q_native": "두 사람은 무엇에 합의했어요?",
+        "choices": ["Take the bus next time", "Take the train again in summer", "Visit the old man", "Eat fish every week"],
+        "answer_index": 1,
+        "explanation_native": "'We agreed that we would do it again, but in summer'라고 했어요."
+      }
+    ],
+    "writing_prompt": {
+      "target": "Write about a journey you took. Say how you travelled, what you saw, and whether you enjoyed it.",
+      "native": "여행에 대해 쓰세요. 어떻게 이동했는지, 무엇을 봤는지, 재미가 있었는지 쓰세요.",
+      "target_grammar": "과거 완료 (have/has +过去分词)와 would/used to"
+    },
+    "speaking_prompt": {
+      "target": "What was the last trip you took, and who did you go with?",
+      "native": "마지막 여행은 언제 어디로 누구와 갔어요?"
+    }
+  },
+  {
+    "level": 2,
+    "topic": "hobbies",
+    "title_target": "Learning to Play the Guitar",
+    "passage_target": "I decided to learn the guitar in my thirties, which my brother said was too late. I bought a cheap one and started with four chords, and for the first two months my fingers hurt every morning. Then something changed. About a year in I could play a whole song badly but completely, and I have never enjoyed anything as much. Now I practise for twenty minutes every evening instead of an hour, because I would rather play a little every day than a lot once a week.",
+    "passage_native": "서른 살에 기타를 배우기로 했는데, 형이 너무 늦었다고 했어요. 싼 기타를 사고 네 개의 화음부터 시작했는데, 첫 두 달 동안은 아침마다 손가락이 아팠어요. 그런데 어느 순간 뭔가가 달라졌어요. 일 년쯤 지나서 한 곡을 서툴지만 완전히 칠 수 있게 되었고, 그만큼 행복한 적은 없었어요. 이제 일주일에 한 번 오래 연주하는 것보다 매일 조금씩 하는 게 좋다는 걸 알게 되어서, 매일 저녁 이십 분만 연습해요.",
+    "sentences": [
+      { "target": "I decided to learn the guitar in my thirties, which my brother said was too late.", "native": "서른 살에 기타를 배우기로 했는데, 형이 너무 늦었다고 했어요." },
+      { "target": "Now I practise for twenty minutes every evening instead of an hour.", "native": "이제 일주일에 한 번 오래 연주하는 것보다 매일 조금씩 하는 게 좋다는 걸 알게 되어서, 매일 저녁 이십 분만 연습해요." },
+      { "target": "I would rather play a little every day than a lot once a week.", "native": "일주일에 한 번 오래 하는 것보다 매일 조금씩 하는 편이 낫겠어요." }
+    ],
+    "glossary": [
+      { "surface": "in my thirties", "lemma": "thirties", "pos": "noun", "meaning_native": "서른 대" },
+      { "surface": "chord", "lemma": "chord", "pos": "noun", "meaning_native": "화음" },
+      { "surface": "hurt", "lemma": "hurt", "pos": "verb", "meaning_native": "아프다" },
+      { "surface": "badly but completely", "lemma": "badly", "pos": "adverb", "meaning_native": "서툴지만" },
+      { "surface": "practise", "lemma": "practise", "pos": "verb", "meaning_native": "연습하다" },
+      { "surface": "would rather … than", "lemma": "would rather", "pos": "expression", "meaning_native": "…보다 …하는 편이 낫다" }
+    ],
+    "questions": [
+      {
+        "q_target": "What did the writer's brother think?",
+        "q_native": "이 사람의 형은 어떻게 생각했어요?",
+        "choices": ["It was a good idea", "It was too late", "It was too expensive", "It was too difficult"],
+        "answer_index": 1,
+        "explanation_native": "'which my brother said was too late'라고 했어요."
+      },
+      {
+        "q_target": "How did the writer feel for the first two months?",
+        "q_native": "처음 두 달 동안 이 사람은 어떻게 느꼈어요?",
+        "choices": ["Very happy", "Bored and tired", "Excited", "Angry"],
+        "answer_index": 1,
+        "explanation_native": "'my fingers hurt every morning'이라고 했어요. 계속 아프니까 재미가 없었다는 뜻이에요."
+      },
+      {
+        "q_target": "How long does the writer practise now?",
+        "q_native": "지금은 얼마나 연습해요?",
+        "choices": ["Twenty minutes every evening", "An hour every day", "An hour once a week", "Only on Sundays"],
+        "answer_index": 0,
+        "explanation_native": "'I practise for twenty minutes every evening instead of an hour'라고 했어요."
+      }
+    ],
+    "writing_prompt": {
+      "target": "Write about a skill you learned as an adult. Say why you started and how it went.",
+      "native": "성인이 되어서 배운 재능에 대해 쓰세요. 왜 시작했는지, 어떻게 됐는지 쓰세요.",
+      "target_grammar": "과거 시제와转折 부사 (but / however / although)"
+    },
+    "speaking_prompt": {
+      "target": "What is something you would like to learn?",
+      "native": "배우고 싶은 것이 있으면 말해 보세요."
+    }
+  },
+  {
+    "level": 2,
+    "topic": "health",
+    "title_target": "Running in the Winter",
+    "passage_target": "I started running in January because my doctor said I sat down too much. The first week I could only manage two streets before I had to stop. By March I was running along the river three times a week, and by June I finished my first ten kilometres without stopping. What surprised me most was not the running. It was that I slept better, my back stopped hurting, and I stopped feeling tired in the afternoon. Now it is too cold to run outside, so I go to the small gym in my building instead.",
+    "passage_native": "의사가 너무 많이 앉아 있다고 해서 일월에 달리기를 시작했어요. 첫 주에는 두 개 골목만 달리고 멈춰야 했어요. 삼월까지는 강가를 따라 일주일에 세 번 달렸고, 육월까지는 멈추지 않고 첫 십 킬로미터를 완주했어요. 가장 놀랍던 건 달리는 것 자체가 아니었어요. 잠을 더 잘 자게 되었고, 등이 아프지 않았고, 오후에 졸린 느낌이 없어졌어요. 이제는 밖에서 달리기엔 너무 추워서, 건물 안에 있는 작은 체육관에 가요.",
+    "sentences": [
+      { "target": "I started running in January because my doctor said I sat down too much.", "native": "의사가 너무 많이 앉아 있다고 해서 일월에 달리기를 시작했어요." },
+      { "target": "By March I was running along the river three times a week.", "native": "삼월까지는 강가를 따라 일주일에 세 번 달렸어요." },
+      { "target": "What surprised me most was not the running. It was that I slept better.", "native": "가장 놀랍던 건 달리는 것 자체가 아니었어요. 잠을 더 잘 자게 되었고." }
+    ],
+    "glossary": [
+      { "surface": "sit down too much", "lemma": "sit down", "pos": "verb", "meaning_native": "너무 오래 앉아 있다" },
+      { "surface": "manage", "lemma": "manage", "pos": "verb", "meaning_native": "해내다" },
+      { "surface": "by March", "lemma": "by", "pos": "preposition", "meaning_native": "…까지가 되면" },
+      { "surface": "finish", "lemma": "finish", "pos": "verb", "meaning_native": "완주하다, 끝내다" },
+      { "surface": "surprise", "lemma": "surprise", "pos": "verb", "meaning_native": "놀라게 하다" },
+      { "surface": "back", "lemma": "back", "pos": "noun", "meaning_native": "등, 허리" }
+    ],
+    "questions": [
+      {
+        "q_target": "Why did the writer start running?",
+        "q_native": "왜 달리기를 시작했어요?",
+        "choices": ["For a competition", "Because a doctor advised it", "Because a friend asked", "To lose weight for a holiday"],
+        "answer_index": 1,
+        "explanation_native": "'my doctor said I sat down too much'라고 했어요."
+      },
+      {
+        "q_target": "What surprised the writer most?",
+        "q_native": "가장 놀랍던 것은 무엇이에요?",
+        "choices": ["Winning a race", "Sleeping and feeling less tired", "The cost of the shoes", "Meeting other runners"],
+        "answer_index": 1,
+        "explanation_native": "'It was that I slept better, my back stopped hurting'라고 했어요."
+      },
+      {
+        "q_target": "What does the writer do in winter now?",
+        "q_native": "지금은 겨울에 무엇을 해요?",
+        "choices": ["Runs outside anyway", "Goes to a gym in the building", "Stops exercising", "Runs at home"],
+        "answer_index": 1,
+        "explanation_native": "'it is too cold to run outside, so I go to the small gym in my building'이라고 했어요."
+      }
+    ],
+    "writing_prompt": {
+      "target": "Write about a change you made for your health. Say what changed and what effect it had.",
+      "native": "건강을 위해 바꾼 습관에 대해 쓰세요. 무엇이 바뀌었고 어떤 효과가 있었는지 쓰세요.",
+      "target_grammar": "지금 완료 (have/has +过去分词)"
+    },
+    "speaking_prompt": {
+      "target": "How much exercise do you get in a week?",
+      "native": "일주일에 운동을 얼마나 해요?"
+    }
+  }
+]

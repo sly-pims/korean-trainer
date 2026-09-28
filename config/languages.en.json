@@ -1,0 +1,52 @@
+{
+  "code": "en",
+  "name": "English",
+  "endonym": "English",
+  "lexiconExample": "apple",
+  "locale": "en-US",
+  "htmlLang": "en",
+  "defaultVoice": "en-US-AriaNeural",
+  "voices": [
+    "en-US-AriaNeural",
+    "en-US-GuyNeural",
+    "en-US-JennyNeural",
+    "en-GB-SoniaNeural",
+    "en-GB-RyanNeural",
+    "en-AU-NatashaNeural",
+    "en-US-ChristopherNeural",
+    "en-US-EricNeural",
+    "en-US-MichelleNeural",
+    "en-US-SteffanNeural"
+  ],
+  "seedFile": "seed/passages.en.json",
+  "levelScaleName": "IELTS",
+  "levels": {
+    "1": { "name": "IELTS 4.0", "note": "Everyday basics" },
+    "2": { "name": "IELTS 5.0", "note": "Everyday conversations" },
+    "3": { "name": "IELTS 5.5", "note": "Daily life with some nuance" },
+    "4": { "name": "IELTS 6.0", "note": "News and general topics" },
+    "5": { "name": "IELTS 6.5", "note": "Abstract and professional topics" },
+    "6": { "name": "IELTS 7.0+", "note": "Idiomatic and advanced" }
+  },
+  "learnerProfile": "reads and understands everyday English at about IELTS 4.0-5.0; reads at roughly a young child's level. NOT an absolute beginner. Content must be worth their time and build reading confidence.",
+  "styleGuidance": "Natural, everyday English. Prefer short, plain words and active voice over long sentences. Use contractions. Only use formal or academic register at levels 5-6.",
+  "pronunciationGuidance": "Sound rules English learners commonly miss: word stress (the stressed syllable changes the whole word), schwa reduction in unstressed syllables, silent letters in common words (know, hour, answer), the voiced/unvoiced distinction between /v/ and /w/, and word-initial consonant clusters in words like 'three' and 'street'. Explain in the learner's own language; do not use a phonetic scheme the learner has not been taught.",
+  "exampleGuidance": "Keep examples short — under about 10 words, or 2 short clauses.",
+  "levelGuide": {
+    "1": { "passage": "3-5 short sentences", "grammar": "Present simple and present continuous, basic articles and prepositions, everyday nouns and verbs" },
+    "2": { "passage": "5-7 sentences", "grammar": "Past simple and present perfect, comparatives, common connectors (but, because, so)" },
+    "3": { "passage": "7-10 sentences", "grammar": "Past continuous vs past perfect, relative clauses (who, which, that), modals of obligation" },
+    "4": { "passage": "10-14 sentences", "grammar": "Reported speech, passive voice, conditionals (first and second)" },
+    "5": { "passage": "14-20 sentences", "grammar": "Abstract topics, formal and journalistic register, hedging and concession" },
+    "6": { "passage": "20+ sentences", "grammar": "Idioms, academic writing conventions, nuanced connectors" }
+  },
+  "topics": ["family", "food", "travel", "work", "weather", "hobbies", "health", "shopping", "news"],
+  "fallbacks": {
+    "speakingPrompt": {
+      "target": "What did you do last week?",
+      "native": "What did you do last week?"
+    }
+  },
+  "scriptPattern": "[A-Za-z]",
+  "silenceMarkers": ["EMPTY"]
+}
